@@ -60,9 +60,10 @@
     </div>
 
     <button
-      [disabled]="isLoggingOut"
       class="cursor-pointer w-[19px] h-[19px] disabled:opacity-50 transition-opacity"
       title="Logout"
+      (click)="logout()"
+      [disabled]="isLoggingOut"
     >
       <img
         src="/icons/logout.svg"

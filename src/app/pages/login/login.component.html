@@ -1,23 +1,51 @@
-<form (ngSubmit)="login()" #loginForm="ngForm">
-  <div>
-    <label for="email">email</label>
-    <input type="text" id="email" name="email" [(ngModel)]="email" required />
-  </div>
-  <div>
-    <label for="password">password</label>
-    <input
-      type="password"
-      id="password"
-      name="password"
-      [(ngModel)]="password"
-      required
-    />
-  </div>
+<div
+  class="h-dvh bg-[url('/login/login-bg.png')] bg-cover bg-center bg-no-repeat flex justify-center items-center p-5 overflow-auto"
+>
+  <form
+    (ngSubmit)="login()"
+    #loginForm="ngForm"
+    class="grid bg-white p-7 lg:p-14 max-w-[630px] w-full shadow rounded-3xl gap-4 lg:gap-8"
+  >
+    <div class="flex gap-3 flex-col text-center justify-center items-center">
+      <h1 class="font-bold text-2xl lg:text-3xl">Login to Account</h1>
+      <p class="font-medium lg:text-lg text-neutral-700">
+        Please enter your email and password to continue
+      </p>
+    </div>
+    <div class="flex gap-3 flex-col">
+      <label for="email">Email address:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+        placeholder="Enter email address"
+        class="p-3 shadow-[0px_1px_2px_0px_#E4E5E73D] border border-neutral-300 rounded-md text-sm placeholder:text-neutral-400"
+      />
+    </div>
+    <div class="flex gap-3 flex-col">
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+        class="p-3 shadow-[0px_1px_2px_0px_#E4E5E73D] border border-neutral-300 rounded-md text-sm placeholder:text-neutral-400"
+        placeholder="Enter Password"
+      />
+    </div>
 
-  <button type="submit" [disabled]="loading || !loginForm.form.valid">
-    sign in
-  </button>
+    <button
+      type="submit"
+      [disabled]="loading || !loginForm.form.valid"
+      class="bg-[#7F5EA3] text-white font-bold text-xl py-3 max-w-[418px] mx-auto w-full rounded-lg"
+    >
+      <div *ngIf="!loading">Sign In</div>
+      <div *ngIf="loading">Loading...</div>
+    </button>
 
-  <div *ngIf="error" style="color: red">{{ error }}</div>
-  <div *ngIf="loading">Loading...</div>
-</form>
+    <div *ngIf="error" style="color: red">{{ error }}</div>
+  </form>
+</div>

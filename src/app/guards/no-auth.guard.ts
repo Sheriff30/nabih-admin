@@ -7,7 +7,7 @@ export const noAuthGuard: CanActivateFn = () => {
   if (!token) {
     return true;
   } else {
-    router.navigate(['/dashboard']);
+    router.navigate(['/admin/dashboard']);
     return false;
   }
 };

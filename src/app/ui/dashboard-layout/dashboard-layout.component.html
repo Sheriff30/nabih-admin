@@ -1,0 +1,14 @@
+<div
+  class="h-dvh grid grid-cols-[1fr] lg:grid-cols-[289px_1fr] grid-rows-[84px_1fr] relative"
+>
+  <app-dashboard-sidebar
+    *ngIf="sidebarOpen || isLargeScreen"
+    class="row-span-full max-w-[289px] w-full absolute lg:relative h-full bg-white z-15"
+    [hidden]="!sidebarOpen && !isLargeScreen"
+    (closeSidebar)="closeSidebar()"
+  ></app-dashboard-sidebar>
+  <app-dashboard-header (openSidebar)="openSidebar()"></app-dashboard-header>
+  <div class="p-4 lg:p-8 bg-[#E6E2F2A1] h-full overflow-auto">
+    <router-outlet></router-outlet>
+  </div>
+</div>

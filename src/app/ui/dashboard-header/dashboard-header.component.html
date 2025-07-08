@@ -1,0 +1,58 @@
+<div class="h-full p-5 flex items-center justify-between relative">
+  <!-- Close -->
+  <div class="block lg:hidden">
+    <img src="/icons/menu.svg" alt="menubar" (click)="openSidebar.emit()" />
+  </div>
+
+  <!-- Title -->
+
+  <p class="text-lg font-semibold">{{ headerTitle }}</p>
+
+  <!-- Notification -->
+  <div
+    class="relative notification-bell cursor-pointer"
+    (click)="toggleNotificationList()"
+  >
+    <div
+      *ngIf="unreadCount > 0"
+      class="absolute -top-[10px] -right-[6px] w-[20px] h-[20px] bg-red-500 text-white rounded-full text-center text-sm flex items-center justify-center"
+    >
+      {{ unreadCount }}
+    </div>
+    <img
+      src="/icons/notification.svg"
+      class="w-[26px] h-[26px]"
+      alt="notification icon"
+    />
+  </div>
+
+  <!-- Notification list -->
+  <div
+    *ngIf="notificationListOpen"
+    class="absolute top-full right-0 lg:right-5 z-10 bg-white shadow-md rounded-b-2xl max-w-[450px] w-full grid gap-2 notification-list"
+  >
+    <div class="flex justify-between border-b border-[#F1F1F4] px-3 py-1.5">
+      <span class="font-bold"> Notifications </span>
+      <span
+        class="text-[#7F5EA3] text-sm cursor-pointer"
+        (click)="markAllAsRead()"
+      >
+        Mark all as read
+      </span>
+    </div>
+    <ul class="p-3 grid gap-3 divide-y divide-[#F1F1F4]">
+      <li *ngFor="let n of notifications" class="grid gap-1 py-1">
+        <p class="font-bold" [class.text-gray-400]="n.read">{{ n.title }}</p>
+        <p class="text-sm" [class.text-gray-400]="n.read">
+          {{ n.message }}
+        </p>
+      </li>
+      <li
+        *ngIf="notifications.length === 0"
+        class="py-2 text-center text-gray-400"
+      >
+        No notifications
+      </li>
+    </ul>
+  </div>
+</div>

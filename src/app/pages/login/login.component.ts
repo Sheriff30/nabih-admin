@@ -23,10 +23,11 @@ export class LoginComponent {
     this.error = '';
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
+        console.log(response);
         if (response && response.success) {
           console.log(response.data.token);
           localStorage.setItem('token', response.data.token);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/admin/dashboard']);
         } else {
           this.error = response?.message || 'Login failed';
         }

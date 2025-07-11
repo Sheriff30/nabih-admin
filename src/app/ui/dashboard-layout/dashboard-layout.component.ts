@@ -6,8 +6,8 @@ import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard-layout',
+  standalone: true,
   imports: [
-    DashboardSidebarComponent,
     DashboardSidebarComponent,
     DashboardHeaderComponent,
     RouterModule,

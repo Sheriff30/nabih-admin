@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
+  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './dashboard-sidebar.component.html',
   styleUrls: ['./dashboard-sidebar.component.css'],

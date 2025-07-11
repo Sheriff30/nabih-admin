@@ -45,6 +45,7 @@ export class UsersComponent implements OnInit {
       this.loading = true;
       this.usersService.listCustomers(token, page, per_page, search).subscribe({
         next: (res) => {
+          console.log(res);
           if (res.success && res.data && res.data.customers) {
             const customers = res.data.customers;
             if (Array.isArray(customers)) {

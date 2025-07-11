@@ -26,6 +26,8 @@ export class UsersComponent implements OnInit {
   loading: boolean = false;
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  isDeleteConfirmOpen: boolean = false;
+  userToDelete: any = null;
 
   constructor(private usersService: UsersService) {}
 
@@ -115,18 +117,33 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(user: any) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    this.isDeleteConfirmOpen = true;
+    this.userToDelete = user;
+  }
+
+  confirmDeleteUser() {
+    if (!this.userToDelete) return;
     const token = localStorage.getItem('token');
     if (token) {
-      this.usersService.deleteCustomer(user.id, token).subscribe({
+      this.usersService.deleteCustomer(this.userToDelete.id, token).subscribe({
         next: (res) => {
           this.loadCustomers(this.pagination.current_page);
+          this.isDeleteConfirmOpen = false;
+          this.userToDelete = null;
+          this.closeEditModal();
         },
         error: (err) => {
           alert('Failed to delete user');
+          this.isDeleteConfirmOpen = false;
+          this.userToDelete = null;
         },
       });
     }
+  }
+
+  cancelDeleteUser() {
+    this.isDeleteConfirmOpen = false;
+    this.userToDelete = null;
   }
 
   sortUsers(column: string) {

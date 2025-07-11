@@ -198,103 +198,137 @@
 <!-- Edit User Modal -->
 <div
   *ngIf="isEditModalOpen"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
 >
   <form
     (ngSubmit)="saveUser()"
-    class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg"
+    class="bg-white rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6"
   >
-    <div class="mb-4">
-      <h2 class="text-lg font-bold mb-2">Edit User</h2>
-      <button
-        type="button"
-        class="absolute top-2 right-2"
-        (click)="closeEditModal()"
-      >
-        <img src="/icons/close.svg" alt="close" />
-      </button>
-    </div>
-    <div class="mb-4 flex items-center gap-2">
-      <label class="font-medium text-sm">Active</label>
-      <label class="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          class="sr-only peer"
-          [(ngModel)]="selectedUser.is_verified"
-          name="is_verified"
-        />
-        <div
-          class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-green-500 transition-all"
-        ></div>
-        <div
-          class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"
-        ></div>
-      </label>
-      <span class="ml-2 text-sm text-gray-600">{{
-        selectedUser.is_verified ? "Active" : "Inactive"
-      }}</span>
-    </div>
-    <div class="mb-4">
-      <label class="block text-sm mb-1">Full Name</label>
-      <input
-        type="text"
-        class="w-full border rounded p-2"
-        [(ngModel)]="selectedUser.name"
-        name="name"
-      />
-    </div>
-    <div class="mb-4">
-      <label class="block text-sm mb-1">Phone Number</label>
-      <input
-        type="text"
-        class="w-full border rounded p-2"
-        [(ngModel)]="selectedUser.phone_number"
-        name="phone_number"
-        disabled
-      />
-    </div>
-    <div class="mb-4">
-      <label class="block text-sm mb-1">Email</label>
-      <input
-        type="text"
-        class="w-full border rounded p-2"
-        [(ngModel)]="selectedUser.email"
-        name="email"
-        disabled
-      />
-    </div>
-    <div class="mb-4">
-      <label class="block text-sm mb-1">Gender</label>
-      <select
-        class="w-full border rounded p-2"
-        [(ngModel)]="selectedUser.gender"
-        name="gender"
-      >
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-    <div class="flex justify-between gap-2 items-center">
-      <button
-        type="button"
-        class="px-4 py-2 rounded bg-red-600 text-white"
-        (click)="deleteUser(selectedUser)"
-      >
-        Delete
-      </button>
+    <div
+      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+    >
+      <h2 class="text-lg font-bold">User Details</h2>
       <div class="flex gap-2">
+        <div class="flex items-center gap-2">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              class="sr-only peer"
+              [(ngModel)]="selectedUser.is_verified"
+              name="is_verified"
+            />
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 rounded-full peer peer-checked:bg-[#82645A] transition-all"
+            ></div>
+            <div
+              class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"
+            ></div>
+          </label>
+          <span class="text-sm text-gray-600">{{
+            selectedUser.is_verified ? "Active" : "Inactive"
+          }}</span>
+        </div>
         <button
           type="button"
-          class="px-4 py-2 rounded bg-neutral-200"
+          class="p-1 rounded bg-rose-100 text-white"
+          (click)="deleteUser(selectedUser)"
+        >
+          <img src="/icons/delete.svg" alt="delete icon" />
+        </button>
+      </div>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
+      <div>
+        <label class="block text-sm mb-1">Full Name</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="selectedUser.name"
+          name="name"
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Phone Number</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="selectedUser.phone_number"
+          name="phone_number"
+          disabled
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Email</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="selectedUser.email"
+          name="email"
+          disabled
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Vehicles</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="selectedUser.vehicles"
+          name="vehicles"
+          disabled
+        />
+      </div>
+    </div>
+
+    <div class="flex justify-center gap-2 items-center">
+      <div class="flex flex-1 justify-center gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
           (click)="closeEditModal()"
         >
+          <img src="/icons/cancel-btn.svg" alt="" />
           Cancel
         </button>
-        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">
+        <button
+          type="submit"
+          class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+        >
+          <img src="/icons/submit.svg" alt="" />
+
           Save
         </button>
       </div>
     </div>
   </form>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div
+  *ngIf="isDeleteConfirmOpen"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+>
+  <div
+    class="bg-white rounded-[20px] p-8 w-full max-w-[400px] shadow-lg flex flex-col items-center gap-6"
+  >
+    <h2
+      class="text-lg font-bold text-center text-rose-600 flex items-center gap-2"
+    >
+      <img src="/icons/delete.png" alt="" />
+      <div class="max-w-[200px]">Are you sure this user has been deleted?</div>
+    </h2>
+    <div class="flex gap-4 w-full justify-center">
+      <button
+        class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
+        (click)="cancelDeleteUser()"
+      >
+        Cancel
+      </button>
+      <button
+        class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
+        (click)="confirmDeleteUser()"
+      >
+        Yes, Delete
+      </button>
+    </div>
+  </div>
 </div>

@@ -10,14 +10,26 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
+  private getCommonHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+  }
+
+  private getAuthHeaders(token: string): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    });
+  }
+
   login(email: string, password: string): Observable<any> {
     const url = `${this.apiUrl}/login`;
     const body = { email, password };
     return this.http.post(url, body, {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      }),
+      headers: this.getCommonHeaders(),
     });
   }
 
@@ -27,11 +39,7 @@ export class AuthService {
       url,
       {},
       {
-        headers: new HttpHeaders({
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        }),
+        headers: this.getAuthHeaders(token),
       }
     );
   }

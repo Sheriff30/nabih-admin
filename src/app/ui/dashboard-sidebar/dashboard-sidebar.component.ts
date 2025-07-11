@@ -11,7 +11,13 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./dashboard-sidebar.component.css'],
 })
 export class DashboardSidebarComponent implements OnInit {
-  navLinks = [{ label: 'Dashboard', href: '/admin/dashboard' }];
+  navLinks = [
+    { label: 'Dashboard', href: '/admin/dashboard' },
+    {
+      label: 'Users',
+      href: '/admin/dashboard/users',
+    },
+  ];
 
   ngOnInit(): void {}
   @Output() closeSidebar = new EventEmitter<void>();

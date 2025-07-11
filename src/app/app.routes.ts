@@ -4,6 +4,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { authGuard } from './guards/auth.guard';
 import { noAuthGuard } from './guards/no-auth.guard';
 import { DashboardLayoutComponent } from './ui/dashboard-layout/dashboard-layout.component';
+import { UsersComponent } from './pages/users/users.component';
 
 export const routes: Routes = [
   {
@@ -16,7 +17,13 @@ export const routes: Routes = [
     path: 'admin/dashboard',
     component: DashboardLayoutComponent,
     canActivate: [authGuard],
-    children: [{ path: '', component: DashboardComponent }],
+    children: [
+      { path: '', component: DashboardComponent },
+      {
+        path: 'users',
+        component: UsersComponent,
+      },
+    ],
   },
 
   { path: '**', redirectTo: 'login', pathMatch: 'full' },

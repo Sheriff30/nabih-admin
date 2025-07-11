@@ -1,163 +1,193 @@
-<div class="w-full overflow-x-auto rounded-md">
-  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
-    <!-- Title & Search -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
-      <p class="font-bold">User Management</p>
-      <div
-        class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
-      >
-        <img src="/icons/search.svg" alt="search icon" />
-        <input
-          type="text"
-          placeholder="Search by name, phone number, or email"
-          class="w-full text-xs bg-neutral-100 outline-none"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearch($event)"
-        />
-      </div>
-    </div>
-    <!-- Header -->
+<div>
+  <div class="w-full overflow-x-auto rounded-md">
     <div
-      class="grid grid-cols-[80px_minmax(165px,1fr)_minmax(165px,1fr)_minmax(227px,1fr)_98px_165px_165px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
     >
-      <div class="px-5 py-3">Number</div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Name <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Phone Number <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Email <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Vehicles <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Status <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Actions <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-    </div>
-    <!-- Table Rows -->
-    <ng-container *ngIf="users.length > 0; else noUsers">
-      <div
-        *ngFor="let user of users; let i = index"
-        class="grid grid-cols-[80px_minmax(165px,1fr)_minmax(165px,1fr)_minmax(227px,1fr)_98px_165px_165px] bg-white text-sm"
-      >
-        <div class="px-5 py-3">
-          {{ i + 1 + (pagination.current_page - 1) * pagination.per_page }}
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">
-            {{ user.name ? user.name : "-" }}
-          </div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">
-            {{ user.phone_number ? user.phone_number : "-" }}
-          </div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">
-            {{ user.email ? user.email : "-" }}
-          </div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">-</div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div
-            [ngClass]="
-              user.is_verified
-                ? 'bg-green-50 border border-green-200 text-green-600'
-                : 'bg-red-50 border border-red-200 text-red-600'
-            "
-            class="w-full rounded-[4px] py-1 text-center"
-          >
-            {{ user.is_verified ? "Active" : "Inactive" }}
-          </div>
-        </div>
-        <div class="px-5 py-3 flex justify-center gap-1">
-          <img
-            src="/icons/eye.svg"
-            alt="view-icon"
-            class="cursor-pointer w-[24px] h-[24px]"
-            (click)="showUser(user)"
+      <!-- Title & Search -->
+      <div class="flex justify-between py-4 px-5 bg-white items-center">
+        <p class="font-bold">User Management</p>
+        <div
+          class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+        >
+          <img src="/icons/search.svg" alt="search icon" />
+          <input
+            type="text"
+            placeholder="Search by name, phone number, or email"
+            class="w-full text-xs bg-neutral-100 outline-none"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearch($event)"
           />
         </div>
       </div>
-    </ng-container>
-    <ng-template #noUsers>
-      <div class="text-center py-8 bg-white">No users found.</div>
-    </ng-template>
-    <!-- Pagination -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
-      <div class="flex gap-2 items-center">
-        <div>Show</div>
-        <select
-          class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="pagination.per_page"
-          (change)="onPerPageChange()"
+      <!-- Header -->
+      <div
+        class="grid grid-cols-[80px_minmax(165px,1fr)_minmax(165px,1fr)_minmax(227px,1fr)_98px_165px_165px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      >
+        <div class="px-5 py-3">Number</div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="sortUsers('name')"
         >
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="30">30</option>
-        </select>
-        <div>per page</div>
-      </div>
-      <div class="flex gap-4 items-center">
-        <div class="text-neutral-500">
-          {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
+          Name
+          <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-        <div class="flex items-center gap-1">
-          <div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="sortUsers('phone_number')"
+        >
+          Phone Number
+          <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="sortUsers('email')"
+        >
+          Email
+          <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          Vehicles <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="sortUsers('is_verified')"
+        >
+          Status
+          <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          Actions <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+      </div>
+      <!-- Table Rows -->
+      <div
+        *ngIf="loading"
+        class="flex items-center justify-center bg-white py-12"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+        ></div>
+      </div>
+      <ng-container *ngIf="!loading && users.length > 0; else noUsers">
+        <div
+          *ngFor="let user of users; let i = index"
+          class="grid grid-cols-[80px_minmax(165px,1fr)_minmax(165px,1fr)_minmax(227px,1fr)_98px_165px_165px] bg-white text-sm"
+        >
+          <div class="px-5 py-3">
+            {{ i + 1 + (pagination.current_page - 1) * pagination.per_page }}
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              {{ user.name ? user.name : "-" }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              {{ user.phone_number ? user.phone_number : "-" }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              {{ user.email ? user.email : "-" }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">-</div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div
+              [ngClass]="
+                user.is_verified
+                  ? 'bg-green-50 border border-green-200 text-green-600'
+                  : 'bg-red-50 border border-red-200 text-red-600'
+              "
+              class="w-full rounded-[4px] py-1 text-center"
+            >
+              {{ user.is_verified ? "Active" : "Inactive" }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex justify-center gap-1">
             <img
-              src="/icons/pagination-left.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                pagination.current_page > 1 && pagination.total >= 10
-                  ? goToPage(pagination.current_page - 1)
-                  : null
-              "
-              [class.opacity-50]="
-                pagination.current_page === 1 || pagination.total < 10
-              "
+              src="/icons/eye.svg"
+              alt="view-icon"
+              class="cursor-pointer w-[24px] h-[24px]"
+              (click)="showUser(user)"
             />
           </div>
-          <ul class="flex gap-1">
-            <li
-              *ngFor="
-                let page of [].constructor(pagination.last_page);
-                let p = index
-              "
-              class="py-2 px-4 rounded-md cursor-pointer"
-              [ngClass]="
-                pagination.current_page === p + 1
-                  ? 'bg-neutral-100'
-                  : 'text-neutral-400'
-              "
-              (click)="goToPage(p + 1)"
-            >
-              {{ p + 1 }}
-            </li>
-          </ul>
-          <div>
-            <img
-              src="/icons/pagination-right.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                pagination.current_page < pagination.last_page &&
-                pagination.total >= 10
-                  ? goToPage(pagination.current_page + 1)
-                  : null
-              "
-              [class.opacity-50]="
-                pagination.current_page === pagination.last_page ||
-                pagination.total < 10
-              "
-            />
+        </div>
+      </ng-container>
+      <ng-template #noUsers>
+        <div *ngIf="!loading" class="text-center py-8 bg-white">
+          No users found.
+        </div>
+      </ng-template>
+      <!-- Pagination -->
+      <div class="flex justify-between py-4 px-5 bg-white items-center">
+        <div class="flex gap-2 items-center">
+          <div>Show</div>
+          <select
+            class="border border-neutral-200 rounded-md p-2"
+            [(ngModel)]="pagination.per_page"
+            (change)="onPerPageChange()"
+          >
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="30">30</option>
+          </select>
+          <div>per page</div>
+        </div>
+        <div class="flex gap-4 items-center">
+          <div class="text-neutral-500">
+            {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
+          </div>
+          <div class="flex items-center gap-1">
+            <div>
+              <img
+                src="/icons/pagination-left.svg"
+                alt=""
+                class="cursor-pointer"
+                (click)="
+                  pagination.current_page > 1 && pagination.total >= 10
+                    ? goToPage(pagination.current_page - 1)
+                    : null
+                "
+                [class.opacity-50]="
+                  pagination.current_page === 1 || pagination.total < 10
+                "
+              />
+            </div>
+            <ul class="flex gap-1">
+              <li
+                *ngFor="
+                  let page of [].constructor(pagination.last_page);
+                  let p = index
+                "
+                class="py-2 px-4 rounded-md cursor-pointer"
+                [ngClass]="
+                  pagination.current_page === p + 1
+                    ? 'bg-neutral-100'
+                    : 'text-neutral-400'
+                "
+                (click)="goToPage(p + 1)"
+              >
+                {{ p + 1 }}
+              </li>
+            </ul>
+            <div>
+              <img
+                src="/icons/pagination-right.svg"
+                alt=""
+                class="cursor-pointer"
+                (click)="
+                  pagination.current_page < pagination.last_page &&
+                  pagination.total >= 10
+                    ? goToPage(pagination.current_page + 1)
+                    : null
+                "
+                [class.opacity-50]="
+                  pagination.current_page === pagination.last_page ||
+                  pagination.total < 10
+                "
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -22,6 +22,11 @@ export interface CustomersResponse {
 export class UsersService {
   private apiUrl = 'http://13.60.228.234/api';
 
+  // Add a simple in-memory cache
+  private customersCache: {
+    [key: string]: CustomersResponse;
+  } = {};
+
   constructor(private http: HttpClient) {}
 
   private getCommonHeaders(): HttpHeaders {
@@ -61,10 +66,38 @@ export class UsersService {
     if (search && search.trim() !== '') {
       params.search = search.trim();
     }
-    return this.http.get<CustomersResponse>(`${this.apiUrl}/admins/customers`, {
-      headers,
-      params,
+    // Create a cache key based on params
+    const cacheKey = `${page}_${per_page}_${search || ''}`;
+    if (this.customersCache[cacheKey]) {
+      // Return cached data as observable
+      return new Observable<CustomersResponse>((observer) => {
+        observer.next(this.customersCache[cacheKey]);
+        observer.complete();
+      });
+    }
+    // If not cached, fetch from API
+    return new Observable<CustomersResponse>((observer) => {
+      this.http
+        .get<CustomersResponse>(`${this.apiUrl}/admins/customers`, {
+          headers,
+          params,
+        })
+        .subscribe({
+          next: (res) => {
+            this.customersCache[cacheKey] = res;
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
     });
+  }
+
+  // Add a method to clear the cache (e.g., after update or delete)
+  clearCustomersCache() {
+    this.customersCache = {};
   }
 
   /**
@@ -85,6 +118,8 @@ export class UsersService {
     token: string
   ): Observable<any> {
     const headers = this.getAuthHeaders(token);
+    // Clear cache after update
+    this.clearCustomersCache();
     return this.http.put<any>(`${this.apiUrl}/admins/customers/${id}`, data, {
       headers,
     });
@@ -98,6 +133,8 @@ export class UsersService {
    */
   deleteCustomer(id: number, token: string): Observable<any> {
     const headers = this.getAuthHeaders(token);
+    // Clear cache after delete
+    this.clearCustomersCache();
     return this.http.delete<any>(`${this.apiUrl}/admins/customers/${id}`, {
       headers,
     });

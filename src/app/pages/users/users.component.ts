@@ -24,6 +24,8 @@ export class UsersComponent implements OnInit {
   selectedUser: any = null;
   isEditModalOpen: boolean = false;
   loading: boolean = false;
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(private usersService: UsersService) {}
 
@@ -43,8 +45,6 @@ export class UsersComponent implements OnInit {
         next: (res) => {
           if (res.success && res.data && res.data.customers) {
             const customers = res.data.customers;
-
-            console.log(customers); // Type guard: check if customers is paginated (object with 'data') or array
             if (Array.isArray(customers)) {
               this.users = customers;
               this.pagination = { ...this.pagination, total: customers.length };
@@ -63,6 +63,7 @@ export class UsersComponent implements OnInit {
               this.users = [];
               this.pagination = { ...this.pagination, total: 0 };
             }
+            this.applySorting();
           }
           this.loading = false;
         },
@@ -126,6 +127,33 @@ export class UsersComponent implements OnInit {
         },
       });
     }
+  }
+
+  sortUsers(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySorting();
+  }
+
+  applySorting() {
+    if (!this.sortColumn) return;
+    this.users = [...this.users].sort((a, b) => {
+      let aValue = a[this.sortColumn];
+      let bValue = b[this.sortColumn];
+      if (aValue == null) aValue = '';
+      if (bValue == null) bValue = '';
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
   }
 
   onSearch(term: string) {

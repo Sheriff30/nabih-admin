@@ -5,6 +5,7 @@ import { authGuard } from './guards/auth.guard';
 import { noAuthGuard } from './guards/no-auth.guard';
 import { DashboardLayoutComponent } from './ui/dashboard-layout/dashboard-layout.component';
 import { UsersComponent } from './pages/users/users.component';
+import { ManagementComponent } from './pages/management/management.component';
 
 export const routes: Routes = [
   {
@@ -22,6 +23,10 @@ export const routes: Routes = [
       {
         path: 'users',
         component: UsersComponent,
+      },
+      {
+        path: 'management',
+        component: ManagementComponent,
       },
     ],
   },

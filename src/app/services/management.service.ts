@@ -85,6 +85,12 @@ export interface ListRolesResponse {
   };
 }
 
+export interface DeleteAdminResponse {
+  success: boolean;
+  message: string;
+  data: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -210,6 +216,18 @@ export class ManagementService {
     const url = `${this.apiUrl}/admins/roles`;
 
     return this.http.get<ListRolesResponse>(url, { headers });
+  }
+
+  /**
+   * Delete an admin user
+   * @param token - Bearer token for authentication
+   * @param adminId - ID of the admin user
+   * @returns Observable of delete admin response
+   */
+  deleteAdmin(token: string, adminId: number): Observable<DeleteAdminResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/${adminId}`;
+    return this.http.delete<DeleteAdminResponse>(url, { headers });
   }
 
   // Optionally, a method to clear the cache

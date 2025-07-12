@@ -9,6 +9,7 @@ import {
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-management',
@@ -62,7 +63,18 @@ export class ManagementComponent implements OnInit {
   // Make Math available in template
   Math = Math;
 
-  constructor(private managementService: ManagementService) {}
+  // Add state for delete loading and error
+  deleteLoading: number | null = null;
+  deleteError: string | null = null;
+
+  // Add state for delete modal
+  showDeleteModal: boolean = false;
+  adminToDelete: AdminUserResource | null = null;
+
+  constructor(
+    private managementService: ManagementService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.setupSearch();
@@ -93,32 +105,23 @@ export class ManagementComponent implements OnInit {
     if (token) {
       this.loading = true;
       this.error = null;
-
-      console.log('Loading admins with params:', {
-        page: this.currentPage,
-        perPage: this.perPage,
-        search: this.searchTerm,
-      });
-
-      // Always load all admins from API (no pagination on API side)
       this.managementService
-        .listAdmins(token, 1, 1000, this.searchTerm) // Get all admins
+        .listAdmins(token, 1, 1000, this.searchTerm)
         .subscribe({
           next: (res) => {
-            console.log('Admins response:', res);
             this.allAdmins = res.data.admins;
             this.applyFiltersAndPagination();
             this.loading = false;
           },
           error: (err) => {
-            console.error('Error fetching admins:', err);
             this.error = 'Failed to load admin users';
             this.loading = false;
+            this.toast.show(this.error, 'error');
           },
         });
     } else {
-      console.warn('No token found in localStorage.');
       this.error = 'Authentication required';
+      this.toast.show(this.error, 'error');
     }
   }
 
@@ -127,13 +130,14 @@ export class ManagementComponent implements OnInit {
     if (token) {
       this.managementService.listRoles(token).subscribe({
         next: (res) => {
-          console.log('Roles response:', res);
           this.availableRoles = res.data.roles;
         },
         error: (err) => {
-          console.error('Error fetching roles:', err);
+          this.toast.show('Failed to load roles', 'error');
         },
       });
+    } else {
+      this.toast.show('Authentication required', 'error');
     }
   }
 
@@ -176,38 +180,26 @@ export class ManagementComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.validateForm()) {
+      this.toast.show(this.formError || 'Invalid form', 'error');
       return;
     }
-
     const token = localStorage.getItem('token');
     if (!token) {
       this.formError = 'Authentication required';
+      this.toast.show(this.formError || '', 'error');
       return;
     }
-
     this.formLoading = true;
     this.formError = null;
-    this.formSuccess = null;
-
     this.managementService.createAdmin(token, this.formData).subscribe({
       next: (res) => {
-        console.log('Admin created successfully:', res);
-        this.formSuccess = 'Admin user created successfully';
         this.formLoading = false;
-
-        // Clear the cache and refresh the admins list
         this.managementService.clearAdminsCache();
         this.loadAdmins();
-
-        // Hide modal after a short delay
-        setTimeout(() => {
-          this.hideAddAdminModal();
-        }, 2000);
+        this.toast.show('Admin user created successfully', 'success');
+        this.hideAddAdminModal();
       },
       error: (err) => {
-        console.error('Error creating admin:', err);
-
-        // Handle validation errors
         if (err.status === 422 && err.error?.errors) {
           const errorMessages = [];
           for (const [field, messages] of Object.entries(err.error.errors)) {
@@ -221,8 +213,8 @@ export class ManagementComponent implements OnInit {
         } else {
           this.formError = err.error?.message || 'Failed to create admin user';
         }
-
         this.formLoading = false;
+        this.toast.show(this.formError || '', 'error');
       },
     });
   }
@@ -419,5 +411,52 @@ export class ManagementComponent implements OnInit {
     }
 
     return pages;
+  }
+
+  /**
+   * Open the delete confirmation modal for a specific admin
+   */
+  openDeleteModal(admin: AdminUserResource): void {
+    this.adminToDelete = admin;
+    this.showDeleteModal = true;
+    this.deleteError = null;
+  }
+
+  /**
+   * Close the delete confirmation modal
+   */
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.adminToDelete = null;
+    this.deleteError = null;
+  }
+
+  /**
+   * Confirm deletion of the selected admin
+   */
+  confirmDeleteAdmin(): void {
+    if (!this.adminToDelete) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.deleteError = 'Authentication required';
+      this.toast.show(this.deleteError || '', 'error');
+      return;
+    }
+    this.deleteLoading = this.adminToDelete.id;
+    this.deleteError = null;
+    this.managementService.deleteAdmin(token, this.adminToDelete.id).subscribe({
+      next: (res) => {
+        this.deleteLoading = null;
+        this.managementService.clearAdminsCache();
+        this.loadAdmins();
+        this.closeDeleteModal();
+        this.toast.show('Admin deleted successfully', 'success');
+      },
+      error: (err) => {
+        this.deleteLoading = null;
+        this.deleteError = err.error?.message || 'Failed to delete admin user';
+        this.toast.show(this.deleteError || '', 'error');
+      },
+    });
   }
 }

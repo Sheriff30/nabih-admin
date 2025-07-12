@@ -109,6 +109,7 @@ export class ManagementComponent implements OnInit {
         .listAdmins(token, 1, 1000, this.searchTerm)
         .subscribe({
           next: (res) => {
+            console.log(res);
             this.allAdmins = res.data.admins;
             this.applyFiltersAndPagination();
             this.loading = false;
@@ -281,16 +282,6 @@ export class ManagementComponent implements OnInit {
       next_page_url: this.currentPage < lastPage ? 'next' : null,
       prev_page_url: this.currentPage > 1 ? 'prev' : null,
     };
-
-    console.log('Applied filters and pagination:', {
-      total: total,
-      perPage: this.perPage,
-      currentPage: this.currentPage,
-      lastPage: lastPage,
-      displayedCount: this.admins.length,
-      sortColumn: this.sortColumn,
-      sortDirection: this.sortDirection,
-    });
   }
 
   // Sorting methods

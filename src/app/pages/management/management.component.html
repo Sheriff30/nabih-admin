@@ -110,7 +110,7 @@
           </div>
         </div>
         <div class="px-5 py-3 flex items-center gap-1">-</div>
-        <div class="px-5 py-3 flex justify-center gap-1">
+        <div class="px-5 py-3 flex justify-center gap-2">
           <img
             src="/icons/delete.svg"
             alt="delete-icon"
@@ -121,6 +121,12 @@
             [style.pointer-events]="
               deleteLoading === admin.id ? 'none' : 'auto'
             "
+          />
+
+          <img
+            src="/icons/edit.svg"
+            alt=""
+            class="cursor-pointer w-[19px] h-[19px]"
           />
           <div
             *ngIf="deleteLoading === admin.id && !showDeleteModal"

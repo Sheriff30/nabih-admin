@@ -69,7 +69,19 @@ export interface AssignRolesRequest {
   roles: string[];
 }
 
+export interface AssignPermissionsRequest {
+  permissions: string[];
+}
+
 export interface AssignRolesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    admin: AdminUserResource;
+  };
+}
+
+export interface AssignPermissionsResponse {
   success: boolean;
   message: string;
   data: {
@@ -89,6 +101,29 @@ export interface DeleteAdminResponse {
   success: boolean;
   message: string;
   data: string[];
+}
+
+export interface ListPermissionsResponse {
+  success: boolean;
+  message: string | null;
+  data: {
+    permissions: Permission[];
+  };
+}
+
+export interface UpdateAdminRequest {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  password?: string;
+}
+
+export interface UpdateAdminResponse {
+  success: boolean;
+  message: string;
+  data: {
+    admin: AdminUserResource;
+  };
 }
 
 @Injectable({
@@ -207,6 +242,27 @@ export class ManagementService {
   }
 
   /**
+   * Assign permissions to an admin user
+   * @param token - Bearer token for authentication
+   * @param adminId - ID of the admin user
+   * @param permissions - Array of permission names to assign
+   * @returns Observable of assign permissions response
+   */
+  assignPermissions(
+    token: string,
+    adminId: number,
+    permissions: string[]
+  ): Observable<AssignPermissionsResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/${adminId}/permissions`;
+    const requestData: AssignPermissionsRequest = { permissions };
+
+    return this.http.post<AssignPermissionsResponse>(url, requestData, {
+      headers,
+    });
+  }
+
+  /**
    * Get list of available roles
    * @param token - Bearer token for authentication
    * @returns Observable of roles response
@@ -219,6 +275,17 @@ export class ManagementService {
   }
 
   /**
+   * Get list of available permissions
+   * @param token - Bearer token for authentication
+   * @returns Observable of permissions response
+   */
+  listPermissions(token: string): Observable<ListPermissionsResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/permissions`;
+    return this.http.get<ListPermissionsResponse>(url, { headers });
+  }
+
+  /**
    * Delete an admin user
    * @param token - Bearer token for authentication
    * @param adminId - ID of the admin user
@@ -228,6 +295,23 @@ export class ManagementService {
     const headers = this.getAuthHeaders(token);
     const url = `${this.apiUrl}/admins/${adminId}`;
     return this.http.delete<DeleteAdminResponse>(url, { headers });
+  }
+
+  /**
+   * Update an admin user's basic info (name, email, password)
+   * @param token - Bearer token for authentication
+   * @param adminId - ID of the admin user
+   * @param updateData - Fields to update
+   * @returns Observable of update admin response
+   */
+  updateAdmin(
+    token: string,
+    adminId: number,
+    updateData: UpdateAdminRequest
+  ): Observable<UpdateAdminResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/${adminId}`;
+    return this.http.put<UpdateAdminResponse>(url, updateData, { headers });
   }
 
   // Optionally, a method to clear the cache

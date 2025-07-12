@@ -3,7 +3,7 @@
     <!-- Title & Search -->
     <div class="flex justify-between py-4 px-5 bg-white items-center">
       <!-- Table title -->
-      <p class="font-bold">User Management</p>
+      <p class="font-bold">Admin Management</p>
       <!-- Search -->
       <div
         class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
@@ -127,6 +127,7 @@
             src="/icons/edit.svg"
             alt=""
             class="cursor-pointer w-[19px] h-[19px]"
+            (click)="openEditAdminModal(admin)"
           />
           <div
             *ngIf="deleteLoading === admin.id && !showDeleteModal"
@@ -386,4 +387,192 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- Edit Admin Modal -->
+<div
+  *ngIf="showEditAdminModal"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+>
+  <form
+    class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[760px] shadow-lg grid gap-6 max-h-[600px] overflow-y-auto"
+    (ngSubmit)="saveEditAdmin()"
+  >
+    <div
+      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+    >
+      <h2 class="text-lg font-bold">Edit Administrator</h2>
+    </div>
+    <div *ngIf="editAdminError" class="text-red-500">{{ editAdminError }}</div>
+    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
+      <div>
+        <label class="block text-sm mb-1">First Name *</label>
+        <input
+          type="text"
+          class="w-full border rounded-[6px] p-2"
+          name="edit_first_name"
+          [(ngModel)]="editAdminForm.first_name"
+          required
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Last Name *</label>
+        <input
+          type="text"
+          class="w-full border rounded-[6px] p-2"
+          name="edit_last_name"
+          [(ngModel)]="editAdminForm.last_name"
+          required
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Email *</label>
+        <input
+          type="email"
+          class="w-full border rounded-[6px] p-2"
+          name="edit_email"
+          [(ngModel)]="editAdminForm.email"
+          required
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Password</label>
+        <input
+          type="password"
+          class="w-full border rounded-[6px] p-2"
+          name="edit_password"
+          [(ngModel)]="editAdminForm.password"
+          minlength="8"
+          placeholder="Leave blank to keep current"
+        />
+      </div>
+    </div>
+    <!-- Role Selection -->
+    <div class="flex gap-2 items-center justify-between flex-wrap">
+      <div class="text-[#392A4B] font-bold">Permissions allowed</div>
+      <select
+        class="py-[6.5px] px-[12px] rounded-md border border-[#E2E8F0] text-[#7F5EA3] font-bold"
+        (change)="onEditRoleChange($event)"
+        [ngModel]="
+          editAdminForm.roles && editAdminForm.roles.length > 0
+            ? editAdminForm.roles[0]
+            : ''
+        "
+        name="edit_role"
+        required
+      >
+        <option value="">Select a role</option>
+        <option *ngFor="let role of availableRoles" [value]="role.name">
+          {{ formatRoleName(role.name) }}
+        </option>
+      </select>
+    </div>
+    <!-- Show all permissions for the admin -->
+    <div
+      class="flex gap-[10px] flex-wrap items-center h-[110px] overflow-y-auto"
+    >
+      <span
+        *ngFor="let perm of allAdminPermissions"
+        class="bg-[#FFFF] p-3 rounded-md border border-[#E2E8F0]"
+      >
+        {{ perm }}
+      </span>
+    </div>
+    <!-- Edit Permissions Button -->
+    <button
+      type="button"
+      class="underline text-[#7F5EA3]"
+      (click)="openPermissionsModal()"
+    >
+      Edit Permissions
+    </button>
+
+    <div class="flex justify-center gap-2 items-center">
+      <button
+        type="button"
+        class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+        (click)="closeEditAdminModal()"
+        [disabled]="editAdminLoading"
+      >
+        <img src="/icons/cancel-btn.svg" alt="" />
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+        [disabled]="editAdminLoading"
+      >
+        <img *ngIf="!editAdminLoading" src="/icons/submit.svg" alt="" />
+        <div
+          *ngIf="editAdminLoading"
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+        {{ editAdminLoading ? "Saving..." : "Save" }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Permissions Modal -->
+<div
+  *ngIf="showPermissionsModal"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+>
+  <form
+    class="bg-[#ffff] rounded-[20px] p-6 w-full max-w-[765px] shadow-lg grid gap-6"
+    (ngSubmit)="savePermissionsModal()"
+  >
+    <div
+      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+    >
+      <h2 class="text-lg font-bold">Adding permissions</h2>
+    </div>
+    <div *ngIf="permissionsModalError" class="text-red-500">
+      {{ permissionsModalError }}
+    </div>
+    <div>
+      <div
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-h-64 overflow-y-auto bg-white p-2 rounded"
+      >
+        <label
+          *ngFor="let perm of allPermissions"
+          class="flex items-center gap-2 text-neutral-500"
+        >
+          <input
+            type="checkbox"
+            class="w-[24px] h-[24px] rounded-[6px]"
+            style="accent-color: #7f5ea3"
+            [checked]="
+              permissionsModalDirect.includes(perm.name) ||
+              rolePermissions.includes(perm.name)
+            "
+            [disabled]="rolePermissions.includes(perm.name)"
+            (change)="onPermissionsModalToggle(perm.name, $event)"
+          />
+          {{ perm.name }}
+        </label>
+      </div>
+    </div>
+    <div class="flex justify-center gap-2 items-center">
+      <button
+        type="button"
+        class="px-4 py-2 bg-[#E6E2F2] max-w-[120px] w-full h-[40px] rounded-[60px] flex items-center justify-center gap-1"
+        (click)="closePermissionsModal()"
+        [disabled]="permissionsModalLoading"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="px-4 py-2 bg-[#7F5EA3] max-w-[120px] w-full h-[40px] text-white rounded-[60px] flex items-center justify-center gap-1"
+        [disabled]="permissionsModalLoading"
+      >
+        <div
+          *ngIf="permissionsModalLoading"
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+        {{ permissionsModalLoading ? "Saving..." : "Save" }}
+      </button>
+    </div>
+  </form>
 </div>

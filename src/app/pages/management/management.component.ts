@@ -5,6 +5,8 @@ import {
   PaginationMeta,
   RoleResource,
   CreateAdminRequest,
+  ListPermissionsResponse,
+  UpdateAdminRequest,
 } from '../../services/management.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -71,6 +73,45 @@ export class ManagementComponent implements OnInit {
   showDeleteModal: boolean = false;
   adminToDelete: AdminUserResource | null = null;
 
+  // Edit admin modal state
+  showEditAdminModal = false;
+  editAdminLoading = false;
+  editAdminError: string | null = null;
+  editAdminForm: {
+    id: number | null;
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+    roles: string[];
+    direct_permissions: string[];
+  } = {
+    id: null,
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    roles: [],
+    direct_permissions: [],
+  };
+  allPermissions: { id: number | string; name: string }[] = [];
+  rolePermissions: string[] = [];
+
+  // Permissions modal state
+  showPermissionsModal = false;
+  permissionsModalLoading = false;
+  permissionsModalError: string | null = null;
+  permissionsModalDirect: string[] = [];
+
+  // Getter to show all unique permissions for the admin (direct + role-based)
+  get allAdminPermissions(): string[] {
+    const all = [
+      ...this.editAdminForm.direct_permissions,
+      ...this.rolePermissions,
+    ];
+    return Array.from(new Set(all));
+  }
+
   constructor(
     private managementService: ManagementService,
     private toast: ToastService
@@ -80,6 +121,7 @@ export class ManagementComponent implements OnInit {
     this.setupSearch();
     this.loadAdmins();
     this.loadRoles();
+    this.loadPermissions();
   }
 
   setupSearch(): void {
@@ -139,6 +181,20 @@ export class ManagementComponent implements OnInit {
       });
     } else {
       this.toast.show('Authentication required', 'error');
+    }
+  }
+
+  loadPermissions(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.managementService.listPermissions(token).subscribe({
+        next: (res) => {
+          this.allPermissions = res.data.permissions;
+        },
+        error: () => {
+          this.toast.show('Failed to load permissions', 'error');
+        },
+      });
     }
   }
 
@@ -449,5 +505,159 @@ export class ManagementComponent implements OnInit {
         this.toast.show(this.deleteError || '', 'error');
       },
     });
+  }
+
+  openEditAdminModal(admin: AdminUserResource): void {
+    this.editAdminForm = {
+      id: admin.id,
+      first_name: admin.first_name,
+      last_name: admin.last_name,
+      email: admin.email,
+      password: '',
+      roles: admin.roles.map((r) => r.name),
+      direct_permissions: admin.direct_permissions.map((p) => p.name),
+    };
+    this.rolePermissions = admin.roles.flatMap((r) =>
+      r.permissions.map((p) => p.name)
+    );
+    this.showEditAdminModal = true;
+    this.editAdminError = null;
+  }
+
+  closeEditAdminModal(): void {
+    this.showEditAdminModal = false;
+    this.editAdminError = null;
+  }
+
+  onEditRoleChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const selectedRole = target.value;
+    this.editAdminForm.roles = selectedRole ? [selectedRole] : [];
+    // Optionally, update rolePermissions if you want to reflect new role's permissions immediately
+    const roleObj = this.availableRoles.find((r) => r.name === selectedRole);
+    this.rolePermissions = roleObj
+      ? roleObj.permissions.map((p) => p.name)
+      : [];
+  }
+
+  // Permissions modal logic
+  openPermissionsModal(): void {
+    this.permissionsModalDirect = [...this.editAdminForm.direct_permissions];
+    this.showPermissionsModal = true;
+    this.permissionsModalError = null;
+  }
+
+  closePermissionsModal(): void {
+    this.showPermissionsModal = false;
+    this.permissionsModalError = null;
+  }
+
+  onPermissionsModalToggle(permission: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const checked = input?.checked;
+    if (checked) {
+      if (!this.permissionsModalDirect.includes(permission)) {
+        this.permissionsModalDirect.push(permission);
+      }
+    } else {
+      this.permissionsModalDirect = this.permissionsModalDirect.filter(
+        (p) => p !== permission
+      );
+    }
+  }
+
+  savePermissionsModal(): void {
+    this.permissionsModalLoading = true;
+    this.permissionsModalError = null;
+    const token = localStorage.getItem('token');
+    if (!token || !this.editAdminForm.id) {
+      this.permissionsModalError = 'Authentication required';
+      this.permissionsModalLoading = false;
+      return;
+    }
+    this.managementService
+      .assignPermissions(
+        token,
+        this.editAdminForm.id,
+        this.permissionsModalDirect
+      )
+      .subscribe({
+        next: () => {
+          this.editAdminForm.direct_permissions = [
+            ...this.permissionsModalDirect,
+          ];
+          this.permissionsModalLoading = false;
+          this.showPermissionsModal = false;
+          this.toast.show('Permissions updated successfully', 'success');
+        },
+        error: () => {
+          this.permissionsModalError = 'Failed to update permissions';
+          this.permissionsModalLoading = false;
+        },
+      });
+  }
+
+  saveEditAdmin(): void {
+    this.editAdminLoading = true;
+    this.editAdminError = null;
+    const token = localStorage.getItem('token');
+    if (!token || !this.editAdminForm.id) {
+      this.editAdminError = 'Authentication required';
+      this.editAdminLoading = false;
+      return;
+    }
+    // 1. Update basic info
+    const updateData: UpdateAdminRequest = {
+      first_name: this.editAdminForm.first_name,
+      last_name: this.editAdminForm.last_name,
+      email: this.editAdminForm.email,
+    };
+    if (this.editAdminForm.password) {
+      updateData.password = this.editAdminForm.password;
+    }
+    this.managementService
+      .updateAdmin(token, this.editAdminForm.id, updateData)
+      .subscribe({
+        next: () => {
+          // 2. Assign roles
+          this.managementService
+            .assignRoles(
+              token,
+              this.editAdminForm.id!,
+              this.editAdminForm.roles
+            )
+            .subscribe({
+              next: () => {
+                // 3. Assign direct permissions
+                this.managementService
+                  .assignPermissions(
+                    token,
+                    this.editAdminForm.id!,
+                    this.editAdminForm.direct_permissions
+                  )
+                  .subscribe({
+                    next: () => {
+                      this.editAdminLoading = false;
+                      this.showEditAdminModal = false;
+                      this.loadAdmins();
+                      this.toast.show('Admin updated successfully', 'success');
+                    },
+                    error: () => {
+                      this.editAdminError = 'Failed to assign permissions';
+                      this.editAdminLoading = false;
+                    },
+                  });
+              },
+              error: () => {
+                this.editAdminError = 'Failed to assign roles';
+                this.editAdminLoading = false;
+              },
+            });
+        },
+        error: () => {
+          this.editAdminError = 'Failed to update admin info';
+          this.editAdminLoading = false;
+        },
+      });
   }
 }

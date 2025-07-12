@@ -168,14 +168,7 @@ export class ManagementComponent implements OnInit {
   onRoleChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     const selectedRole = target.value;
-
-    if (selectedRole) {
-      this.formData.roles = [selectedRole];
-    }
-  }
-
-  removeRole(): void {
-    this.formData.roles = null;
+    this.formData.roles = selectedRole ? [selectedRole] : [];
   }
 
   onSubmit(): void {
@@ -240,7 +233,14 @@ export class ManagementComponent implements OnInit {
       this.formError = 'Password must be at least 8 characters';
       return false;
     }
-
+    if (
+      !this.formData.roles ||
+      !Array.isArray(this.formData.roles) ||
+      this.formData.roles.length === 0
+    ) {
+      this.formError = 'At least one role is required';
+      return false;
+    }
     this.formError = null;
     return true;
   }

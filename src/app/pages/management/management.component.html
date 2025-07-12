@@ -289,21 +289,6 @@
       <!-- Role Selection -->
       <div class="col-span-full mx-auto">
         <label class="block text-sm mb-1">Role</label>
-        <div class="flex flex-wrap gap-2 mb-2">
-          <div
-            *ngIf="formData.roles && formData.roles.length > 0"
-            class="bg-[#7F5EA3] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
-          >
-            {{ formatRoleName(formData.roles[0]) }}
-            <button
-              type="button"
-              (click)="removeRole()"
-              class="text-white hover:text-red-200"
-            >
-              ×
-            </button>
-          </div>
-        </div>
         <div
           class="bg-[#82645A] py-[10px] px-[16px] flex justify-center items-center rounded-md max-w-[200px] w-full"
         >
@@ -311,14 +296,16 @@
           <select
             class="bg-[#82645A] text-white underline border-none outline-none"
             (change)="onRoleChange($event)"
-            [disabled]="formData.roles && formData.roles.length > 0"
+            [ngModel]="
+              formData.roles && formData.roles.length > 0
+                ? formData.roles[0]
+                : ''
+            "
+            name="role"
+            required
           >
             <option value="">Select a role</option>
-            <option
-              *ngFor="let role of availableRoles"
-              [value]="role.name"
-              [disabled]="formData.roles?.includes(role.name)"
-            >
+            <option *ngFor="let role of availableRoles" [value]="role.name">
               {{ formatRoleName(role.name) }}
             </option>
           </select>

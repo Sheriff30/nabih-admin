@@ -11,24 +11,47 @@
           type="text"
           placeholder="Search by name, phone number, or email"
           class="w-full text-xs bg-neutral-100 outline-none"
+          [value]="searchTerm"
+          (input)="onSearchChange($event)"
         />
       </div>
     </div>
+
+    <!-- Error State -->
+    <div
+      *ngIf="error && !loading"
+      class="flex justify-center items-center py-8 bg-white"
+    >
+      <div class="text-red-500">{{ error }}</div>
+    </div>
+
     <!-- Header -->
     <div
       class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
     >
       <div class="px-5 py-3">Number</div>
-      <div class="px-5 py-3 flex items-center gap-1">
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortAdmins('name')"
+      >
         Admin Name <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortAdmins('email')"
+      >
         Email <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortAdmins('role')"
+      >
         Role <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortAdmins('status')"
+      >
         Status <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
       <div class="px-5 py-3 flex items-center gap-1">
@@ -38,88 +61,135 @@
         Actions <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
     </div>
-    <!-- Table Rows -->
+
+    <!-- Loading State -->
     <div
-      class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-white text-sm"
+      *ngIf="loading"
+      class="flex items-center justify-center bg-white py-12"
     >
-      <div class="px-5 py-3">1</div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        <div class="line-clamp-1">Mohamed Ali</div>
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        <div class="line-clamp-1">mohamed.ali&#64;email.com</div>
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">Super Admin</div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        <div
-          class="bg-green-50 border border-green-200 w-full rounded-[4px] text-green-600 py-1 text-center"
-        >
-          Active
-        </div>
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">2025-01-15</div>
-      <div class="px-5 py-3 flex justify-center gap-1">
-        <img src="/icons/eye.svg" alt="sort-icon" />
-      </div>
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+      ></div>
     </div>
-    <div
-      class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-white text-sm"
-    >
-      <div class="px-5 py-3">1</div>
-      <div class="px-5 py-3 flex items-center gap-1">Mohamed Ali</div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        <div class="line-clamp-1">mohamed.ali&#64;email.com</div>
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">Super Admin</div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        <div
-          class="bg-green-50 border border-green-200 w-full rounded-[4px] text-green-600 py-1 text-center"
-        >
-          Active
+
+    <!-- Table Rows -->
+    <ng-container *ngIf="!loading && admins.length > 0">
+      <div
+        *ngFor="let admin of admins; let i = index"
+        class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-white text-sm"
+      >
+        <div class="px-5 py-3">{{ (currentPage - 1) * perPage + i + 1 }}</div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">
+            {{ admin.first_name }} {{ admin.last_name }}
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ admin.email }}</div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ getRoleNames(admin.roles) }}</div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div
+            [class]="
+              getStatusColor(admin) + ' w-full rounded-[4px] py-1 text-center'
+            "
+          >
+            {{ getStatusText(admin) }}
+          </div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <!-- Since the API doesn't provide creation date, we'll show a placeholder -->
+          N/A
+        </div>
+        <div class="px-5 py-3 flex justify-center gap-1">
+          <img src="/icons/eye.svg" alt="view-icon" class="cursor-pointer" />
         </div>
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">2025-01-15</div>
-      <div class="px-5 py-3 flex justify-center gap-1">
-        <img src="/icons/eye.svg" alt="sort-icon" />
+    </ng-container>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!loading && admins.length === 0"
+      class="flex justify-center items-center py-8 bg-white"
+    >
+      <div class="text-neutral-500">
+        {{
+          searchTerm
+            ? "No admin users found matching your search"
+            : "No admin users found"
+        }}
       </div>
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
+    <div
+      *ngIf="paginationMeta && !loading && !error"
+      class="flex justify-between py-4 px-5 bg-white items-center"
+    >
       <div class="flex gap-2 items-center">
         <div>Show</div>
-        <select class="border border-neutral-200 rounded-md p-2">
-          <option value="1">10</option>
-          <option value="2">20</option>
-          <option value="3">30</option>
+        <select
+          class="border border-neutral-200 rounded-md p-2"
+          [(ngModel)]="perPage"
+          (ngModelChange)="onPerPageChange($event)"
+        >
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
         </select>
         <div>per page</div>
       </div>
       <div class="flex gap-4 items-center">
-        <div class="text-neutral-500">1-10 of 52</div>
+        <div class="text-neutral-500">
+          {{
+            paginationMeta
+              ? (paginationMeta.current_page - 1) * paginationMeta.per_page + 1
+              : 0
+          }}-{{
+            paginationMeta
+              ? Math.min(
+                  paginationMeta.current_page * paginationMeta.per_page,
+                  paginationMeta.total
+                )
+              : 0
+          }}
+          of {{ paginationMeta.total }}
+        </div>
         <div class="flex items-center gap-1">
-          <div>
-            <img src="/icons/pagination-left.svg" alt="" />
+          <div
+            [class]="
+              paginationMeta.prev_page_url
+                ? 'cursor-pointer'
+                : 'cursor-not-allowed opacity-50'
+            "
+            (click)="goToPreviousPage()"
+          >
+            <img src="/icons/pagination-left.svg" alt="previous" />
           </div>
           <ul class="flex gap-1">
-            <li class="py-2 px-4 rounded-md cursor-pointer text-neutral-400">
-              1
-            </li>
-            <li class="py-2 px-4 rounded-md cursor-pointer bg-neutral-100">
-              2
-            </li>
-            <li class="py-2 px-4 rounded-md cursor-pointer text-neutral-400">
-              3
-            </li>
-            <li class="py-2 px-4 rounded-md cursor-pointer text-neutral-400">
-              4
-            </li>
-            <li class="py-2 px-4 rounded-md cursor-pointer text-neutral-400">
-              5
+            <li
+              *ngFor="let page of getPageNumbers()"
+              [class]="
+                page === paginationMeta.current_page
+                  ? 'py-2 px-4 rounded-md cursor-pointer bg-neutral-100'
+                  : 'py-2 px-4 rounded-md cursor-pointer text-neutral-400'
+              "
+              (click)="goToPage(page)"
+            >
+              {{ page }}
             </li>
           </ul>
-          <div>
-            <img src="/icons/pagination-right.svg" alt="" />
+          <div
+            [class]="
+              paginationMeta.next_page_url
+                ? 'cursor-pointer'
+                : 'cursor-not-allowed opacity-50'
+            "
+            (click)="goToNextPage()"
+          >
+            <img src="/icons/pagination-right.svg" alt="next" />
           </div>
         </div>
       </div>

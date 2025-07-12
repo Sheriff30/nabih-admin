@@ -45,7 +45,10 @@
           Email
           <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-        <div class="px-5 py-3 flex items-center gap-1">
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="sortUsers('vehicles')"
+        >
           Vehicles <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
         <div
@@ -91,7 +94,9 @@
               {{ user.email ? user.email : "-" }}
             </div>
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">-</div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            {{ user.vehicle_count ? user.vehicle_count : "-" }}
+          </div>
           <div class="px-5 py-3 flex items-center gap-1">
             <div
               [ngClass]="
@@ -120,7 +125,10 @@
         </div>
       </ng-template>
       <!-- Pagination -->
-      <div class="flex justify-between py-4 px-5 bg-white items-center">
+      <div
+        *ngIf="!loading"
+        class="flex justify-between py-4 px-5 bg-white items-center"
+      >
         <div class="flex gap-2 items-center">
           <div>Show</div>
           <select
@@ -272,7 +280,7 @@
         <input
           type="text"
           class="w-full border rounded p-2"
-          [(ngModel)]="selectedUser.vehicles"
+          [(ngModel)]="selectedUser.vehicle_count"
           name="vehicles"
           disabled
         />

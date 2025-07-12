@@ -11,7 +11,12 @@ import { CommonModule } from '@angular/common';
   styleUrl: './users.component.css',
 })
 export class UsersComponent implements OnInit {
+  // All users from API (unfiltered)
+  allUsers: any[] = [];
+
+  // Displayed users (filtered and paginated)
   users: any[] = [];
+
   pagination = {
     current_page: 1,
     per_page: 10,
@@ -35,38 +40,23 @@ export class UsersComponent implements OnInit {
     this.loadCustomers();
   }
 
-  loadCustomers(
-    page: number = this.pagination.current_page,
-    per_page: number = this.pagination.per_page,
-    search: string = this.searchTerm
-  ) {
+  loadCustomers() {
     const token = localStorage.getItem('token');
     if (token) {
       this.loading = true;
-      this.usersService.listCustomers(token, page, per_page, search).subscribe({
+      this.usersService.listCustomers(token, 1, 1000, '').subscribe({
         next: (res) => {
           console.log(res);
           if (res.success && res.data && res.data.customers) {
             const customers = res.data.customers;
             if (Array.isArray(customers)) {
-              this.users = customers;
-              this.pagination = { ...this.pagination, total: customers.length };
+              this.allUsers = customers;
             } else if (customers && Array.isArray((customers as any).data)) {
-              this.users = (customers as any).data;
-              this.pagination = {
-                ...this.pagination,
-                current_page: (customers as any).current_page,
-                per_page: (customers as any).per_page,
-                total: (customers as any).total,
-                from: (customers as any).from,
-                to: (customers as any).to,
-                last_page: (customers as any).last_page,
-              };
+              this.allUsers = (customers as any).data;
             } else {
-              this.users = [];
-              this.pagination = { ...this.pagination, total: 0 };
+              this.allUsers = [];
             }
-            this.applySorting();
+            this.applyFiltersAndPagination();
           }
           this.loading = false;
         },
@@ -78,6 +68,56 @@ export class UsersComponent implements OnInit {
     } else {
       console.error('No token found');
     }
+  }
+
+  applyFiltersAndPagination() {
+    // Apply search filter
+    let filteredUsers = this.allUsers;
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
+      filteredUsers = this.allUsers.filter(
+        (user) =>
+          (user.name && user.name.toLowerCase().includes(searchLower)) ||
+          (user.phone_number &&
+            user.phone_number.toLowerCase().includes(searchLower)) ||
+          (user.email && user.email.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply sorting
+    if (this.sortColumn) {
+      filteredUsers = this.applySorting(filteredUsers);
+    }
+
+    // Calculate pagination
+    const total = filteredUsers.length;
+    const lastPage = Math.ceil(total / this.pagination.per_page);
+    const startIndex =
+      (this.pagination.current_page - 1) * this.pagination.per_page;
+    const endIndex = startIndex + this.pagination.per_page;
+
+    // Get current page data
+    this.users = filteredUsers.slice(startIndex, endIndex);
+
+    // Update pagination meta
+    this.pagination = {
+      current_page: this.pagination.current_page,
+      per_page: this.pagination.per_page,
+      total: total,
+      from: total > 0 ? startIndex + 1 : 0,
+      to: Math.min(endIndex, total),
+      last_page: lastPage,
+    };
+
+    console.log('Applied filters and pagination:', {
+      total: total,
+      perPage: this.pagination.per_page,
+      currentPage: this.pagination.current_page,
+      lastPage: lastPage,
+      displayedCount: this.users.length,
+      sortColumn: this.sortColumn,
+      sortDirection: this.sortDirection,
+    });
   }
 
   showUser(user: any) {
@@ -107,7 +147,17 @@ export class UsersComponent implements OnInit {
         )
         .subscribe({
           next: (res) => {
-            this.loadCustomers(this.pagination.current_page);
+            // Update the user in allUsers array
+            const index = this.allUsers.findIndex(
+              (u) => u.id === this.selectedUser.id
+            );
+            if (index !== -1) {
+              this.allUsers[index] = {
+                ...this.allUsers[index],
+                ...this.selectedUser,
+              };
+            }
+            this.applyFiltersAndPagination();
             this.closeEditModal();
           },
           error: (err) => {
@@ -128,7 +178,11 @@ export class UsersComponent implements OnInit {
     if (token) {
       this.usersService.deleteCustomer(this.userToDelete.id, token).subscribe({
         next: (res) => {
-          this.loadCustomers(this.pagination.current_page);
+          // Remove the user from allUsers array
+          this.allUsers = this.allUsers.filter(
+            (u) => u.id !== this.userToDelete.id
+          );
+          this.applyFiltersAndPagination();
           this.isDeleteConfirmOpen = false;
           this.userToDelete = null;
           this.closeEditModal();
@@ -154,20 +208,31 @@ export class UsersComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.applySorting();
+    this.applyFiltersAndPagination();
   }
 
-  applySorting() {
-    if (!this.sortColumn) return;
-    this.users = [...this.users].sort((a, b) => {
+  applySorting(users: any[]): any[] {
+    return [...users].sort((a, b) => {
       let aValue = a[this.sortColumn];
       let bValue = b[this.sortColumn];
-      if (aValue == null) aValue = '';
-      if (bValue == null) bValue = '';
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
+
+      // Handle special cases for different column types
+      switch (this.sortColumn) {
+        case 'vehicles':
+          // Sort by vehicle_count, treat null/undefined as 0
+          aValue = a.vehicle_count || 0;
+          bValue = b.vehicle_count || 0;
+          break;
+        default:
+          // Default sorting behavior
+          if (aValue == null) aValue = '';
+          if (bValue == null) bValue = '';
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            aValue = aValue.toLowerCase();
+            bValue = bValue.toLowerCase();
+          }
       }
+
       if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;
@@ -176,16 +241,17 @@ export class UsersComponent implements OnInit {
 
   onSearch(term: string) {
     this.searchTerm = term;
-    this.loadCustomers(1, this.pagination.per_page, this.searchTerm);
+    this.pagination.current_page = 1; // Reset to first page when searching
+    this.applyFiltersAndPagination();
   }
 
   goToPage(page: number) {
     this.pagination.current_page = page;
-    this.loadCustomers(page, this.pagination.per_page, this.searchTerm);
+    this.applyFiltersAndPagination();
   }
 
   onPerPageChange() {
-    this.pagination.current_page = 1;
-    this.loadCustomers(1, this.pagination.per_page, this.searchTerm);
+    this.pagination.current_page = 1; // Reset to first page when changing per page
+    this.applyFiltersAndPagination();
   }
 }

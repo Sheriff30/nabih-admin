@@ -3,14 +3,34 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Interfaces for API responses
+export interface Permission {
+  id: number;
+  name: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface AdminUserResource {
-  id: string;
+  id: number;
   first_name: string;
   last_name: string;
   email: string;
-  roles: string;
-  direct_permissions: Array<{ id: string; name: string }>;
-  all_permissions: Array<{ id: string; name: string }>;
+  roles: Role[];
+  direct_permissions: Permission[];
+  all_permissions: Permission[];
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  next_page_url: string | null;
+  prev_page_url: string | null;
 }
 
 export interface AdminsResponse {
@@ -18,6 +38,7 @@ export interface AdminsResponse {
   message: string;
   data: {
     admins: AdminUserResource[];
+    meta: PaginationMeta;
   };
 }
 
@@ -50,34 +71,54 @@ export class ManagementService {
   /**
    * Get list of admin users (with cache)
    * @param token - Bearer token for authentication
+   * @param page - Page number for pagination
+   * @param perPage - Number of items per page
+   * @param search - Search term for filtering
    * @param forceRefresh - If true, bypass cache and fetch from API
    * @returns Observable of admins response
    */
   listAdmins(
     token: string,
+    page: number = 1,
+    perPage: number = 10,
+    search: string = '',
     forceRefresh: boolean = false
   ): Observable<AdminsResponse> {
-    if (this.adminsCache && !forceRefresh) {
+    // For search and pagination, always bypass cache
+    if (this.adminsCache && !forceRefresh && page === 1 && search === '') {
       // Return cached data as observable
       return new Observable<AdminsResponse>((observer) => {
         observer.next(this.adminsCache!);
         observer.complete();
       });
     }
+
     const headers = this.getAuthHeaders(token);
+
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (page > 1) params.append('page', page.toString());
+    params.append('per_page', perPage.toString());
+    if (search.trim()) params.append('search', search.trim());
+
+    const url = `${this.apiUrl}/admins${
+      params.toString() ? '?' + params.toString() : ''
+    }`;
+
     return new Observable<AdminsResponse>((observer) => {
-      this.http
-        .get<AdminsResponse>(`${this.apiUrl}/admins`, { headers })
-        .subscribe({
-          next: (res) => {
+      this.http.get<AdminsResponse>(url, { headers }).subscribe({
+        next: (res) => {
+          // Only cache the first page without search
+          if (page === 1 && search === '') {
             this.adminsCache = res;
-            observer.next(res);
-            observer.complete();
-          },
-          error: (err) => {
-            observer.error(err);
-          },
-        });
+          }
+          observer.next(res);
+          observer.complete();
+        },
+        error: (err) => {
+          observer.error(err);
+        },
+      });
     });
   }
 

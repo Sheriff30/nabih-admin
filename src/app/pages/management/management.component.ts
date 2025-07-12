@@ -3,6 +3,8 @@ import {
   ManagementService,
   AdminUserResource,
   PaginationMeta,
+  RoleResource,
+  CreateAdminRequest,
 } from '../../services/management.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -38,6 +40,25 @@ export class ManagementComponent implements OnInit {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  // Form state
+  showAddAdminForm = false;
+  formLoading = false;
+  formError: string | null = null;
+  formSuccess: string | null = null;
+
+  // Form data
+  formData: CreateAdminRequest = {
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    roles: null,
+    permissions: [],
+  };
+
+  // Available roles
+  availableRoles: RoleResource[] = [];
+
   // Make Math available in template
   Math = Math;
 
@@ -46,6 +67,7 @@ export class ManagementComponent implements OnInit {
   ngOnInit(): void {
     this.setupSearch();
     this.loadAdmins();
+    this.loadRoles();
   }
 
   setupSearch(): void {
@@ -98,6 +120,137 @@ export class ManagementComponent implements OnInit {
       console.warn('No token found in localStorage.');
       this.error = 'Authentication required';
     }
+  }
+
+  loadRoles(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.managementService.listRoles(token).subscribe({
+        next: (res) => {
+          console.log('Roles response:', res);
+          this.availableRoles = res.data.roles;
+        },
+        error: (err) => {
+          console.error('Error fetching roles:', err);
+        },
+      });
+    }
+  }
+
+  // Form methods
+  showAddAdminModal(): void {
+    this.showAddAdminForm = true;
+    this.resetForm();
+  }
+
+  hideAddAdminModal(): void {
+    this.showAddAdminForm = false;
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.formData = {
+      first_name: '',
+      last_name: '',
+      email: '',
+      password: '',
+      roles: null,
+      permissions: [],
+    };
+    this.formError = null;
+    this.formSuccess = null;
+  }
+
+  onRoleChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const selectedRole = target.value;
+
+    if (selectedRole) {
+      this.formData.roles = [selectedRole];
+    }
+  }
+
+  removeRole(): void {
+    this.formData.roles = null;
+  }
+
+  onSubmit(): void {
+    if (!this.validateForm()) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.formError = 'Authentication required';
+      return;
+    }
+
+    this.formLoading = true;
+    this.formError = null;
+    this.formSuccess = null;
+
+    this.managementService.createAdmin(token, this.formData).subscribe({
+      next: (res) => {
+        console.log('Admin created successfully:', res);
+        this.formSuccess = 'Admin user created successfully';
+        this.formLoading = false;
+
+        // Clear the cache and refresh the admins list
+        this.managementService.clearAdminsCache();
+        this.loadAdmins();
+
+        // Hide modal after a short delay
+        setTimeout(() => {
+          this.hideAddAdminModal();
+        }, 2000);
+      },
+      error: (err) => {
+        console.error('Error creating admin:', err);
+
+        // Handle validation errors
+        if (err.status === 422 && err.error?.errors) {
+          const errorMessages = [];
+          for (const [field, messages] of Object.entries(err.error.errors)) {
+            if (Array.isArray(messages)) {
+              errorMessages.push(...messages);
+            } else {
+              errorMessages.push(messages as string);
+            }
+          }
+          this.formError = errorMessages.join(', ');
+        } else {
+          this.formError = err.error?.message || 'Failed to create admin user';
+        }
+
+        this.formLoading = false;
+      },
+    });
+  }
+
+  validateForm(): boolean {
+    if (!this.formData.first_name?.trim()) {
+      this.formError = 'First name is required';
+      return false;
+    }
+    if (!this.formData.last_name?.trim()) {
+      this.formError = 'Last name is required';
+      return false;
+    }
+    if (!this.formData.email?.trim()) {
+      this.formError = 'Email is required';
+      return false;
+    }
+    if (!this.formData.password?.trim()) {
+      this.formError = 'Password is required';
+      return false;
+    }
+    if (this.formData.password.length < 8) {
+      this.formError = 'Password must be at least 8 characters';
+      return false;
+    }
+
+    this.formError = null;
+    return true;
   }
 
   applyFiltersAndPagination(): void {
@@ -225,7 +378,18 @@ export class ManagementComponent implements OnInit {
   }
 
   getRoleNames(roles: any[]): string {
-    return roles.map((role) => role.name).join(', ');
+    return roles.map((role) => this.formatRoleName(role.name)).join(', ');
+  }
+
+  formatRoleName(roleName: string): string {
+    switch (roleName.toLowerCase()) {
+      case 'super-admin':
+        return 'Super Admin';
+      case 'admin':
+        return 'Admin';
+      default:
+        return roleName;
+    }
   }
 
   getStatusColor(admin: AdminUserResource): string {

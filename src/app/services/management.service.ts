@@ -14,6 +14,12 @@ export interface Role {
   permissions: Permission[];
 }
 
+export interface RoleResource {
+  id: string;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface AdminUserResource {
   id: number;
   first_name: string;
@@ -39,6 +45,43 @@ export interface AdminsResponse {
   data: {
     admins: AdminUserResource[];
     meta: PaginationMeta;
+  };
+}
+
+export interface CreateAdminRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  roles?: string[] | null;
+  permissions?: string[] | null;
+}
+
+export interface CreateAdminResponse {
+  success: boolean;
+  message: string;
+  data: {
+    admin: AdminUserResource;
+  };
+}
+
+export interface AssignRolesRequest {
+  roles: string[];
+}
+
+export interface AssignRolesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    admin: AdminUserResource;
+  };
+}
+
+export interface ListRolesResponse {
+  success: boolean;
+  message: string | null;
+  data: {
+    roles: RoleResource[];
   };
 }
 
@@ -120,6 +163,53 @@ export class ManagementService {
         },
       });
     });
+  }
+
+  /**
+   * Create a new admin user
+   * @param token - Bearer token for authentication
+   * @param adminData - Admin user data
+   * @returns Observable of create admin response
+   */
+  createAdmin(
+    token: string,
+    adminData: CreateAdminRequest
+  ): Observable<CreateAdminResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins`;
+
+    return this.http.post<CreateAdminResponse>(url, adminData, { headers });
+  }
+
+  /**
+   * Assign roles to an admin user
+   * @param token - Bearer token for authentication
+   * @param adminId - ID of the admin user
+   * @param roles - Array of role names to assign
+   * @returns Observable of assign roles response
+   */
+  assignRoles(
+    token: string,
+    adminId: number,
+    roles: string[]
+  ): Observable<AssignRolesResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/${adminId}/roles`;
+    const requestData: AssignRolesRequest = { roles };
+
+    return this.http.post<AssignRolesResponse>(url, requestData, { headers });
+  }
+
+  /**
+   * Get list of available roles
+   * @param token - Bearer token for authentication
+   * @returns Observable of roles response
+   */
+  listRoles(token: string): Observable<ListRolesResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/roles`;
+
+    return this.http.get<ListRolesResponse>(url, { headers });
   }
 
   // Optionally, a method to clear the cache

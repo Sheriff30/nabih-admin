@@ -25,35 +25,30 @@
         (click)="onSort('request_id')"
       >
         Request ID <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'request_id'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
         (click)="onSort('subject')"
       >
         Subject <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'subject'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
         (click)="onSort('issue_type')"
       >
         Issue Type <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'issue_type'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
         (click)="onSort('details')"
       >
         Details <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'details'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
         (click)="onSort('user.phone')"
       >
         Phone Number <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'user.phone'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
@@ -67,14 +62,12 @@
         (click)="onSort('date_created')"
       >
         Date Created <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'date_created'"></span>
       </div>
       <div
         class="px-5 py-3 flex items-center gap-1 cursor-pointer"
         (click)="onSort('status')"
       >
         Status <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'status'"></span>
       </div>
       <div class="px-5 py-3 flex items-center gap-1">Actions</div>
     </div>
@@ -317,7 +310,9 @@
 
         <div class="flex gap-1 flex-col">
           <span>Details:</span>
-          <div class="bg-white rounded-md p-3 min-h-[96px] text-neutral-500">
+          <div
+            class="bg-white rounded-md p-3 h-[96px] overflow-y-auto text-neutral-500"
+          >
             {{ selectedRequest.details }}
           </div>
         </div>
@@ -333,7 +328,7 @@
       </div>
       <!-- Admin Response Tab -->
       <div *ngIf="activeTab === 'admin' && selectedRequest" class="grid gap-4">
-        <div>
+        <div class="max-w-[600px] mx-auto w-full">
           <label class="block mb-2 text-xs">Admin Response</label>
           <textarea
             [(ngModel)]="adminResponse"

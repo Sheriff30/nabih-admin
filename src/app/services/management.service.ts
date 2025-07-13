@@ -132,8 +132,16 @@ export interface UpdateAdminResponse {
 export class ManagementService {
   private apiUrl = 'http://13.60.228.234/api';
 
-  // In-memory cache for admins list
-  private adminsCache: AdminsResponse | null = null;
+  // Improved cache structure with expiration
+  private adminsCache: {
+    data: AdminsResponse;
+    timestamp: number;
+    expiresAt: number;
+  } | null = null;
+
+  // Cache configuration
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
 
   constructor(private http: HttpClient) {}
 
@@ -153,7 +161,39 @@ export class ManagementService {
   }
 
   /**
-   * Get list of admin users (with cache)
+   * Check if cache is valid and not expired
+   */
+  private isCacheValid(): boolean {
+    if (!this.adminsCache) return false;
+
+    const now = Date.now();
+    return (
+      now < this.adminsCache.expiresAt &&
+      now - this.adminsCache.timestamp < this.MAX_CACHE_AGE
+    );
+  }
+
+  /**
+   * Set cache data with expiration
+   */
+  private setCache(data: AdminsResponse): void {
+    const now = Date.now();
+    this.adminsCache = {
+      data,
+      timestamp: now,
+      expiresAt: now + this.CACHE_DURATION,
+    };
+  }
+
+  /**
+   * Clear cache (called after mutations)
+   */
+  private invalidateCache(): void {
+    this.adminsCache = null;
+  }
+
+  /**
+   * Get list of admin users (with improved cache)
    * @param token - Bearer token for authentication
    * @param page - Page number for pagination
    * @param perPage - Number of items per page
@@ -168,11 +208,10 @@ export class ManagementService {
     search: string = '',
     forceRefresh: boolean = false
   ): Observable<AdminsResponse> {
-    // For search and pagination, always bypass cache
-    if (this.adminsCache && !forceRefresh && page === 1 && search === '') {
-      // Return cached data as observable
+    // Check cache validity for first page without search
+    if (this.isCacheValid() && !forceRefresh && page === 1 && search === '') {
       return new Observable<AdminsResponse>((observer) => {
-        observer.next(this.adminsCache!);
+        observer.next(this.adminsCache!.data);
         observer.complete();
       });
     }
@@ -194,13 +233,20 @@ export class ManagementService {
         next: (res) => {
           // Only cache the first page without search
           if (page === 1 && search === '') {
-            this.adminsCache = res;
+            this.setCache(res);
           }
           observer.next(res);
           observer.complete();
         },
         error: (err) => {
-          observer.error(err);
+          // If API fails and we have valid cache, return cached data as fallback
+          if (this.isCacheValid() && page === 1 && search === '') {
+            console.warn('API request failed, returning cached data:', err);
+            observer.next(this.adminsCache!.data);
+            observer.complete();
+          } else {
+            observer.error(err);
+          }
         },
       });
     });
@@ -219,7 +265,21 @@ export class ManagementService {
     const headers = this.getAuthHeaders(token);
     const url = `${this.apiUrl}/admins`;
 
-    return this.http.post<CreateAdminResponse>(url, adminData, { headers });
+    return new Observable<CreateAdminResponse>((observer) => {
+      this.http
+        .post<CreateAdminResponse>(url, adminData, { headers })
+        .subscribe({
+          next: (res) => {
+            // Invalidate cache after successful creation
+            this.invalidateCache();
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
+    });
   }
 
   /**
@@ -238,7 +298,21 @@ export class ManagementService {
     const url = `${this.apiUrl}/admins/${adminId}/roles`;
     const requestData: AssignRolesRequest = { roles };
 
-    return this.http.post<AssignRolesResponse>(url, requestData, { headers });
+    return new Observable<AssignRolesResponse>((observer) => {
+      this.http
+        .post<AssignRolesResponse>(url, requestData, { headers })
+        .subscribe({
+          next: (res) => {
+            // Invalidate cache after successful role assignment
+            this.invalidateCache();
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
+    });
   }
 
   /**
@@ -257,8 +331,22 @@ export class ManagementService {
     const url = `${this.apiUrl}/admins/${adminId}/permissions`;
     const requestData: AssignPermissionsRequest = { permissions };
 
-    return this.http.post<AssignPermissionsResponse>(url, requestData, {
-      headers,
+    return new Observable<AssignPermissionsResponse>((observer) => {
+      this.http
+        .post<AssignPermissionsResponse>(url, requestData, {
+          headers,
+        })
+        .subscribe({
+          next: (res) => {
+            // Invalidate cache after successful permission assignment
+            this.invalidateCache();
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
     });
   }
 
@@ -294,7 +382,20 @@ export class ManagementService {
   deleteAdmin(token: string, adminId: number): Observable<DeleteAdminResponse> {
     const headers = this.getAuthHeaders(token);
     const url = `${this.apiUrl}/admins/${adminId}`;
-    return this.http.delete<DeleteAdminResponse>(url, { headers });
+
+    return new Observable<DeleteAdminResponse>((observer) => {
+      this.http.delete<DeleteAdminResponse>(url, { headers }).subscribe({
+        next: (res) => {
+          // Invalidate cache after successful deletion
+          this.invalidateCache();
+          observer.next(res);
+          observer.complete();
+        },
+        error: (err) => {
+          observer.error(err);
+        },
+      });
+    });
   }
 
   /**
@@ -311,11 +412,46 @@ export class ManagementService {
   ): Observable<UpdateAdminResponse> {
     const headers = this.getAuthHeaders(token);
     const url = `${this.apiUrl}/admins/${adminId}`;
-    return this.http.put<UpdateAdminResponse>(url, updateData, { headers });
+
+    return new Observable<UpdateAdminResponse>((observer) => {
+      this.http
+        .put<UpdateAdminResponse>(url, updateData, { headers })
+        .subscribe({
+          next: (res) => {
+            // Invalidate cache after successful update
+            this.invalidateCache();
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
+    });
   }
 
-  // Optionally, a method to clear the cache
+  /**
+   * Clear the admins cache manually
+   */
   clearAdminsCache() {
-    this.adminsCache = null;
+    this.invalidateCache();
+  }
+
+  /**
+   * Get cache status for debugging
+   */
+  getCacheStatus() {
+    if (!this.adminsCache) {
+      return { hasCache: false };
+    }
+
+    const now = Date.now();
+    return {
+      hasCache: true,
+      isValid: this.isCacheValid(),
+      age: now - this.adminsCache.timestamp,
+      expiresIn: this.adminsCache.expiresAt - now,
+      dataAge: Math.floor((now - this.adminsCache.timestamp) / 1000) + 's',
+    };
   }
 }

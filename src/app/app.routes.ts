@@ -6,6 +6,7 @@ import { noAuthGuard } from './guards/no-auth.guard';
 import { DashboardLayoutComponent } from './ui/dashboard-layout/dashboard-layout.component';
 import { UsersComponent } from './pages/users/users.component';
 import { ManagementComponent } from './pages/management/management.component';
+import { SupportRequestsComponent } from './pages/support-requests/support-requests.component';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,10 @@ export const routes: Routes = [
       {
         path: 'management',
         component: ManagementComponent,
+      },
+      {
+        path: 'support-requests',
+        component: SupportRequestsComponent,
       },
     ],
   },

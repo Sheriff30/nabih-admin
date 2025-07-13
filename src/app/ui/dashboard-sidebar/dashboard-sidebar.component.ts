@@ -21,6 +21,10 @@ export class DashboardSidebarComponent implements OnInit {
       label: 'Admin Management',
       href: '/admin/dashboard/management',
     },
+    {
+      label: 'Support Requests',
+      href: '/admin/dashboard/support-requests',
+    },
   ];
 
   ngOnInit(): void {}

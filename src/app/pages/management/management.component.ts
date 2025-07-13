@@ -76,7 +76,6 @@ export class ManagementComponent implements OnInit {
   // Edit admin modal state
   showEditAdminModal = false;
   editAdminLoading = false;
-  editAdminError: string | null = null;
   editAdminForm: {
     id: number | null;
     first_name: string;
@@ -94,13 +93,20 @@ export class ManagementComponent implements OnInit {
     roles: [],
     direct_permissions: [],
   };
+  // Store original admin data for comparison
+  originalAdminData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    roles: string[];
+    direct_permissions: string[];
+  } | null = null;
   allPermissions: { id: number | string; name: string }[] = [];
   rolePermissions: string[] = [];
 
   // Permissions modal state
   showPermissionsModal = false;
   permissionsModalLoading = false;
-  permissionsModalError: string | null = null;
   permissionsModalDirect: string[] = [];
 
   // Getter to show all unique permissions for the admin (direct + role-based)
@@ -244,8 +250,11 @@ export class ManagementComponent implements OnInit {
     this.managementService.createAdmin(token, this.formData).subscribe({
       next: (res) => {
         this.formLoading = false;
-        this.managementService.clearAdminsCache();
-        this.loadAdmins();
+        // Add the new admin to the local data instead of reloading
+        if (res.data && res.data.admin) {
+          this.allAdmins.unshift(res.data.admin);
+          this.applyFiltersAndPagination();
+        }
         this.toast.show('Admin user created successfully', 'success');
         this.hideAddAdminModal();
       },
@@ -494,8 +503,11 @@ export class ManagementComponent implements OnInit {
     this.managementService.deleteAdmin(token, this.adminToDelete.id).subscribe({
       next: (res) => {
         this.deleteLoading = null;
-        this.managementService.clearAdminsCache();
-        this.loadAdmins();
+        // Remove the admin from local data instead of reloading
+        this.allAdmins = this.allAdmins.filter(
+          (admin) => admin.id !== this.adminToDelete!.id
+        );
+        this.applyFiltersAndPagination();
         this.closeDeleteModal();
         this.toast.show('Admin deleted successfully', 'success');
       },
@@ -517,16 +529,39 @@ export class ManagementComponent implements OnInit {
       roles: admin.roles.map((r) => r.name),
       direct_permissions: admin.direct_permissions.map((p) => p.name),
     };
+    // Store original data for comparison
+    this.originalAdminData = {
+      first_name: admin.first_name,
+      last_name: admin.last_name,
+      email: admin.email,
+      roles: admin.roles.map((r) => r.name),
+      direct_permissions: admin.direct_permissions.map((p) => p.name),
+    };
     this.rolePermissions = admin.roles.flatMap((r) =>
       r.permissions.map((p) => p.name)
     );
     this.showEditAdminModal = true;
-    this.editAdminError = null;
   }
 
   closeEditAdminModal(): void {
     this.showEditAdminModal = false;
-    this.editAdminError = null;
+    this.originalAdminData = null;
+  }
+
+  // Check if there are any changes in the edit form
+  hasChanges(): boolean {
+    if (!this.originalAdminData) return false;
+
+    return (
+      this.editAdminForm.first_name !== this.originalAdminData.first_name ||
+      this.editAdminForm.last_name !== this.originalAdminData.last_name ||
+      this.editAdminForm.email !== this.originalAdminData.email ||
+      this.editAdminForm.password !== '' ||
+      JSON.stringify(this.editAdminForm.roles.sort()) !==
+        JSON.stringify(this.originalAdminData.roles.sort()) ||
+      JSON.stringify(this.editAdminForm.direct_permissions.sort()) !==
+        JSON.stringify(this.originalAdminData.direct_permissions.sort())
+    );
   }
 
   onEditRoleChange(event: Event): void {
@@ -544,12 +579,10 @@ export class ManagementComponent implements OnInit {
   openPermissionsModal(): void {
     this.permissionsModalDirect = [...this.editAdminForm.direct_permissions];
     this.showPermissionsModal = true;
-    this.permissionsModalError = null;
   }
 
   closePermissionsModal(): void {
     this.showPermissionsModal = false;
-    this.permissionsModalError = null;
   }
 
   onPermissionsModalToggle(permission: string, event: Event): void {
@@ -568,10 +601,9 @@ export class ManagementComponent implements OnInit {
 
   savePermissionsModal(): void {
     this.permissionsModalLoading = true;
-    this.permissionsModalError = null;
     const token = localStorage.getItem('token');
     if (!token || !this.editAdminForm.id) {
-      this.permissionsModalError = 'Authentication required';
+      this.toast.show('Authentication required', 'error');
       this.permissionsModalLoading = false;
       return;
     }
@@ -591,18 +623,23 @@ export class ManagementComponent implements OnInit {
           this.toast.show('Permissions updated successfully', 'success');
         },
         error: () => {
-          this.permissionsModalError = 'Failed to update permissions';
+          this.toast.show('Failed to update permissions', 'error');
           this.permissionsModalLoading = false;
         },
       });
   }
 
   saveEditAdmin(): void {
+    // Check if there are any changes
+    if (!this.hasChanges()) {
+      this.toast.show('No changes detected', 'info');
+      return;
+    }
+
     this.editAdminLoading = true;
-    this.editAdminError = null;
     const token = localStorage.getItem('token');
     if (!token || !this.editAdminForm.id) {
-      this.editAdminError = 'Authentication required';
+      this.toast.show('Authentication required', 'error');
       this.editAdminLoading = false;
       return;
     }
@@ -638,24 +675,59 @@ export class ManagementComponent implements OnInit {
                   .subscribe({
                     next: () => {
                       this.editAdminLoading = false;
+                      // Update the admin in local data instead of reloading
+                      const adminIndex = this.allAdmins.findIndex(
+                        (admin) => admin.id === this.editAdminForm.id
+                      );
+                      if (adminIndex !== -1) {
+                        // Update the admin with new data
+                        this.allAdmins[adminIndex] = {
+                          ...this.allAdmins[adminIndex],
+                          first_name: this.editAdminForm.first_name,
+                          last_name: this.editAdminForm.last_name,
+                          email: this.editAdminForm.email,
+                          roles: this.availableRoles
+                            .filter((role) =>
+                              this.editAdminForm.roles.includes(role.name)
+                            )
+                            .map((role) => ({
+                              id: parseInt(role.id),
+                              name: role.name,
+                              permissions: role.permissions,
+                            })),
+                          direct_permissions: this.allPermissions
+                            .filter((permission) =>
+                              this.editAdminForm.direct_permissions.includes(
+                                permission.name
+                              )
+                            )
+                            .map((permission) => ({
+                              id:
+                                typeof permission.id === 'string'
+                                  ? parseInt(permission.id)
+                                  : permission.id,
+                              name: permission.name,
+                            })),
+                        };
+                        this.applyFiltersAndPagination();
+                      }
                       this.showEditAdminModal = false;
-                      this.loadAdmins();
                       this.toast.show('Admin updated successfully', 'success');
                     },
                     error: () => {
-                      this.editAdminError = 'Failed to assign permissions';
+                      this.toast.show('Failed to assign permissions', 'error');
                       this.editAdminLoading = false;
                     },
                   });
               },
               error: () => {
-                this.editAdminError = 'Failed to assign roles';
+                this.toast.show('Failed to assign roles', 'error');
                 this.editAdminLoading = false;
               },
             });
         },
         error: () => {
-          this.editAdminError = 'Failed to update admin info';
+          this.toast.show('Failed to update admin info', 'error');
           this.editAdminLoading = false;
         },
       });

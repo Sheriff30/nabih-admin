@@ -300,10 +300,14 @@
         <button
           type="submit"
           class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+          [disabled]="updateLoading"
         >
-          <img src="/icons/submit.svg" alt="" />
-
-          Save
+          <img *ngIf="!updateLoading" src="/icons/submit.svg" alt="" />
+          <div
+            *ngIf="updateLoading"
+            class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+          ></div>
+          {{ updateLoading ? "Saving..." : "Save" }}
         </button>
       </div>
     </div>
@@ -334,8 +338,14 @@
       <button
         class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
         (click)="confirmDeleteUser()"
+        [disabled]="deleteLoading"
       >
-        Yes, Delete
+        <div
+          *ngIf="deleteLoading"
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+        <span *ngIf="!deleteLoading">Yes, Delete</span>
+        <span *ngIf="deleteLoading">Deleting...</span>
       </button>
     </div>
   </div>

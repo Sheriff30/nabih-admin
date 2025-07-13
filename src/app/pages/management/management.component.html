@@ -403,7 +403,7 @@
     >
       <h2 class="text-lg font-bold">Edit Administrator</h2>
     </div>
-    <div *ngIf="editAdminError" class="text-red-500">{{ editAdminError }}</div>
+
     <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
       <div>
         <label class="block text-sm mb-1">First Name *</label>
@@ -527,9 +527,7 @@
     >
       <h2 class="text-lg font-bold">Adding permissions</h2>
     </div>
-    <div *ngIf="permissionsModalError" class="text-red-500">
-      {{ permissionsModalError }}
-    </div>
+
     <div>
       <div
         class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-h-64 overflow-y-auto bg-white p-2 rounded"

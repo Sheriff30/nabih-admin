@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from '../../services/users.service';
+import { ToastService } from '../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -33,8 +34,14 @@ export class UsersComponent implements OnInit {
   sortDirection: 'asc' | 'desc' = 'asc';
   isDeleteConfirmOpen: boolean = false;
   userToDelete: any = null;
+  deleteLoading: boolean = false;
+  updateLoading: boolean = false;
+  originalUserData: any = null;
 
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit() {
     this.loadCustomers();
@@ -63,10 +70,12 @@ export class UsersComponent implements OnInit {
         error: (error) => {
           console.error('Error loading customers:', error);
           this.loading = false;
+          this.toast.show('Failed to load users', 'error');
         },
       });
     } else {
       console.error('No token found');
+      this.toast.show('Authentication required', 'error');
     }
   }
 
@@ -122,49 +131,76 @@ export class UsersComponent implements OnInit {
 
   showUser(user: any) {
     this.selectedUser = { ...user };
+    this.originalUserData = { ...user };
     this.isEditModalOpen = true;
   }
 
   closeEditModal() {
     this.isEditModalOpen = false;
     this.selectedUser = null;
+    this.originalUserData = null;
+  }
+
+  // Check if there are any changes in the user form
+  hasChanges(): boolean {
+    if (!this.originalUserData || !this.selectedUser) return false;
+
+    return (
+      this.selectedUser.name !== this.originalUserData.name ||
+      this.selectedUser.is_verified !== this.originalUserData.is_verified
+    );
   }
 
   saveUser() {
     if (!this.selectedUser) return;
-    const token = localStorage.getItem('token');
-    if (token) {
-      this.usersService
-        .updateCustomer(
-          this.selectedUser.id,
-          {
-            name: this.selectedUser.name,
-            phone_number: this.selectedUser.phone_number,
-            gender: this.selectedUser.gender,
-            is_verified: this.selectedUser.is_verified, // include active status
-          },
-          token
-        )
-        .subscribe({
-          next: (res) => {
-            // Update the user in allUsers array
-            const index = this.allUsers.findIndex(
-              (u) => u.id === this.selectedUser.id
-            );
-            if (index !== -1) {
-              this.allUsers[index] = {
-                ...this.allUsers[index],
-                ...this.selectedUser,
-              };
-            }
-            this.applyFiltersAndPagination();
-            this.closeEditModal();
-          },
-          error: (err) => {
-            alert('Failed to update user');
-          },
-        });
+
+    // Check if there are any changes
+    if (!this.hasChanges()) {
+      this.toast.show('No changes detected', 'info');
+      return;
     }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.toast.show('Authentication required', 'error');
+      return;
+    }
+
+    this.updateLoading = true;
+    this.usersService
+      .updateCustomer(
+        this.selectedUser.id,
+        {
+          name: this.selectedUser.name,
+          phone_number: this.selectedUser.phone_number,
+          gender: this.selectedUser.gender,
+          is_verified: this.selectedUser.is_verified, // include active status
+        },
+        token
+      )
+      .subscribe({
+        next: (res) => {
+          // Update the user in allUsers array
+          const index = this.allUsers.findIndex(
+            (u) => u.id === this.selectedUser.id
+          );
+          if (index !== -1) {
+            this.allUsers[index] = {
+              ...this.allUsers[index],
+              ...this.selectedUser,
+            };
+          }
+          this.applyFiltersAndPagination();
+          this.closeEditModal();
+          this.toast.show('User updated successfully', 'success');
+          this.updateLoading = false;
+        },
+        error: (err) => {
+          const errorMessage = err.error?.message || 'Failed to update user';
+          this.toast.show(errorMessage, 'error');
+          this.updateLoading = false;
+        },
+      });
   }
 
   deleteUser(user: any) {
@@ -175,25 +211,33 @@ export class UsersComponent implements OnInit {
   confirmDeleteUser() {
     if (!this.userToDelete) return;
     const token = localStorage.getItem('token');
-    if (token) {
-      this.usersService.deleteCustomer(this.userToDelete.id, token).subscribe({
-        next: (res) => {
-          // Remove the user from allUsers array
-          this.allUsers = this.allUsers.filter(
-            (u) => u.id !== this.userToDelete.id
-          );
-          this.applyFiltersAndPagination();
-          this.isDeleteConfirmOpen = false;
-          this.userToDelete = null;
-          this.closeEditModal();
-        },
-        error: (err) => {
-          alert('Failed to delete user');
-          this.isDeleteConfirmOpen = false;
-          this.userToDelete = null;
-        },
-      });
+    if (!token) {
+      this.toast.show('Authentication required', 'error');
+      return;
     }
+
+    this.deleteLoading = true;
+    this.usersService.deleteCustomer(this.userToDelete.id, token).subscribe({
+      next: (res) => {
+        // Remove the user from allUsers array
+        this.allUsers = this.allUsers.filter(
+          (u) => u.id !== this.userToDelete.id
+        );
+        this.applyFiltersAndPagination();
+        this.isDeleteConfirmOpen = false;
+        this.userToDelete = null;
+        this.closeEditModal();
+        this.toast.show('User deleted successfully', 'success');
+        this.deleteLoading = false;
+      },
+      error: (err) => {
+        const errorMessage = err.error?.message || 'Failed to delete user';
+        this.toast.show(errorMessage, 'error');
+        this.isDeleteConfirmOpen = false;
+        this.userToDelete = null;
+        this.deleteLoading = false;
+      },
+    });
   }
 
   cancelDeleteUser() {

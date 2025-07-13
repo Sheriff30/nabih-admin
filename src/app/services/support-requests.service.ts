@@ -214,6 +214,20 @@ export class SupportRequestsService {
   }
 
   /**
+   * Delete a support request by ID
+   * @param token - Bearer token for authentication
+   * @param id - Support request ID
+   * @returns Observable of the delete response
+   */
+  deleteSupportRequest(token: string, id: number): Observable<any> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/support-requests/${id}`;
+    // Invalidate cache after delete
+    this.invalidateCache();
+    return this.http.delete(url, { headers });
+  }
+
+  /**
    * Clear the support requests cache manually
    */
   clearSupportRequestsCache() {

@@ -5,6 +5,7 @@ import {
   SupportRequestsService,
   SupportRequestsResponse,
 } from '../../services/support-requests.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-support-requests',
@@ -35,7 +36,15 @@ export class SupportRequestsComponent implements OnInit {
   submitting = false;
   formError: string | null = null;
 
-  constructor(private supportRequestsService: SupportRequestsService) {}
+  // Delete modal state
+  showDeleteModal = false;
+  requestToDelete: any = null;
+  deleteLoading: boolean = false;
+
+  constructor(
+    private supportRequestsService: SupportRequestsService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadSupportRequests();
@@ -51,6 +60,7 @@ export class SupportRequestsComponent implements OnInit {
     if (!token) {
       this.error = 'No authentication token found';
       this.loading = false;
+      this.toast.show('Authentication required. Please log in again.', 'error');
       return;
     }
 
@@ -65,6 +75,10 @@ export class SupportRequestsComponent implements OnInit {
       error: (error: any) => {
         this.error = 'Failed to load support requests';
         this.loading = false;
+        this.toast.show(
+          'Failed to load support requests. Please try again.',
+          'error'
+        );
       },
     });
   }
@@ -168,6 +182,7 @@ export class SupportRequestsComponent implements OnInit {
     if (!this.selectedRequest) return;
     if (!this.adminResponse.trim()) {
       this.formError = 'Response is required.';
+      this.toast.show('Please enter a response before saving.', 'error');
       return;
     }
     this.submitting = true;
@@ -176,6 +191,7 @@ export class SupportRequestsComponent implements OnInit {
     if (!token) {
       this.formError = 'No authentication token found';
       this.submitting = false;
+      this.toast.show('Authentication required. Please log in again.', 'error');
       return;
     }
     this.supportRequestsService
@@ -193,10 +209,53 @@ export class SupportRequestsComponent implements OnInit {
           this.closeModal();
           this.loadSupportRequests(); // Refresh list
           this.submitting = false;
+          this.toast.show('Support request updated successfully.', 'success');
         },
         error: (err) => {
           this.formError = 'Failed to update support request.';
           this.submitting = false;
+          this.toast.show(
+            'Failed to update support request. Please try again.',
+            'error'
+          );
+        },
+      });
+  }
+
+  openDeleteModal(request: any) {
+    this.requestToDelete = request;
+    this.showDeleteModal = true;
+    this.deleteLoading = false;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.requestToDelete = null;
+    this.deleteLoading = false;
+  }
+
+  confirmDeleteRequest() {
+    if (!this.requestToDelete) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    this.deleteLoading = true;
+    this.supportRequestsService
+      .deleteSupportRequest(token, this.requestToDelete.id)
+      .subscribe({
+        next: () => {
+          this.allSupportRequests = this.allSupportRequests.filter(
+            (r) => r.id !== this.requestToDelete.id
+          );
+          this.applyFilters();
+          this.closeDeleteModal();
+          this.toast.show('Support request deleted successfully.', 'success');
+        },
+        error: () => {
+          this.deleteLoading = false;
+          this.toast.show(
+            'Failed to delete support request. Please try again.',
+            'error'
+          );
         },
       });
   }

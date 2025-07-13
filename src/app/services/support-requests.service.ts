@@ -189,6 +189,31 @@ export class SupportRequestsService {
   }
 
   /**
+   * Update a support request with admin response and status
+   * @param token - Bearer token for authentication
+   * @param id - Support request ID
+   * @param admin_response - Admin response string
+   * @param status - Status string (pending, open, closed)
+   * @returns Observable of the updated support request
+   */
+  updateSupportRequest(
+    token: string,
+    id: number,
+    admin_response: string,
+    status: 'pending' | 'open' | 'closed'
+  ): Observable<any> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/support-requests/${id}`;
+    const body = {
+      admin_response,
+      status,
+    };
+    // Invalidate cache after update
+    this.invalidateCache();
+    return this.http.put(url, body, { headers });
+  }
+
+  /**
    * Clear the support requests cache manually
    */
   clearSupportRequestsCache() {

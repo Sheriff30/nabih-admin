@@ -1,4 +1,28 @@
+@import "~quill/dist/quill.core.css";
+@import "~quill/dist/quill.snow.css";
+
 /* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.ql-container {
+  min-height: 200px;
+  font-family: "Arial", sans-serif;
+  font-size: 16px;
+  width: 800px;
+
+  background-color: #f9f9f9;
+}
+
+.ql-toolbar {
+  background-color: #f0f0f0;
+  border: none;
+  width: 800px;
+}
+
+.ql-editor {
+  padding: 15px;
+  color: #333;
+  line-height: 1.6;
+  width: 800px;
+}

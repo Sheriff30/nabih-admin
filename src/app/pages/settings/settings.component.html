@@ -1,0 +1,14 @@
+<quill-editor
+  [(ngModel)]="settingsText"
+  [modules]="{
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image'],
+      ['clean']
+    ]
+  }"
+  placeholder="Type a message..."
+></quill-editor>

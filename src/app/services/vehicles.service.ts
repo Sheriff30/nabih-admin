@@ -55,7 +55,7 @@ export interface VehiclesResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VehiclesService {
-  private apiUrl = 'http://13.60.228.234/api';
+  private apiUrl = 'https://13.60.228.234/api';
 
   // Vehicles cache with expiration
   private vehiclesCache: {

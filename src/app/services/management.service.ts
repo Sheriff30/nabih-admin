@@ -130,7 +130,7 @@ export interface UpdateAdminResponse {
   providedIn: 'root',
 })
 export class ManagementService {
-  private apiUrl = 'http://13.60.228.234/api';
+  private apiUrl = 'https://13.60.228.234/api';
 
   // Improved cache structure with expiration
   private adminsCache: {

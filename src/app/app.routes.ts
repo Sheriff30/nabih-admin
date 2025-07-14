@@ -8,6 +8,7 @@ import { UsersComponent } from './pages/users/users.component';
 import { ManagementComponent } from './pages/management/management.component';
 import { SupportRequestsComponent } from './pages/support-requests/support-requests.component';
 import { VehicleManagementComponent } from './pages/vehicle-management/vehicle-management.component';
+import { SettingsComponent } from './pages/settings/settings.component';
 
 export const routes: Routes = [
   {
@@ -37,6 +38,10 @@ export const routes: Routes = [
       {
         path: 'vehicles',
         component: VehicleManagementComponent,
+      },
+      {
+        path: 'settings',
+        component: SettingsComponent,
       },
     ],
   },

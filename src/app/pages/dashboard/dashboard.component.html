@@ -1,1 +1,77 @@
-<p>dashboard works!</p>
+<div
+  class="justify-between grid gap-[16px] grid-cols-[repeat(auto-fit,minmax(255px,1fr))]"
+>
+  <ng-container *ngIf="loadingStatistics; else statsBoxes">
+    <div
+      *ngFor="let i of [1, 2, 3, 4]"
+      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D] animate-pulse"
+    >
+      <div class="flex items-center gap-2">
+        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-gray-100">
+          <div class="w-full h-full bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  </ng-container>
+  <ng-template #statsBoxes>
+    <div
+      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+    >
+      <div class="flex items-center gap-2">
+        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F7F7FB]">
+          <img src="/icons/total-users.svg" alt="total-users" />
+        </div>
+        <div class="text-3xl">
+          {{ statistics?.data?.counts?.customers ?? 0 }}
+        </div>
+      </div>
+      <div class="text-neutral-600">Total Users</div>
+    </div>
+    <div
+      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+    >
+      <div class="flex items-center gap-2">
+        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FBF7F5]">
+          <img src="/icons/total-vehicles.svg" alt="total-vehicles" />
+        </div>
+        <div class="text-3xl">
+          {{ statistics?.data?.counts?.vehicles ?? 0 }}
+        </div>
+      </div>
+      <div class="text-neutral-600">Total Vehicles</div>
+    </div>
+    <div
+      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+    >
+      <div class="flex items-center gap-2">
+        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F5F3F1]">
+          <img src="/icons/service-center.svg" alt="total-workshops" />
+        </div>
+        <div class="text-3xl">
+          {{ statistics?.data?.counts?.workshops ?? 0 }}
+        </div>
+      </div>
+      <div class="text-neutral-600">Total Workshops</div>
+    </div>
+    <div
+      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+    >
+      <div class="flex items-center gap-2">
+        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FFF7ED]">
+          <img src="/icons/upcoming-reminders.svg" alt="upcoming-reminders" />
+        </div>
+        <div class="text-3xl">
+          {{ statistics?.data?.counts?.upcoming_reminders ?? 0 }}
+        </div>
+      </div>
+      <div class="text-neutral-600">Upcoming Reminders</div>
+    </div>
+  </ng-template>
+</div>
+<div
+  class="justify-between grid gap-[16px] grid-cols-[repeat(auto-fit,minmax(255px,1fr))]"
+>
+  <!-- make a loading boxes same as the boxes above -->
+</div>

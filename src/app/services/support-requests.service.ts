@@ -47,7 +47,7 @@ export interface SupportRequestsResponse {
   providedIn: 'root',
 })
 export class SupportRequestsService {
-  private apiUrl = 'http://13.60.228.234/api';
+  private apiUrl = 'https://13.60.228.234/api';
 
   // Improved cache structure with expiration
   private supportRequestsCache: {

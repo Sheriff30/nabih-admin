@@ -120,13 +120,16 @@
         </div>
       </ng-container>
       <ng-template #noUsers>
-        <div *ngIf="!loading" class="text-center py-8 bg-white">
+        <div
+          *ngIf="!loading"
+          class="text-center text-neutral-500 py-8 bg-white"
+        >
           No users found.
         </div>
       </ng-template>
       <!-- Pagination -->
       <div
-        *ngIf="!loading"
+        *ngIf="!loading && users.length > 0"
         class="flex justify-between py-4 px-5 bg-white items-center"
       >
         <div class="flex gap-2 items-center">

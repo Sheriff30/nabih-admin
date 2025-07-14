@@ -1,77 +1,242 @@
-<div
-  class="justify-between grid gap-[16px] grid-cols-[repeat(auto-fit,minmax(255px,1fr))]"
->
-  <ng-container *ngIf="loadingStatistics; else statsBoxes">
-    <div
-      *ngFor="let i of [1, 2, 3, 4]"
-      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D] animate-pulse"
-    >
-      <div class="flex items-center gap-2">
-        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-gray-100">
-          <div class="w-full h-full bg-gray-200 rounded animate-pulse"></div>
+<div class="grid gap-[32px]">
+  <div
+    class="justify-between grid gap-[16px] grid-cols-[repeat(auto-fit,minmax(255px,1fr))]"
+  >
+    <ng-container *ngIf="loadingStatistics; else statsBoxes">
+      <div
+        *ngFor="let i of [1, 2, 3, 4]"
+        class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D] animate-pulse"
+      >
+        <div class="flex items-center gap-2">
+          <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-gray-100">
+            <div class="w-full h-full bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div class="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
         </div>
-        <div class="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
       </div>
-      <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-    </div>
-  </ng-container>
-  <ng-template #statsBoxes>
-    <div
-      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
-    >
-      <div class="flex items-center gap-2">
-        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F7F7FB]">
-          <img src="/icons/total-users.svg" alt="total-users" />
+    </ng-container>
+    <ng-template #statsBoxes>
+      <div
+        class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+      >
+        <div class="flex items-center gap-2">
+          <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F7F7FB]">
+            <img src="/icons/total-users.svg" alt="total-users" />
+          </div>
+          <div class="text-3xl">
+            {{ statistics?.data?.counts?.customers ?? 0 }}
+          </div>
         </div>
-        <div class="text-3xl">
-          {{ statistics?.data?.counts?.customers ?? 0 }}
+        <div class="text-neutral-600">Total Users</div>
+      </div>
+      <div
+        class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+      >
+        <div class="flex items-center gap-2">
+          <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FBF7F5]">
+            <img src="/icons/total-vehicles.svg" alt="total-vehicles" />
+          </div>
+          <div class="text-3xl">
+            {{ statistics?.data?.counts?.vehicles ?? 0 }}
+          </div>
+        </div>
+        <div class="text-neutral-600">Total Vehicles</div>
+      </div>
+      <div
+        class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+      >
+        <div class="flex items-center gap-2">
+          <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F5F3F1]">
+            <img src="/icons/service-center.svg" alt="total-workshops" />
+          </div>
+          <div class="text-3xl">
+            {{ statistics?.data?.counts?.workshops ?? 0 }}
+          </div>
+        </div>
+        <div class="text-neutral-600">Total Workshops</div>
+      </div>
+      <div
+        class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
+      >
+        <div class="flex items-center gap-2">
+          <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FFF7ED]">
+            <img src="/icons/upcoming-reminders.svg" alt="upcoming-reminders" />
+          </div>
+          <div class="text-3xl">
+            {{ statistics?.data?.counts?.upcoming_reminders ?? 0 }}
+          </div>
+        </div>
+        <div class="text-neutral-600">Upcoming Reminders</div>
+      </div>
+    </ng-template>
+  </div>
+  <div class="w-full overflow-x-auto rounded-md">
+    <div
+      class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
+    >
+      <!-- Title & Search -->
+      <div class="flex justify-between py-4 px-5 bg-white items-center">
+        <p class="font-bold">Vehicle Maintenance Log</p>
+        <div
+          class="max-w-[300px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+        >
+          <img src="/icons/search.svg" alt="search icon" />
+          <input
+            #searchInput
+            type="text"
+            placeholder="Search by vehicle, service type, or workshop"
+            class="w-full text-xs bg-neutral-100 outline-none"
+            [value]="searchTerm"
+            (input)="onSearch(searchInput.value)"
+          />
         </div>
       </div>
-      <div class="text-neutral-600">Total Users</div>
-    </div>
-    <div
-      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
-    >
-      <div class="flex items-center gap-2">
-        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FBF7F5]">
-          <img src="/icons/total-vehicles.svg" alt="total-vehicles" />
+      <!-- Header -->
+      <div
+        class="grid-cols-[repeat(5,minmax(192px,1fr))] grid bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      >
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('vehicle_name')"
+        >
+          Vehicle Name <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-        <div class="text-3xl">
-          {{ statistics?.data?.counts?.vehicles ?? 0 }}
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('service_type')"
+        >
+          Service Type <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-      </div>
-      <div class="text-neutral-600">Total Vehicles</div>
-    </div>
-    <div
-      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
-    >
-      <div class="flex items-center gap-2">
-        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#F5F3F1]">
-          <img src="/icons/service-center.svg" alt="total-workshops" />
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('service_date')"
+        >
+          Service Date <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-        <div class="text-3xl">
-          {{ statistics?.data?.counts?.workshops ?? 0 }}
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('next_service_type')"
+        >
+          Workshop <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
-      </div>
-      <div class="text-neutral-600">Total Workshops</div>
-    </div>
-    <div
-      class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
-    >
-      <div class="flex items-center gap-2">
-        <div class="p-[12.5px] w-[56px] h-[56px] rounded-lg bg-[#FFF7ED]">
-          <img src="/icons/upcoming-reminders.svg" alt="upcoming-reminders" />
-        </div>
-        <div class="text-3xl">
-          {{ statistics?.data?.counts?.upcoming_reminders ?? 0 }}
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('next_service_date')"
+        >
+          Next Service Date <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
       </div>
-      <div class="text-neutral-600">Upcoming Reminders</div>
+      <!-- Loading State -->
+      <div
+        *ngIf="loadingLogs"
+        class="flex items-center justify-center bg-white py-12"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+        ></div>
+      </div>
+      <!-- Table Rows -->
+      <ng-container *ngIf="!loadingLogs">
+        <ng-container *ngIf="maintenanceLogs.length > 0; else noLogs">
+          <div
+            *ngFor="let log of maintenanceLogs"
+            class="grid-cols-[repeat(5,minmax(192px,1fr))] grid bg-white text-sm"
+          >
+            <div class="px-5 py-3 flex items-center gap-1">
+              {{ log.vehicle_name }}
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              {{ log.service_type }}
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              {{ log.service_date | date : "yyyy-MM-dd" }}
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              {{ log.next_service_type }}
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              {{ log.next_service_date | date : "yyyy-MM-dd" }}
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noLogs>
+          <div class="col-span-6 text-center py-6 text-neutral-400">
+            No maintenance logs found.
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- Pagination -->
+      <div
+        *ngIf="!loadingLogs && maintenanceLogs.length > 0"
+        class="flex justify-between py-4 px-5 bg-white items-center"
+      >
+        <div class="flex gap-2 items-center">
+          <div>Show</div>
+          <select
+            #pageSizeSelect
+            class="border border-neutral-200 rounded-md p-2"
+            [value]="pageSize"
+            (change)="onPageSizeChange(+pageSizeSelect.value)"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="15">15</option>
+          </select>
+          <div>per page</div>
+        </div>
+        <div class="flex gap-4 items-center">
+          <div class="text-neutral-500">
+            {{ maintenanceMeta ? maintenanceMeta.from || 1 : 1 }}-{{
+              maintenanceMeta
+                ? maintenanceMeta.to || maintenanceLogs.length
+                : maintenanceLogs.length
+            }}
+            of
+            {{
+              maintenanceMeta ? maintenanceMeta.total : maintenanceLogs.length
+            }}
+          </div>
+          <div class="flex items-center gap-1">
+            <div>
+              <img
+                src="/icons/pagination-left.svg"
+                alt=""
+                class="cursor-pointer"
+                [class.opacity-50]="currentPage === 1"
+                (click)="currentPage > 1 && onPageChange(currentPage - 1)"
+              />
+            </div>
+            <ul class="flex gap-1">
+              <li
+                *ngFor="
+                  let page of [].constructor(maintenanceMeta?.last_page || 1);
+                  let p = index
+                "
+                class="py-2 px-4 rounded-md cursor-pointer"
+                [class.bg-neutral-100]="currentPage === p + 1"
+                [class.text-neutral-400]="currentPage !== p + 1"
+                (click)="onPageChange(p + 1)"
+              >
+                {{ p + 1 }}
+              </li>
+            </ul>
+            <div>
+              <img
+                src="/icons/pagination-right.svg"
+                alt=""
+                class="cursor-pointer"
+                [class.opacity-50]="currentPage === maintenanceMeta?.last_page"
+                (click)="
+                  currentPage < maintenanceMeta?.last_page &&
+                    onPageChange(currentPage + 1)
+                "
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </ng-template>
-</div>
-<div
-  class="justify-between grid gap-[16px] grid-cols-[repeat(auto-fit,minmax(255px,1fr))]"
->
-  <!-- make a loading boxes same as the boxes above -->
+  </div>
 </div>

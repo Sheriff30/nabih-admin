@@ -77,14 +77,18 @@ export class DashboardService {
     token: string,
     per_page: string = '10',
     sort_direction: string = 'desc',
-    sort_field: string = 'service_date'
+    sort_field: string = 'service_date',
+    page?: number,
+    search?: string
   ): Observable<any> {
-    // Only cache first page, default sort, no forceRefresh
+    // Only cache first page, default sort, no forceRefresh, no search
     if (
       this.isCacheValid() &&
       per_page === '10' &&
       sort_direction === 'desc' &&
-      sort_field === 'service_date'
+      sort_field === 'service_date' &&
+      (!page || page === 1) &&
+      (!search || search === '')
     ) {
       return new Observable<any>((observer) => {
         observer.next(this.maintenanceLogsCache!.data);
@@ -96,17 +100,21 @@ export class DashboardService {
     if (per_page) params.append('per_page', per_page);
     if (sort_direction) params.append('sort_direction', sort_direction);
     if (sort_field) params.append('sort_field', sort_field);
+    if (page) params.append('page', page.toString());
+    if (search) params.append('search', search);
     const url = `${this.apiUrl}/admins/dashboard/maintenance-logs${
       params.toString() ? '?' + params.toString() : ''
     }`;
     return new Observable<any>((observer) => {
       this.http.get<any>(url, { headers }).subscribe({
         next: (res) => {
-          // Only cache default sort
+          // Only cache default sort, first page, no search
           if (
             per_page === '10' &&
             sort_direction === 'desc' &&
-            sort_field === 'service_date'
+            sort_field === 'service_date' &&
+            (!page || page === 1) &&
+            (!search || search === '')
           ) {
             this.setCache(res);
           }
@@ -119,7 +127,9 @@ export class DashboardService {
             this.isCacheValid() &&
             per_page === '10' &&
             sort_direction === 'desc' &&
-            sort_field === 'service_date'
+            sort_field === 'service_date' &&
+            (!page || page === 1) &&
+            (!search || search === '')
           ) {
             observer.next(this.maintenanceLogsCache!.data);
             observer.complete();

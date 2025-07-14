@@ -51,7 +51,7 @@ export class UsersComponent implements OnInit {
     const token = localStorage.getItem('token');
     if (token) {
       this.loading = true;
-      this.usersService.listCustomers(token, 1, 1000, '').subscribe({
+      this.usersService.listCustomers(token, 1, 0, '').subscribe({
         next: (res) => {
           console.log(res);
           if (res.success && res.data && res.data.customers) {

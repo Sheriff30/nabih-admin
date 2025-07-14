@@ -154,7 +154,7 @@ export class ManagementComponent implements OnInit {
       this.loading = true;
       this.error = null;
       this.managementService
-        .listAdmins(token, 1, 1000, this.searchTerm)
+        .listAdmins(token, 1, 0, this.searchTerm)
         .subscribe({
           next: (res) => {
             console.log(res);
@@ -507,6 +507,12 @@ export class ManagementComponent implements OnInit {
         this.allAdmins = this.allAdmins.filter(
           (admin) => admin.id !== this.adminToDelete!.id
         );
+        // Recalculate pagination after deletion
+        const total = this.allAdmins.length;
+        const lastPage = Math.max(1, Math.ceil(total / this.perPage));
+        if (this.currentPage > lastPage) {
+          this.currentPage = lastPage;
+        }
         this.applyFiltersAndPagination();
         this.closeDeleteModal();
         this.toast.show('Admin deleted successfully', 'success');

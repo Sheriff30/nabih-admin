@@ -204,7 +204,7 @@ export class ManagementService {
   listAdmins(
     token: string,
     page: number = 1,
-    perPage: number = 10,
+    perPage: number = 0,
     search: string = '',
     forceRefresh: boolean = false
   ): Observable<AdminsResponse> {

@@ -65,7 +65,7 @@ export class SupportRequestsComponent implements OnInit {
     }
 
     // Fetch support requests
-    this.supportRequestsService.listSupportRequests(token, 1, 1000).subscribe({
+    this.supportRequestsService.listSupportRequests(token).subscribe({
       next: (response: SupportRequestsResponse) => {
         console.log(response);
         this.allSupportRequests = response.data.support_requests;
@@ -246,6 +246,12 @@ export class SupportRequestsComponent implements OnInit {
           this.allSupportRequests = this.allSupportRequests.filter(
             (r) => r.id !== this.requestToDelete.id
           );
+          // Recalculate pagination after deletion
+          const total = this.filteredAndSortedRequests.length;
+          const lastPage = Math.max(1, Math.ceil(total / this.pageSize));
+          if (this.currentPage > lastPage) {
+            this.currentPage = lastPage;
+          }
           this.applyFilters();
           this.closeDeleteModal();
           this.toast.show('Support request deleted successfully.', 'success');

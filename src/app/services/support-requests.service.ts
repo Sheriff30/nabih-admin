@@ -123,7 +123,7 @@ export class SupportRequestsService {
   listSupportRequests(
     token: string,
     page: number = 1,
-    perPage: number = 10,
+    perPage: number = 0,
     search: string = '',
     status?: string,
     issueType?: string,

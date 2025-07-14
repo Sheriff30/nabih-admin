@@ -458,6 +458,13 @@ export class VehicleManagementComponent implements OnInit {
         this.deleteLoading = false;
         this.deleteModalOpen = false;
         this.loadVehicles();
+        // Recalculate pagination after deletion
+        const total = this.filteredVehicleOwners.length;
+        const lastPage = Math.max(1, Math.ceil(total / this.pageSize));
+        if (this.currentPage > lastPage) {
+          this.currentPage = lastPage;
+        }
+        this.applySearch();
         this.toast.show('Vehicle deleted successfully!', 'success');
       },
       error: () => {

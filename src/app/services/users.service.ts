@@ -94,7 +94,7 @@ export class UsersService {
   listCustomers(
     token: string,
     page: number = 1,
-    per_page: number = 10,
+    per_page: number = 0,
     search?: string,
     forceRefresh: boolean = false
   ): Observable<CustomersResponse> {

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { VehiclesService, Vehicle } from '../../services/vehicles.service';
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf, NgClass, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../services/toast.service';
 
 interface VehicleOwnerSummary {
   owner_id: number;
@@ -18,7 +19,7 @@ type SortDirection = 'asc' | 'desc';
 @Component({
   selector: 'app-vehicle-management',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule],
+  imports: [NgFor, NgIf, NgClass, DatePipe, FormsModule],
   templateUrl: './vehicle-management.component.html',
   styleUrl: './vehicle-management.component.css',
 })
@@ -44,7 +45,30 @@ export class VehicleManagementComponent implements OnInit {
   selectedOwner: VehicleOwnerSummary | null = null;
   selectedVehicleId: number | null = null;
 
-  constructor(private vehiclesService: VehiclesService) {}
+  editModalOpen = false;
+  editOwner: VehicleOwnerSummary | null = null;
+  editVehicleId: number | null = null;
+  editVehicleForm: any = {};
+  originalEditVehicleForm: any = {};
+  editLoading = false;
+
+  serviceHistoryModalOpen = false;
+  serviceHistoryOwner: VehicleOwnerSummary | null = null;
+  serviceHistoryVehicle: Vehicle | null = null;
+  serviceHistoryTab: 'last' | 'previous' = 'last';
+  lastService: any = null;
+  previousServices: any[] = [];
+  expandedServiceIndex: number | null = null;
+
+  deleteModalOpen = false;
+  deleteOwner: VehicleOwnerSummary | null = null;
+  deleteVehicleId: number | null = null;
+  deleteLoading = false;
+
+  constructor(
+    private vehiclesService: VehiclesService,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadVehicles();
@@ -67,12 +91,17 @@ export class VehicleManagementComponent implements OnInit {
           console.error('Error loading vehicles:', error);
           this.error = 'Failed to load vehicles';
           this.loading = false;
+          this.toast.show(
+            'Failed to load vehicles. Please try again.',
+            'error'
+          );
         },
       });
     } else {
       console.error('No authentication token found');
       this.error = 'Authentication required';
       this.loading = false;
+      this.toast.show('Authentication required. Please log in.', 'error');
     }
   }
 
@@ -227,6 +256,86 @@ export class VehicleManagementComponent implements OnInit {
     console.log('Selected vehicle details:', this.selectedVehicle);
   }
 
+  openEditModal(owner: VehicleOwnerSummary): void {
+    this.editOwner = owner;
+    this.editVehicleId =
+      owner.vehicles.length > 0 ? owner.vehicles[0].id : null;
+    this.editModalOpen = true;
+    this.setEditForm();
+  }
+
+  setEditForm(): void {
+    const vehicle = this.editOwner?.vehicles.find(
+      (v) => v.id === this.editVehicleId
+    );
+    if (vehicle) {
+      this.editVehicleForm = { ...vehicle };
+      this.originalEditVehicleForm = { ...vehicle };
+    }
+  }
+
+  onEditVehicleChange(): void {
+    this.editVehicleId = Number(this.editVehicleId);
+    this.setEditForm();
+  }
+
+  saveEditVehicle(): void {
+    if (!this.editOwner || !this.editVehicleId) return;
+    // Compare form with original
+    const isChanged = Object.keys(this.editVehicleForm).some(
+      (key) => this.editVehicleForm[key] !== this.originalEditVehicleForm[key]
+    );
+    if (!isChanged) {
+      this.toast.show('No changes detected.', 'info');
+      this.editModalOpen = false;
+      return;
+    }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    this.editLoading = true;
+    this.vehiclesService
+      .updateVehicle(token, this.editVehicleId, {
+        user_id: this.editOwner.owner_id,
+        name: this.editVehicleForm.name,
+        make_brand: this.editVehicleForm.make_brand,
+        model_year: this.editVehicleForm.model_year,
+        vin_number: this.editVehicleForm.vin_number,
+        chassis_number: this.editVehicleForm.chassis_number,
+        mileage: this.editVehicleForm.mileage,
+        vehicle_type: this.editVehicleForm.vehicle_type,
+        plate_number: this.editVehicleForm.plate_number,
+      })
+      .subscribe({
+        next: (res) => {
+          this.editLoading = false;
+          this.editModalOpen = false;
+          this.loadVehicles();
+          this.toast.show('Vehicle updated successfully!', 'success');
+        },
+        error: (err) => {
+          this.editLoading = false;
+          this.toast.show(
+            'Failed to update vehicle. Please try again.',
+            'error'
+          );
+        },
+      });
+  }
+
+  formatMileage(value: number | null): string {
+    if (value === null || value === undefined) return '';
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  onMileageInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    // Remove all non-digit characters
+    const raw = input.value.replace(/[^0-9]/g, '');
+    this.editVehicleForm.mileage = raw ? parseInt(raw, 10) : null;
+    // Set the formatted value back to the input
+    input.value = this.formatMileage(this.editVehicleForm.mileage);
+  }
+
   get paginatedVehicleOwners(): VehicleOwnerSummary[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
@@ -285,5 +394,76 @@ export class VehicleManagementComponent implements OnInit {
 
   viewOwnerVehicles(owner: VehicleOwnerSummary): void {
     console.log(`Vehicles for ${owner.owner_name}:`, owner.vehicles);
+  }
+
+  openServiceHistoryModal(owner: VehicleOwnerSummary, vehicleId: number): void {
+    this.serviceHistoryOwner = owner;
+    this.serviceHistoryVehicle =
+      owner.vehicles.find((v) => v.id === vehicleId) || null;
+    this.serviceHistoryModalOpen = true;
+    this.serviceHistoryTab = 'last';
+    this.setServiceTabs();
+  }
+
+  closeServiceHistoryModal(): void {
+    this.serviceHistoryModalOpen = false;
+    this.serviceHistoryOwner = null;
+    this.serviceHistoryVehicle = null;
+    this.lastService = null;
+    this.previousServices = [];
+  }
+
+  setServiceTabs(): void {
+    if (!this.serviceHistoryVehicle || !this.serviceHistoryVehicle.services) {
+      this.lastService = null;
+      this.previousServices = [];
+      return;
+    }
+    const sorted = [...this.serviceHistoryVehicle.services].sort(
+      (a, b) =>
+        new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
+    );
+    this.lastService = sorted[0] || null;
+    this.previousServices = sorted.slice(1);
+  }
+
+  switchServiceTab(tab: 'last' | 'previous'): void {
+    this.serviceHistoryTab = tab;
+  }
+
+  toggleAccordionService(idx: number): void {
+    this.expandedServiceIndex = this.expandedServiceIndex === idx ? null : idx;
+  }
+
+  openDeleteModal(owner: VehicleOwnerSummary): void {
+    this.deleteOwner = owner;
+    this.deleteVehicleId =
+      owner.vehicles.length > 0 ? owner.vehicles[0].id : null;
+    this.deleteModalOpen = true;
+  }
+
+  closeDeleteModal(): void {
+    this.deleteModalOpen = false;
+    this.deleteOwner = null;
+    this.deleteVehicleId = null;
+  }
+
+  deleteVehicleConfirmed(): void {
+    if (!this.deleteOwner || !this.deleteVehicleId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    this.deleteLoading = true;
+    this.vehiclesService.deleteVehicle(token, this.deleteVehicleId).subscribe({
+      next: () => {
+        this.deleteLoading = false;
+        this.deleteModalOpen = false;
+        this.loadVehicles();
+        this.toast.show('Vehicle deleted successfully!', 'success');
+      },
+      error: () => {
+        this.deleteLoading = false;
+        this.toast.show('Failed to delete vehicle. Please try again.', 'error');
+      },
+    });
   }
 }

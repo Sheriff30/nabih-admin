@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 export interface VehicleOwner {
   id: number;
@@ -183,5 +184,36 @@ export class VehiclesService {
         },
       });
     });
+  }
+
+  updateVehicle(
+    token: string,
+    vehicleId: number,
+    data: {
+      user_id: number;
+      name: string;
+      make_brand: string;
+      model_year: string | null;
+      vin_number: string | null;
+      chassis_number: string | null;
+      mileage: number | null;
+      vehicle_type: string | null;
+      plate_number: string | null;
+    }
+  ): Observable<any> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/vehicles/${vehicleId}`;
+    return this.http.put<any>(url, data, { headers }).pipe(
+      // Invalidate cache after successful update
+      tap(() => this.invalidateCache())
+    );
+  }
+
+  deleteVehicle(token: string, vehicleId: number): Observable<any> {
+    const headers = this.getAuthHeaders(token);
+    const url = `${this.apiUrl}/admins/vehicles/${vehicleId}`;
+    return this.http
+      .delete<any>(url, { headers })
+      .pipe(tap(() => this.invalidateCache()));
   }
 }

@@ -7,6 +7,7 @@ import { DashboardLayoutComponent } from './ui/dashboard-layout/dashboard-layout
 import { UsersComponent } from './pages/users/users.component';
 import { ManagementComponent } from './pages/management/management.component';
 import { SupportRequestsComponent } from './pages/support-requests/support-requests.component';
+import { VehicleManagementComponent } from './pages/vehicle-management/vehicle-management.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,10 @@ export const routes: Routes = [
       {
         path: 'support-requests',
         component: SupportRequestsComponent,
+      },
+      {
+        path: 'vehicles',
+        component: VehicleManagementComponent,
       },
     ],
   },

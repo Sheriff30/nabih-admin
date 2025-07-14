@@ -1,0 +1,311 @@
+<div class="w-full overflow-x-auto rounded-md">
+  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
+    <!-- Title & Search -->
+    <div class="flex justify-between py-4 px-5 bg-white items-center">
+      <p class="font-bold">Vehicle Management</p>
+      <div
+        class="max-w-[350px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+      >
+        <img src="/icons/search.svg" alt="search icon" />
+        <input
+          type="text"
+          placeholder="Search by vehicle name, owner, plate number, or brand"
+          class="w-full text-xs bg-neutral-100 outline-none"
+          [(ngModel)]="searchTerm"
+          (input)="applySearch()"
+        />
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div
+      *ngIf="error && !loading"
+      class="flex justify-center items-center py-8 bg-white"
+    >
+      <div class="text-red-500">{{ error }}</div>
+    </div>
+
+    <!-- Header -->
+    <div
+      class="grid grid-cols-[100px_minmax(151px,1fr)_172px_minmax(235px,1fr)_203px_203px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+    >
+      <div class="px-5 py-3 flex items-center gap-1">
+        Number
+        <img
+          src="/icons/sort.svg"
+          alt="sort-icon"
+          class="cursor-pointer"
+          (click)="onSort('number')"
+        />
+      </div>
+      <div class="px-5 py-3 flex items-center gap-1">
+        Owner Name
+        <img
+          src="/icons/sort.svg"
+          alt="sort-icon"
+          class="cursor-pointer"
+          (click)="onSort('owner_name')"
+        />
+      </div>
+      <div class="px-5 py-3 flex items-center gap-1">
+        Number of cars
+        <img
+          src="/icons/sort.svg"
+          alt="sort-icon"
+          class="cursor-pointer"
+          (click)="onSort('vehicle_count')"
+        />
+      </div>
+      <div class="px-5 py-3 flex items-center gap-1">
+        Email
+        <img
+          src="/icons/sort.svg"
+          alt="sort-icon"
+          class="cursor-pointer"
+          (click)="onSort('email')"
+        />
+      </div>
+      <div class="px-5 py-3 flex items-center gap-1">
+        Phone Number
+        <img
+          src="/icons/sort.svg"
+          alt="sort-icon"
+          class="cursor-pointer"
+          (click)="onSort('phone')"
+        />
+      </div>
+
+      <div class="px-5 py-3 flex items-center gap-1">Actions</div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+      *ngIf="loading"
+      class="flex items-center justify-center bg-white py-12"
+    >
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+      ></div>
+    </div>
+
+    <!-- Table Rows -->
+    <ng-container *ngIf="!loading && paginatedVehicleOwners.length > 0">
+      <div
+        *ngFor="let owner of paginatedVehicleOwners; let i = index"
+        class="grid grid-cols-[100px_minmax(151px,1fr)_172px_minmax(235px,1fr)_203px_203px] bg-white text-sm"
+      >
+        <div class="px-5 py-3">{{ startIndex + i }}</div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ owner.owner_name || "-" }}</div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ owner.vehicle_count }}</div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ owner.owner_email || "-" }}</div>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">
+          <div class="line-clamp-1">{{ owner.owner_phone || "-" }}</div>
+        </div>
+        <div class="px-5 py-3 flex justify-center gap-1">
+          <img
+            src="/icons/eye.svg"
+            alt="view-icon"
+            class="h-[19px] w-[19px] cursor-pointer"
+            (click)="openModal(owner)"
+          />
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!loading && filteredVehicleOwners.length === 0"
+      class="flex justify-center items-center py-8 bg-white"
+    >
+      <div class="text-neutral-500">
+        {{
+          searchTerm
+            ? "No vehicle owners found matching your search."
+            : "No vehicle owners found."
+        }}
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      *ngIf="!loading && filteredVehicleOwners.length > 0"
+      class="flex justify-between py-4 px-5 bg-white items-center"
+    >
+      <div class="flex gap-2 items-center">
+        <div>Show</div>
+        <select
+          class="border border-neutral-200 rounded-md p-2"
+          [(ngModel)]="pageSize"
+          (change)="onPageSizeChange()"
+        >
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="30">30</option>
+        </select>
+        <div>per page</div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <div class="text-neutral-500">
+          {{ (currentPage - 1) * pageSize + 1 }}-{{
+            currentPage * pageSize < filteredVehicleOwners.length
+              ? currentPage * pageSize
+              : filteredVehicleOwners.length
+          }}
+          of {{ filteredVehicleOwners.length }}
+        </div>
+        <div class="flex items-center gap-1">
+          <div>
+            <img
+              src="/icons/pagination-left.svg"
+              alt=""
+              class="cursor-pointer"
+              (click)="onPageChange(currentPage > 1 ? currentPage - 1 : 1)"
+            />
+          </div>
+          <ul class="flex gap-1">
+            <li
+              *ngFor="let page of pageNumbers"
+              (click)="onPageChange(page)"
+              [class.bg-neutral-100]="page === currentPage"
+              class="py-2 px-4 rounded-md cursor-pointer"
+              [class.text-neutral-400]="page !== currentPage"
+            >
+              {{ page }}
+            </li>
+          </ul>
+          <div>
+            <img
+              src="/icons/pagination-right.svg"
+              alt=""
+              class="cursor-pointer"
+              (click)="
+                onPageChange(
+                  currentPage < totalPages ? currentPage + 1 : totalPages
+                )
+              "
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vehicle Details Modal -->
+<div
+  *ngIf="showModal"
+  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+>
+  <div
+    class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] max-h-[500px] overflow-y-auto shadow-lg grid gap-6 relative"
+  >
+    <div
+      class="border-b border-neutral-300 pb-6 items-center justify-between flex"
+    >
+      <div class="font-bold">Vehicle Details</div>
+      <div class="text-[#82645A]">
+        Number of vehicles ({{ selectedOwner?.vehicle_count }})
+      </div>
+    </div>
+
+    <div class="grid gap-6">
+      <!-- Owner Information -->
+      <div class="flex gap-3 justify-between flex-wrap items-center">
+        <div>
+          <span class="text-neutral-600 font-medium">Owner Name:</span>
+          <span class="text-[#7F5EA3] font-medium">
+            {{ selectedOwner?.owner_name }}
+          </span>
+        </div>
+
+        <select
+          [(ngModel)]="selectedVehicleId"
+          (change)="onVehicleChange()"
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm max-w-[192px]"
+        >
+          <option
+            *ngFor="let vehicle of selectedOwner?.vehicles"
+            [value]="vehicle.id"
+          >
+            {{ vehicle.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Vehicle Details Form -->
+      <div *ngIf="selectedVehicle" class="grid gap-4">
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 col-span-full">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Vehicle Name</label
+            >
+            <input
+              type="text"
+              [value]="selectedVehicle.name"
+              readonly
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-neutral-600">Brand</label>
+            <input
+              type="text"
+              [value]="selectedVehicle.make_brand"
+              readonly
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Model Year</label
+            >
+            <input
+              type="text"
+              [value]="selectedVehicle.model_year"
+              readonly
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >VIN Number</label
+            >
+            <input
+              type="text"
+              [value]="selectedVehicle.vin_number"
+              readonly
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Current Mileage (km)</label
+            >
+            <input
+              type="number"
+              [value]="selectedVehicle.mileage"
+              readonly
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <button
+        type="button"
+        (click)="closeModal()"
+        class="px-4 py-2 mx-auto bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+      >
+        <img src="/icons/cancel.svg" alt="close" class="w-6 h-6" />
+        Close
+      </button>
+    </div>
+  </div>
+</div>

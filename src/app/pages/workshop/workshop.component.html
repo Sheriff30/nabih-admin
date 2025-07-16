@@ -195,73 +195,116 @@
 <!-- Workshop Details Modal -->
 <div
   *ngIf="showWorkshopModal && selectedWorkshop"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-3"
 >
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
-    <h2 class="text-xl font-bold mb-4">Workshop Details</h2>
-    <div class="mb-2"><strong>Name:</strong> {{ selectedWorkshop.name }}</div>
-    <div class="mb-2">
-      <strong>Phone:</strong> {{ selectedWorkshop.phone_number }}
-    </div>
-    <div class="mb-2">
-      <strong>Location:</strong>
-      {{ selectedWorkshop.address }}
-    </div>
-
-    <div class="mb-2">
-      <strong>Description:</strong>
-      <ng-container
-        *ngIf="
-          descriptionIsObject(selectedWorkshop.description);
-          else fallbackDesc
-        "
-      >
-        {{ selectedWorkshop.description.en || "-" }}
-      </ng-container>
-      <ng-template #fallbackDesc>{{
-        selectedWorkshop.description || "-"
-      }}</ng-template>
-    </div>
-    <div class="mb-2">
-      <strong>Vendor Email:</strong> {{ selectedWorkshop.vendor?.email || "-" }}
-    </div>
-    <div class="mb-2">
-      <strong>Vendor Name:</strong>
-      {{
-        selectedWorkshop.vendor
-          ? selectedWorkshop.vendor.first_name +
-            " " +
-            selectedWorkshop.vendor.last_name
-          : "-"
-      }}
-    </div>
-    <div class="mb-2">
-      <strong>Services:</strong>
-      <ng-container
-        *ngIf="
-          selectedWorkshop.services && selectedWorkshop.services.length > 0;
-          else noServices
-        "
-      >
-        <span
-          *ngFor="let service of selectedWorkshop.services; let last = last"
+  <div
+    class="rounded-lg shadow-lg w-full max-w-2xl p-6 grid gap-2 bg-[#F7F7FB]"
+  >
+    <h2 class="text-lg font-bold col-span-full">Workshop Details</h2>
+    <div
+      class="max-h-[420px] overflow-y-auto grid lg:grid-cols-2 gap-y-4 gap-x-4"
+    >
+      <div class="flex gap-2 flex-col">
+        <strong class="text-sm font-[400] text-neutral-500">Name:</strong>
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
         >
-          {{ service.name }}<span *ngIf="!last">, </span>
-        </span>
-      </ng-container>
-      <ng-template #noServices>-</ng-template>
-    </div>
-    <div class="mb-4">
-      <strong>Map:</strong>
-      <div
-        id="workshop-map"
-        style="height: 300px; width: 100%"
-        class="rounded mt-2"
-      ></div>
+          {{ selectedWorkshop.name }}
+        </div>
+      </div>
+      <div class="flex gap-2 flex-col">
+        <strong class="text-sm font-[400] text-neutral-500">Phone:</strong>
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+        >
+          {{ selectedWorkshop.phone_number }}
+        </div>
+      </div>
+      <div class="flex gap-2 flex-col col-span-full">
+        <strong class="text-sm font-[400] text-neutral-500">Location:</strong>
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+        >
+          {{ selectedWorkshop.address }}
+        </div>
+      </div>
+
+      <div class="flex gap-2 flex-col col-span-full">
+        <strong class="text-sm font-[400] text-neutral-500"
+          >Description:</strong
+        >
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+        >
+          <ng-container
+            *ngIf="
+              descriptionIsObject(selectedWorkshop.description);
+              else fallbackDesc
+            "
+          >
+            {{ selectedWorkshop.description.en || "-" }}
+          </ng-container>
+          <ng-template #fallbackDesc>{{
+            selectedWorkshop.description || "-"
+          }}</ng-template>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-col">
+        <strong class="text-sm font-[400] text-neutral-500"
+          >Vendor Email:</strong
+        >
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+        >
+          {{ selectedWorkshop.vendor?.email || "-" }}
+        </div>
+      </div>
+      <div class="flex gap-2 flex-col">
+        <strong class="text-sm font-[400] text-neutral-500"
+          >Vendor Name:</strong
+        >
+        <div
+          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
+        >
+          {{
+            selectedWorkshop.vendor
+              ? selectedWorkshop.vendor.first_name +
+                " " +
+                selectedWorkshop.vendor.last_name
+              : "-"
+          }}
+        </div>
+      </div>
+      <div class="flex gap-2 flex-col col-span-full">
+        <strong class="text-sm font-[400] text-neutral-500">Services:</strong>
+        <ng-container
+          *ngIf="
+            selectedWorkshop.services && selectedWorkshop.services.length > 0;
+            else noServices
+          "
+        >
+          <div class="flex flex-wrap gap-2 text-neutral-600">
+            <span
+              *ngFor="let service of selectedWorkshop.services; let last = last"
+              class="bg-[#E6E2F2] py-1 px-2 rounded-md"
+            >
+              {{ service.name }}<span *ngIf="!last"> </span>
+            </span>
+          </div>
+        </ng-container>
+        <ng-template #noServices> No Services</ng-template>
+      </div>
+      <div class="mb-4 col-span-full" *ngIf="hasValidLatLng(selectedWorkshop)">
+        <div
+          id="workshop-map"
+          style="height: 300px; width: 100%"
+          class="rounded mt-2"
+        ></div>
+      </div>
     </div>
     <button
       type="button"
-      class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+      class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] mx-auto col-span-full w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
       (click)="closeWorkshopModal()"
     >
       <img src="/icons/cancel-btn.svg" alt="" />

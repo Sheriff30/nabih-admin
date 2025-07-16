@@ -101,6 +101,13 @@ export class WorkshopComponent implements OnInit, AfterViewChecked {
     return desc && typeof desc === 'object' && 'en' in desc;
   }
 
+  public hasValidLatLng(workshop: any): boolean {
+    if (!workshop) return false;
+    const lat = parseFloat(workshop.latitude);
+    const lng = parseFloat(workshop.longitude);
+    return !isNaN(lat) && !isNaN(lng);
+  }
+
   get filteredAndSortedWorkshops(): WorkshopServiceResource[] {
     let filtered = this.workshops;
     // Search

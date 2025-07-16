@@ -5,24 +5,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.ql-container {
+.ql-container.ql-snow {
   min-height: 200px;
-  font-family: "Arial", sans-serif;
-  font-size: 16px;
-  width: 800px;
-
-  background-color: #f9f9f9;
-}
-
-.ql-toolbar {
-  background-color: #f0f0f0;
+  padding: 0 !important;
   border: none;
-  width: 800px;
 }
 
-.ql-editor {
-  padding: 15px;
-  color: #333;
-  line-height: 1.6;
-  width: 800px;
+quill-editor {
+  width: 100% !important;
+}
+
+.ql-toolbar.ql-snow {
+  border-right: none;
+  border-top: none;
+  border-left: none;
+  border: 1px solid transparent !important;
+  border-bottom: 1px solid #e5e5e5 !important;
 }

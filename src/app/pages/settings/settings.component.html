@@ -1,14 +1,41 @@
-<quill-editor
-  [(ngModel)]="settingsText"
-  [modules]="{
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      ['blockquote', 'code-block'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link', 'image'],
-      ['clean']
-    ]
-  }"
-  placeholder="Type a message..."
-></quill-editor>
+<div
+  class="p-[15px] lg:py-[22px] lg:px-[32px] bg-white border rounded-xl border-neutral-200 shadow-[0px_3px_4px_0px_#00000008] flex flex-col gap-[24px] min-h-full"
+>
+  <div class="pb-[22px] border-b border-neutral-200 font-bold">
+    <p>Settings</p>
+  </div>
+
+  <div
+    class="flex border-b border-[#F7F7FB] justify-center gap-[20px] text-sm text-center"
+  >
+    <div
+      class="py-[20px] font-semibold cursor-pointer"
+      [ngClass]="
+        selectedTab === 'about-terms'
+          ? 'border-b-2 border-[#7F5EA3] text-[#7F5EA3]'
+          : 'text-[#392A4B]'
+      "
+      (click)="selectedTab = 'about-terms'"
+    >
+      About the application and its conditions
+    </div>
+    <div
+      class="py-[20px] cursor-pointer"
+      [ngClass]="
+        selectedTab === 'social-links'
+          ? 'border-b-2 border-[#7F5EA3] text-[#7F5EA3]'
+          : 'text-[#392A4B]'
+      "
+      (click)="selectedTab = 'social-links'"
+    >
+      Social Media Links
+    </div>
+  </div>
+
+  <ng-container *ngIf="selectedTab === 'about-terms'">
+    <app-about-terms></app-about-terms>
+  </ng-container>
+  <ng-container *ngIf="selectedTab === 'social-links'">
+    <app-social-links></app-social-links>
+  </ng-container>
+</div>

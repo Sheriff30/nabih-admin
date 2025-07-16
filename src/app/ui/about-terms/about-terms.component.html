@@ -1,0 +1,132 @@
+<div class="mb-4 flex items-center gap-4 justify-end">
+  <div class="flex items-center gap-1">
+    <label>User Type:</label>
+    <select [(ngModel)]="user_type" class="border rounded p-2 ml-2">
+      <option value="both">Both</option>
+      <option value="vendor">Vendor</option>
+      <option value="customer">Customer</option>
+    </select>
+  </div>
+  <div class="flex items-center gap-1">
+    <label class="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        class="sr-only peer"
+        [(ngModel)]="is_active"
+        name="is_active"
+      />
+      <div
+        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 rounded-full peer peer-checked:bg-[#7F5EA3] transition-all"
+      ></div>
+      <div
+        class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"
+      ></div>
+    </label>
+    <span class="text-sm text-gray-600">{{
+      is_active ? "Active" : "Inactive"
+    }}</span>
+  </div>
+</div>
+<div class="grid lg:grid-cols-2 gap-[24px]">
+  <div
+    class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+  >
+    <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
+      About in Arabic
+    </p>
+    <quill-editor
+      [(ngModel)]="aboutAr"
+      [modules]="{
+        toolbar: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      }"
+      placeholder="Type a message..."
+    ></quill-editor>
+  </div>
+  <div
+    class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+  >
+    <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
+      About in English
+    </p>
+    <quill-editor
+      [(ngModel)]="aboutEn"
+      [modules]="{
+        toolbar: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      }"
+      placeholder="Type a message..."
+    ></quill-editor>
+  </div>
+
+  <button
+    (click)="submitStaticContent('about')"
+    class="px-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
+    [disabled]="loading"
+  >
+    <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
+    Save About
+  </button>
+  <div
+    class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+  >
+    <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
+      Terms & Conditions in Arabic
+    </p>
+    <quill-editor
+      [(ngModel)]="termsAr"
+      [modules]="{
+        toolbar: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      }"
+      placeholder="Type a message..."
+    ></quill-editor>
+  </div>
+  <div
+    class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+  >
+    <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
+      Terms and Conditions in English
+    </p>
+    <quill-editor
+      [(ngModel)]="termsEn"
+      [modules]="{
+        toolbar: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ]
+      }"
+      placeholder="Type a message..."
+    ></quill-editor>
+  </div>
+  <button
+    (click)="submitStaticContent('terms')"
+    class="px-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
+    [disabled]="loading"
+  >
+    <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
+    Save Terms
+  </button>
+</div>

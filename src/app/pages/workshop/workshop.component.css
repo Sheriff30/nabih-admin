@@ -1,0 +1,17 @@
+/* Modal overlay and content styles */
+.fixed.inset-0.z-50 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+.bg-white.rounded-lg.shadow-lg {
+  position: relative;
+  z-index: 100;
+}
+#workshop-map {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 300px;
+  min-width: 100%;
+}

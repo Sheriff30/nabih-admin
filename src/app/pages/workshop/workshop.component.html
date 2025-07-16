@@ -99,12 +99,15 @@
           </div>
           <div class="px-5 py-3 flex items-center gap-1">
             <div class="line-clamp-1">
-              {{
-                workshop.city || workshop.address
-                  ? (workshop.city || "-") +
-                    (workshop.address ? ", " + workshop.address : "")
-                  : "-"
-              }}
+              <ng-container
+                *ngIf="workshop.city || workshop.address; else noLocation"
+              >
+                {{ workshop.city || ""
+                }}<ng-container *ngIf="workshop.city && workshop.address"
+                  >, </ng-container
+                >{{ workshop.address || "" }}
+              </ng-container>
+              <ng-template #noLocation>-</ng-template>
             </div>
           </div>
           <div class="px-5 py-3 flex items-center gap-1">
@@ -125,6 +128,7 @@
               src="/icons/eye.svg"
               class="cursor-pointer w-[24px] h-[24px]"
               alt="view-icon"
+              (click)="openWorkshopModal(workshop)"
             />
           </div>
         </div>
@@ -186,5 +190,85 @@
         </div>
       </div>
     </ng-container>
+  </div>
+</div>
+<!-- Workshop Details Modal -->
+<div
+  *ngIf="showWorkshopModal && selectedWorkshop"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+>
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+    <h2 class="text-xl font-bold mb-4">Workshop Details</h2>
+    <div class="mb-2"><strong>Name:</strong> {{ selectedWorkshop.name }}</div>
+    <div class="mb-2">
+      <strong>Phone:</strong> {{ selectedWorkshop.phone_number }}
+    </div>
+    <div class="mb-2">
+      <strong>Location:</strong> {{ selectedWorkshop.city }},
+      {{ selectedWorkshop.address }}
+    </div>
+    <div class="mb-2">
+      <strong>Latitude:</strong> {{ selectedWorkshop.latitude }}
+      <strong>Longitude:</strong> {{ selectedWorkshop.longitude }}
+    </div>
+    <div class="mb-2">
+      <strong>Description:</strong>
+      <ng-container
+        *ngIf="
+          descriptionIsObject(selectedWorkshop.description);
+          else fallbackDesc
+        "
+      >
+        {{ selectedWorkshop.description.en || "-" }}
+      </ng-container>
+      <ng-template #fallbackDesc>{{
+        selectedWorkshop.description || "-"
+      }}</ng-template>
+    </div>
+    <div class="mb-2">
+      <strong>Vendor Email:</strong> {{ selectedWorkshop.vendor?.email || "-" }}
+    </div>
+    <div class="mb-2">
+      <strong>Vendor Name:</strong>
+      {{
+        selectedWorkshop.vendor
+          ? selectedWorkshop.vendor.first_name +
+            " " +
+            selectedWorkshop.vendor.last_name
+          : "-"
+      }}
+    </div>
+    <div class="mb-2">
+      <strong>Services:</strong>
+      <ng-container
+        *ngIf="
+          selectedWorkshop.services && selectedWorkshop.services.length > 0;
+          else noServices
+        "
+      >
+        <span
+          *ngFor="let service of selectedWorkshop.services; let last = last"
+        >
+          {{ service.name }}<span *ngIf="!last">, </span>
+        </span>
+      </ng-container>
+      <ng-template #noServices>-</ng-template>
+    </div>
+    <div class="mb-4">
+      <strong>Map:</strong>
+      <div
+        id="workshop-map"
+        style="height: 300px; width: 100%"
+        class="rounded mt-2"
+      ></div>
+    </div>
+    <button
+      type="button"
+      class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+      (click)="closeWorkshopModal()"
+    >
+      <img src="/icons/cancel-btn.svg" alt="" />
+      Close
+    </button>
   </div>
 </div>

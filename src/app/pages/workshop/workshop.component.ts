@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -6,6 +6,7 @@ import {
   WorkshopService,
   WorkshopServiceResource,
 } from '../../services/workshop.service';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-workshop',
@@ -14,7 +15,7 @@ import {
   templateUrl: './workshop.component.html',
   styleUrl: './workshop.component.css',
 })
-export class WorkshopComponent implements OnInit {
+export class WorkshopComponent implements OnInit, AfterViewChecked {
   public workshops: WorkshopServiceResource[] = [];
 
   // Search, sort, and pagination state
@@ -25,6 +26,11 @@ export class WorkshopComponent implements OnInit {
   public perPage: number = 10;
   public Math = Math;
   public loading: boolean = false;
+  public selectedWorkshop: WorkshopServiceResource | null = null;
+  public showWorkshopModal: boolean = false;
+
+  private map: L.Map | null = null;
+  private mapInitializedForId: number | null = null;
 
   constructor(private workshopService: WorkshopService) {}
 
@@ -46,6 +52,69 @@ export class WorkshopComponent implements OnInit {
         console.error('Failed to fetch workshops:', err);
       },
     });
+  }
+
+  ngAfterViewChecked(): void {
+    if (
+      this.showWorkshopModal &&
+      this.selectedWorkshop &&
+      this.selectedWorkshop.id !== this.mapInitializedForId
+    ) {
+      setTimeout(() => this.initMap(), 0);
+    }
+  }
+
+  private initMap() {
+    if (!this.selectedWorkshop) return;
+    const lat = parseFloat(this.selectedWorkshop.latitude);
+    const lng = parseFloat(this.selectedWorkshop.longitude);
+    if (isNaN(lat) || isNaN(lng)) return;
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+    const mapContainer = document.getElementById('workshop-map');
+    if (!mapContainer) return;
+    // Set custom marker icons
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+    this.map = L.map(mapContainer).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(this.map);
+    // Add draggable marker
+    const marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+    marker.bindPopup(this.selectedWorkshop.name).openPopup();
+    marker.on('dragend', (event: any) => {
+      if (event.originalEvent) event.originalEvent.preventDefault();
+      const position = event.target.getLatLng();
+      // Optionally update the selectedWorkshop's lat/lng in the modal (not persisted)
+      if (this.selectedWorkshop) {
+        this.selectedWorkshop.latitude = position.lat.toString();
+        this.selectedWorkshop.longitude = position.lng.toString();
+      }
+    });
+    this.map.on('click', (event: any) => {
+      if (event.originalEvent) event.originalEvent.preventDefault();
+      const position = event.latlng;
+      marker.setLatLng([position.lat, position.lng]);
+      if (this.selectedWorkshop) {
+        this.selectedWorkshop.latitude = position.lat.toString();
+        this.selectedWorkshop.longitude = position.lng.toString();
+      }
+    });
+    this.mapInitializedForId = this.selectedWorkshop.id;
+  }
+
+  descriptionIsObject(desc: any): desc is { en?: string } {
+    return desc && typeof desc === 'object' && 'en' in desc;
   }
 
   get filteredAndSortedWorkshops(): WorkshopServiceResource[] {
@@ -131,5 +200,20 @@ export class WorkshopComponent implements OnInit {
 
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  openWorkshopModal(workshop: WorkshopServiceResource) {
+    this.selectedWorkshop = workshop;
+    this.showWorkshopModal = true;
+  }
+
+  closeWorkshopModal() {
+    this.selectedWorkshop = null;
+    this.showWorkshopModal = false;
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+      this.mapInitializedForId = null;
+    }
   }
 }

@@ -3,10 +3,22 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Interfaces for API responses
+export interface WorkshopVendor {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  email: string;
+  address: string | null;
+  city: string | null;
+  is_vendor_account_approved: boolean;
+  avatar_url: string;
+}
+
 export interface WorkshopServiceResource {
   id: number;
   name: string;
-  description: string;
+  description: string | { en?: string; [key: string]: any };
   phone_number: string;
   whatsapp: string;
   city: string;
@@ -28,7 +40,7 @@ export interface WorkshopServiceResource {
     end_time: string;
     enabled: boolean;
   }[];
-  vendor: string;
+  vendor: WorkshopVendor | null;
 }
 
 export interface WorkshopsResponse {

@@ -89,27 +89,11 @@ export class WorkshopComponent implements OnInit, AfterViewChecked {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
     }).addTo(this.map);
-    // Add draggable marker
-    const marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+    // Add non-draggable marker
+    const marker = L.marker([lat, lng], { draggable: false }).addTo(this.map);
     marker.bindPopup(this.selectedWorkshop.name).openPopup();
-    marker.on('dragend', (event: any) => {
-      if (event.originalEvent) event.originalEvent.preventDefault();
-      const position = event.target.getLatLng();
-      // Optionally update the selectedWorkshop's lat/lng in the modal (not persisted)
-      if (this.selectedWorkshop) {
-        this.selectedWorkshop.latitude = position.lat.toString();
-        this.selectedWorkshop.longitude = position.lng.toString();
-      }
-    });
-    this.map.on('click', (event: any) => {
-      if (event.originalEvent) event.originalEvent.preventDefault();
-      const position = event.latlng;
-      marker.setLatLng([position.lat, position.lng]);
-      if (this.selectedWorkshop) {
-        this.selectedWorkshop.latitude = position.lat.toString();
-        this.selectedWorkshop.longitude = position.lng.toString();
-      }
-    });
+    // Do not allow moving marker by clicking on the map
+    // (map click event handler removed)
     this.mapInitializedForId = this.selectedWorkshop.id;
   }
 

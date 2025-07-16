@@ -1,1 +1,190 @@
-<p>workshop works!</p>
+<div class="w-full overflow-x-auto rounded-md">
+  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
+    <!-- Title & Search -->
+    <div class="flex justify-between py-4 px-5 bg-white items-center">
+      <p class="font-bold">Workshop Management</p>
+      <div
+        class="max-w-[330px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+      >
+        <img src="/icons/search.svg" alt="search icon" />
+        <input
+          type="text"
+          placeholder="Search by workshop name, service type, or location"
+          class="w-full text-xs bg-neutral-100 outline-none"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearch($event)"
+        />
+      </div>
+    </div>
+    <!-- Loading State -->
+    <div
+      *ngIf="loading"
+      class="flex items-center justify-center bg-white py-12"
+    >
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+      ></div>
+    </div>
+    <ng-container *ngIf="!loading">
+      <!-- Header -->
+      <div
+        class="grid grid-cols-[83px_minmax(246px,1fr)_minmax(246px,1fr)_129px_246px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      >
+        <div class="px-5 py-3">Number</div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('name')"
+        >
+          Workshop Name <img src="/icons/sort.svg" alt="sort-icon" />
+          <span *ngIf="sortColumn === 'name'">{{
+            sortDirection === "asc" ? "▲" : "▼"
+          }}</span>
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('services')"
+        >
+          Service Type <img src="/icons/sort.svg" alt="sort-icon" />
+          <span *ngIf="sortColumn === 'services'">{{
+            sortDirection === "asc" ? "▲" : "▼"
+          }}</span>
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('city')"
+        >
+          Location <img src="/icons/sort.svg" alt="sort-icon" />
+          <span *ngIf="sortColumn === 'city'">{{
+            sortDirection === "asc" ? "▲" : "▼"
+          }}</span>
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('is_active')"
+        >
+          Status <img src="/icons/sort.svg" alt="sort-icon" />
+          <span *ngIf="sortColumn === 'is_active'">{{
+            sortDirection === "asc" ? "▲" : "▼"
+          }}</span>
+        </div>
+        <div class="px-5 py-3 flex items-center gap-1">Actions</div>
+      </div>
+      <!-- Table Rows -->
+      <ng-container
+        *ngFor="let workshop of filteredAndSortedWorkshops; let i = index"
+      >
+        <div
+          class="grid grid-cols-[83px_minmax(246px,1fr)_minmax(246px,1fr)_129px_246px_115px] bg-white text-sm"
+        >
+          <div class="px-5 py-3">{{ (currentPage - 1) * perPage + i + 1 }}</div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ workshop.name || "-" }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              <ng-container
+                *ngIf="
+                  workshop.services && workshop.services.length > 0;
+                  else noServices
+                "
+              >
+                <ng-container
+                  *ngFor="let service of workshop.services; let last = last"
+                >
+                  {{ service.name || "-" }}<span *ngIf="!last">, </span>
+                </ng-container>
+              </ng-container>
+              <ng-template #noServices>-</ng-template>
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              {{
+                workshop.city || workshop.address
+                  ? (workshop.city || "-") +
+                    (workshop.address ? ", " + workshop.address : "")
+                  : "-"
+              }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div
+              [ngClass]="{
+                'bg-green-50 border border-green-200 text-green-600':
+                  workshop.is_active,
+                'bg-red-50 border border-red-200 text-red-600':
+                  !workshop.is_active
+              }"
+              class="w-full rounded-[4px] py-1 text-center"
+            >
+              {{ workshop.is_active ? "Active" : "Inactive" }}
+            </div>
+          </div>
+          <div class="px-5 py-3 flex justify-center gap-1">
+            <img
+              src="/icons/eye.svg"
+              class="cursor-pointer w-[24px] h-[24px]"
+              alt="view-icon"
+            />
+          </div>
+        </div>
+      </ng-container>
+      <!-- Pagination -->
+      <div class="flex justify-between py-4 px-5 bg-white items-center">
+        <div class="flex gap-2 items-center">
+          <div>Show</div>
+          <select
+            class="border border-neutral-200 rounded-md p-2"
+            [(ngModel)]="perPage"
+            (ngModelChange)="onPerPageChange($event)"
+          >
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="30">30</option>
+          </select>
+          <div>per page</div>
+        </div>
+        <div class="flex gap-4 items-center">
+          <div class="text-neutral-500">
+            {{ totalFiltered === 0 ? 0 : (currentPage - 1) * perPage + 1 }}-
+            {{ Math.min(currentPage * perPage, totalFiltered) }}
+            of {{ totalFiltered }}
+          </div>
+          <div class="flex items-center gap-1">
+            <div>
+              <img
+                src="/icons/pagination-left.svg"
+                alt=""
+                class="cursor-pointer"
+                (click)="onPageChange(currentPage > 1 ? currentPage - 1 : 1)"
+              />
+            </div>
+            <ul class="flex gap-1">
+              <li
+                *ngFor="let page of pageNumbers"
+                (click)="onPageChange(page)"
+                [class.bg-neutral-100]="page === currentPage"
+                class="py-2 px-4 rounded-md cursor-pointer"
+                [class.text-neutral-400]="page !== currentPage"
+              >
+                {{ page }}
+              </li>
+            </ul>
+            <div>
+              <img
+                src="/icons/pagination-right.svg"
+                alt=""
+                class="cursor-pointer"
+                (click)="
+                  onPageChange(
+                    currentPage < totalPages ? currentPage + 1 : totalPages
+                  )
+                "
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

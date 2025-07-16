@@ -25,10 +25,33 @@
             <img src="/icons/total-users.svg" alt="total-users" />
           </div>
           <div class="text-3xl">
-            {{ statistics?.data?.counts?.customers ?? 0 }}
+            {{ statistics?.data?.statistics?.customers?.count ?? 0 }}
           </div>
         </div>
-        <div class="text-neutral-600">Total Users</div>
+        <div class="flex items-center gap-2">
+          <div class="text-neutral-600">Total Users</div>
+          <div
+            class="bg-[#EAFFF1] border border-[#17C65333] p-1 rounded-md text-sm"
+            [ngClass]="{
+              'text-[#00A63E]':
+                (statistics?.data?.statistics?.customers?.percent_change ??
+                  0) >=
+                0,
+              'text-red-500':
+                (statistics?.data?.statistics?.customers?.percent_change ?? 0) <
+                0
+            }"
+          >
+            {{
+              (statistics?.data?.statistics?.customers?.percent_change ?? 0) >=
+              0
+                ? "+"
+                : ""
+            }}{{
+              statistics?.data?.statistics?.customers?.percent_change ?? 0
+            }}%
+          </div>
+        </div>
       </div>
       <div
         class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
@@ -38,10 +61,29 @@
             <img src="/icons/total-vehicles.svg" alt="total-vehicles" />
           </div>
           <div class="text-3xl">
-            {{ statistics?.data?.counts?.vehicles ?? 0 }}
+            {{ statistics?.data?.statistics?.vehicles?.count ?? 0 }}
           </div>
         </div>
-        <div class="text-neutral-600">Total Vehicles</div>
+        <div class="flex items-center gap-2">
+          <div class="text-neutral-600">Total Vehicles</div>
+          <div
+            class="bg-[#EAFFF1] border border-[#17C65333] p-1 rounded-md text-sm"
+            [ngClass]="{
+              'text-[#00A63E]':
+                (statistics?.data?.statistics?.vehicles?.percent_change ?? 0) >=
+                0,
+              'text-red-500':
+                (statistics?.data?.statistics?.vehicles?.percent_change ?? 0) <
+                0
+            }"
+          >
+            {{
+              (statistics?.data?.statistics?.vehicles?.percent_change ?? 0) >= 0
+                ? "+"
+                : ""
+            }}{{ statistics?.data?.statistics?.vehicles?.percent_change ?? 0 }}%
+          </div>
+        </div>
       </div>
       <div
         class="flex flex-col gap-[16px] items-center p-8 bg-white w-full rounded-xl shadow-[0px_0px_5px_0px_#0000000D]"
@@ -51,7 +93,7 @@
             <img src="/icons/service-center.svg" alt="total-workshops" />
           </div>
           <div class="text-3xl">
-            {{ statistics?.data?.counts?.workshops ?? 0 }}
+            {{ statistics?.data?.statistics?.workshops?.count ?? 0 }}
           </div>
         </div>
         <div class="text-neutral-600">Total Workshops</div>
@@ -64,10 +106,46 @@
             <img src="/icons/upcoming-reminders.svg" alt="upcoming-reminders" />
           </div>
           <div class="text-3xl">
-            {{ statistics?.data?.counts?.upcoming_reminders ?? 0 }}
+            {{ statistics?.data?.statistics?.upcoming_reminders?.count ?? 0 }}
           </div>
         </div>
         <div class="text-neutral-600">Upcoming Reminders</div>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="bg-white rounded-xl shadow">
+    <div
+      class="flex justify-between items-center py-[20px] px-[20px] lg:px-[30px] border-b border-neutral-100"
+    >
+      <h2 class="font-bold">Total Monthly Maintenance</h2>
+      <select
+        id="monthRange"
+        [(ngModel)]="selectedMonthRange"
+        (change)="onMonthRangeChange(selectedMonthRange)"
+        class="py-[8px] px-[10px] bg-neutral-50 rounded-md text-[#392A4B]"
+      >
+        <option *ngFor="let range of monthRanges" [value]="range">
+          {{ range }} months
+        </option>
+      </select>
+    </div>
+    <ng-container *ngIf="loadingMonthlyMaintenance; else showChart">
+      <div class="flex justify-center items-center h-[300px]">
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#7F5EA3]"
+        ></div>
+      </div>
+    </ng-container>
+    <ng-template #showChart>
+      <div class="h-[300px] p-[20px] lg:p-[30px]">
+        <canvas
+          baseChart
+          [data]="monthlyMaintenanceChart.data"
+          [type]="monthlyMaintenanceChart.type"
+          [options]="monthlyMaintenanceChart.options"
+          style="width: 100%; height: 100%; display: block"
+        ></canvas>
       </div>
     </ng-template>
   </div>

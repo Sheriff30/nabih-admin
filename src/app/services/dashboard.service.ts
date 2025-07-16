@@ -192,4 +192,17 @@ export class DashboardService {
       });
     });
   }
+
+  getMonthlyMaintenanceCount(
+    token: string,
+    months: number = 12
+  ): Observable<any> {
+    const headers = this.getAuthHeaders(token);
+    const params: { [param: string]: string } = {};
+    if (months !== undefined && months !== null) {
+      params['months'] = months.toString();
+    }
+    const url = `${this.apiUrl}/admins/dashboard/monthly-maintenance-count`;
+    return this.http.get<any>(url, { headers, params });
+  }
 }

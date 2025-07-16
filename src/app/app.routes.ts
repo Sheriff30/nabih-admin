@@ -9,6 +9,7 @@ import { ManagementComponent } from './pages/management/management.component';
 import { SupportRequestsComponent } from './pages/support-requests/support-requests.component';
 import { VehicleManagementComponent } from './pages/vehicle-management/vehicle-management.component';
 import { SettingsComponent } from './pages/settings/settings.component';
+import { WorkshopComponent } from './pages/workshop/workshop.component';
 
 export const routes: Routes = [
   {
@@ -42,6 +43,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         component: SettingsComponent,
+      },
+      {
+        path: 'workshop',
+        component: WorkshopComponent,
       },
     ],
   },

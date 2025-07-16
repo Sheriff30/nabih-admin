@@ -33,6 +33,10 @@ export class DashboardSidebarComponent implements OnInit {
       label: 'Settings',
       href: '/admin/dashboard/settings',
     },
+    {
+      label: 'Workshop',
+      href: '/admin/dashboard/workshop',
+    },
   ];
 
   ngOnInit(): void {}

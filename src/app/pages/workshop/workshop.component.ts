@@ -45,7 +45,6 @@ export class WorkshopComponent implements OnInit, AfterViewChecked {
       next: (res) => {
         this.workshops = res.data.workshops;
         this.loading = false;
-        console.log(this.workshops);
       },
       error: (err) => {
         this.loading = false;

@@ -59,7 +59,6 @@ export class UsersComponent implements OnInit {
         )
         .subscribe({
           next: (res) => {
-            console.log(res);
             if (res.success && res.data && res.data.customers) {
               this.allUsers = res.data.customers; // allUsers is now the current page only
               this.users = res.data.customers; // users is also the current page only

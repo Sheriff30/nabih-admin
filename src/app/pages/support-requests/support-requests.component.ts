@@ -75,7 +75,6 @@ export class SupportRequestsComponent implements OnInit {
       )
       .subscribe({
         next: (response: SupportRequestsResponse) => {
-          console.log(response);
           this.allSupportRequests = response.data.support_requests; // current page only
           this.supportRequests = response.data.support_requests; // current page only
           // Update pagination meta from backend

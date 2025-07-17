@@ -77,7 +77,6 @@ export class VehicleManagementComponent implements OnInit {
       )
       .subscribe({
         next: (res: ListVehiclesResponse) => {
-          console.log(res);
           this.allVehicles = res.data.vehicles;
           // Update pagination meta from backend
           this.pagination = {

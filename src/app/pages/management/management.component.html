@@ -29,7 +29,7 @@
 
     <!-- Header -->
     <div
-      class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
     >
       <div class="px-5 py-3">Number</div>
       <div
@@ -56,9 +56,6 @@
       >
         Status <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Date Created <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
       <div class="px-5 py-3 flex items-center gap-1">Actions</div>
     </div>
 
@@ -76,7 +73,7 @@
     <ng-container *ngIf="!loading && admins.length > 0">
       <div
         *ngFor="let admin of admins; let i = index"
-        class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_150px_115px] bg-white text-sm"
+        class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-white text-sm"
       >
         <div class="px-5 py-3">{{ (currentPage - 1) * perPage + i + 1 }}</div>
         <div class="px-5 py-3 flex items-center gap-1">
@@ -99,7 +96,6 @@
             {{ getStatusText(admin) }}
           </div>
         </div>
-        <div class="px-5 py-3 flex items-center gap-1">-</div>
         <div class="px-5 py-3 flex justify-center gap-2">
           <img
             src="/icons/delete.svg"

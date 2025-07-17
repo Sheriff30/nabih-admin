@@ -11,5 +11,5 @@ import { NgClass, NgIf } from '@angular/common';
   styleUrl: './settings.component.css',
 })
 export class SettingsComponent {
-  selectedTab: 'about-terms' | 'social-links' = 'social-links';
+  selectedTab: 'about-terms' | 'social-links' = 'about-terms';
 }

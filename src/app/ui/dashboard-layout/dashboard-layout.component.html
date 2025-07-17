@@ -3,7 +3,7 @@
 >
   <app-dashboard-sidebar
     *ngIf="sidebarOpen || isLargeScreen"
-    class="row-span-full max-w-[289px] w-full absolute lg:relative h-full bg-white z-15"
+    class="row-span-full max-w-[289px] w-full absolute lg:relative h-full bg-white z-50"
     [hidden]="!sidebarOpen && !isLargeScreen"
     (closeSidebar)="closeSidebar()"
   ></app-dashboard-sidebar>

@@ -1,4 +1,5 @@
 <div
+  #sidebar
   class="h-full w-full border border-[#F1F1F4] shadow-[0px_3px_4px_0px_#00000008] px-5 py-5 lg:py-12 grid grid-rows-[auto_auto_1fr_auto] lg:grid-rows-[auto_1fr_auto] gap-4 lg:gap-11"
 >
   <div class="flex lg:hidden justify-end">
@@ -12,11 +13,11 @@
   <div class="flex gap-3 flex-col items-center justify-center">
     <img src="/icons/logo.svg" alt="logo" class="w-[155px] h-[38px]" />
     <div class="color-[#392A4B] uppercase text-md font-semibold">
-      welcom back, admin
+      welcome back, admin
     </div>
   </div>
   <!-- Nav -->
-  <ul class="flex flex-col gap-4">
+  <ul class="flex flex-col gap-2 lg:gap-4">
     <li *ngFor="let link of navLinks; let i = index">
       <a
         [routerLink]="link.href"

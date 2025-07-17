@@ -1,4 +1,12 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +18,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './dashboard-sidebar.component.html',
   styleUrls: ['./dashboard-sidebar.component.css'],
 })
-export class DashboardSidebarComponent implements OnInit {
+export class DashboardSidebarComponent implements OnInit, OnDestroy {
   navLinks = [
     { label: 'Dashboard', href: '/admin/dashboard' },
     {
@@ -18,28 +26,44 @@ export class DashboardSidebarComponent implements OnInit {
       href: '/admin/dashboard/users',
     },
     {
-      label: 'Admin Management',
-      href: '/admin/dashboard/management',
+      label: 'Vehicles',
+      href: '/admin/dashboard/vehicles',
+    },
+    {
+      label: 'Workshop',
+      href: '/admin/dashboard/workshop',
     },
     {
       label: 'Support Requests',
       href: '/admin/dashboard/support-requests',
     },
     {
-      label: 'Vehicles',
-      href: '/admin/dashboard/vehicles',
+      label: 'Admin Management',
+      href: '/admin/dashboard/management',
     },
+
     {
       label: 'Settings',
       href: '/admin/dashboard/settings',
     },
-    {
-      label: 'Workshop',
-      href: '/admin/dashboard/workshop',
-    },
   ];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    document.addEventListener('mousedown', this.handleClickOutside, true);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('mousedown', this.handleClickOutside, true);
+  }
+
+  handleClickOutside = (event: MouseEvent) => {
+    if (
+      this.sidebarRef &&
+      !this.sidebarRef.nativeElement.contains(event.target)
+    ) {
+      this.closeSidebar.emit();
+    }
+  };
   @Output() closeSidebar = new EventEmitter<void>();
 
   profile: any = null;
@@ -68,4 +92,6 @@ export class DashboardSidebarComponent implements OnInit {
       this.isLoggingOut = false;
     }
   }
+
+  @ViewChild('sidebar', { static: true }) sidebarRef!: ElementRef;
 }

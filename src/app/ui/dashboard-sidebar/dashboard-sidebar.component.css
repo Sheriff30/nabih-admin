@@ -1,0 +1,8 @@
+svg {
+  width: 20px;
+  height: 20px;
+}
+
+.active-link svg path {
+  fill: #7f5ea3;
+}

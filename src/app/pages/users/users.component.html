@@ -271,7 +271,7 @@
         <input
           type="text"
           class="w-full border rounded p-2"
-          [(ngModel)]="selectedUser.email"
+          [value]="selectedUser?.email || '-'"
           name="email"
           disabled
         />

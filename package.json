@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/cdk": "^17.3.10",
     "@angular/common": "^17.3.12",
     "@angular/compiler": "^17.3.12",
     "@angular/core": "^17.3.12",

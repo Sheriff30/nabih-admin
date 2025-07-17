@@ -5,12 +5,11 @@ import {
   PaginationMeta,
   RoleResource,
   CreateAdminRequest,
-  ListPermissionsResponse,
   UpdateAdminRequest,
 } from '../../services/management.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -243,7 +242,7 @@ export class ManagementComponent implements OnInit {
         this.formLoading = false;
         // Add the new admin to the local data instead of reloading
         if (res.data && res.data.admin) {
-          this.allAdmins.unshift(res.data.admin);
+          this.allAdmins.push(res.data.admin);
           this.applyFiltersAndPagination();
         }
         this.toast.show('Admin user created successfully', 'success');
@@ -614,6 +613,15 @@ export class ManagementComponent implements OnInit {
   }
 
   savePermissionsModal(): void {
+    // Check if there are any changes in permissions
+    const current = [...this.editAdminForm.direct_permissions].sort();
+    const updated = [...this.permissionsModalDirect].sort();
+    if (JSON.stringify(current) === JSON.stringify(updated)) {
+      this.toast.show('No changes detected', 'info');
+      this.permissionsModalLoading = false;
+      this.showPermissionsModal = false;
+      return;
+    }
     this.permissionsModalLoading = true;
     const token = localStorage.getItem('token');
     if (!token || !this.editAdminForm.id) {
@@ -628,7 +636,7 @@ export class ManagementComponent implements OnInit {
         this.permissionsModalDirect
       )
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.editAdminForm.direct_permissions = [
             ...this.permissionsModalDirect,
           ];
@@ -636,8 +644,12 @@ export class ManagementComponent implements OnInit {
           this.showPermissionsModal = false;
           this.toast.show('Permissions updated successfully', 'success');
         },
-        error: () => {
-          this.toast.show('Failed to update permissions', 'error');
+        error: (err) => {
+          let errorMessage = 'Failed to update permissions';
+          if (err.status === 422 && err.error?.errors?.permissions) {
+            errorMessage = 'Please select at least one permission.';
+          }
+          this.toast.show(errorMessage, 'error');
           this.permissionsModalLoading = false;
         },
       });
@@ -721,14 +733,23 @@ export class ManagementComponent implements OnInit {
                 this.showEditAdminModal = false;
                 this.toast.show('Admin updated successfully', 'success');
               },
-              error: () => {
+              error: (err) => {
+                console.log(err);
                 this.toast.show('Failed to assign roles', 'error');
                 this.editAdminLoading = false;
               },
             });
         },
-        error: () => {
-          this.toast.show('Failed to update admin info', 'error');
+        error: (err) => {
+          // console.log(err);
+          let errorMessage = 'Failed to update admin info';
+          if (
+            err.status === 403 &&
+            err.error?.message === 'Cannot update super admin user'
+          ) {
+            errorMessage = 'You are not allowed to update the super admin.';
+          }
+          this.toast.show(errorMessage, 'error');
           this.editAdminLoading = false;
         },
       });

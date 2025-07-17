@@ -214,7 +214,13 @@ export class UsersComponent implements OnInit {
         this.allUsers = this.allUsers.filter(
           (u) => u.id !== this.userToDelete.id
         );
-        this.applyFiltersAndPagination();
+        // If the current page is now empty and not the first page, move to previous page
+        if (this.users.length === 1 && this.pagination.current_page > 1) {
+          this.pagination.current_page--;
+          this.loadCustomers();
+        } else {
+          this.loadCustomers();
+        }
         this.isDeleteConfirmOpen = false;
         this.userToDelete = null;
         this.closeEditModal();

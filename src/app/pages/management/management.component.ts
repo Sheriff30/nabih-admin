@@ -512,13 +512,17 @@ export class ManagementComponent implements OnInit {
         this.allAdmins = this.allAdmins.filter(
           (admin) => admin.id !== this.adminToDelete!.id
         );
-        // Recalculate pagination after deletion
-        const total = this.allAdmins.length;
-        const lastPage = Math.max(1, Math.ceil(total / this.perPage));
-        if (this.currentPage > lastPage) {
-          this.currentPage = lastPage;
+        // If the current page is now empty and not the first page, move to previous page
+        if (
+          this.admins.length === 1 &&
+          this.paginationMeta &&
+          this.paginationMeta.current_page > 1
+        ) {
+          this.currentPage = this.paginationMeta.current_page - 1;
+          this.loadAdmins();
+        } else {
+          this.loadAdmins();
         }
-        this.applyFiltersAndPagination();
         this.closeDeleteModal();
         this.toast.show('Admin deleted successfully', 'success');
       },

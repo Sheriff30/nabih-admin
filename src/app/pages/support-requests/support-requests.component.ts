@@ -265,15 +265,22 @@ export class SupportRequestsComponent implements OnInit {
             (r) => r.id !== this.requestToDelete.id
           );
           // Recalculate pagination after deletion
-          const total = this.supportRequests.length;
+          const total = this.supportRequests.length - 1;
           const lastPage = Math.max(
             1,
-            Math.ceil(total / this.pagination.per_page)
+            Math.ceil(this.pagination.total - 1 / this.pagination.per_page)
           );
-          if (this.pagination.current_page > lastPage) {
-            this.pagination.current_page = lastPage;
+          // If the current page is now empty and not the first page, move to previous page
+          if (
+            this.supportRequests.length === 1 &&
+            this.pagination.current_page > 1
+          ) {
+            this.pagination.current_page--;
+            this.loadSupportRequests();
+          } else {
+            // Otherwise, just reload the current page
+            this.loadSupportRequests();
           }
-          this.applyFiltersAndSorting();
           this.closeDeleteModal();
           this.toast.show('Support request deleted successfully.', 'success');
         },

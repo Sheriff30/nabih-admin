@@ -51,28 +51,49 @@ export class UsersComponent implements OnInit {
     const token = localStorage.getItem('token');
     if (token) {
       this.loading = true;
-      this.usersService.listCustomers(token, 1, 0, '').subscribe({
-        next: (res) => {
-          console.log(res);
-          if (res.success && res.data && res.data.customers) {
-            const customers = res.data.customers;
-            if (Array.isArray(customers)) {
-              this.allUsers = customers;
-            } else if (customers && Array.isArray((customers as any).data)) {
-              this.allUsers = (customers as any).data;
+      this.usersService
+        .listCustomers(
+          token,
+          this.pagination.current_page,
+          this.pagination.per_page
+        )
+        .subscribe({
+          next: (res) => {
+            console.log(res);
+            if (res.success && res.data && res.data.customers) {
+              this.allUsers = res.data.customers; // allUsers is now the current page only
+              this.users = res.data.customers; // users is also the current page only
+              // Update pagination meta from backend
+              this.pagination = {
+                current_page: Number(res.data.meta.current_page),
+                per_page: Number(res.data.meta.per_page),
+                total: Number(res.data.meta.total),
+                from:
+                  res.data.customers.length > 0
+                    ? (Number(res.data.meta.current_page) - 1) *
+                        Number(res.data.meta.per_page) +
+                      1
+                    : 0,
+                to:
+                  res.data.customers.length > 0
+                    ? (Number(res.data.meta.current_page) - 1) *
+                        Number(res.data.meta.per_page) +
+                      res.data.customers.length
+                    : 0,
+                last_page: Number(res.data.meta.last_page),
+              };
             } else {
               this.allUsers = [];
+              this.users = [];
             }
-            this.applyFiltersAndPagination();
-          }
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error loading customers:', error);
-          this.loading = false;
-          this.toast.show('Failed to load users', 'error');
-        },
-      });
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error loading customers:', error);
+            this.loading = false;
+            this.toast.show('Failed to load users', 'error');
+          },
+        });
     } else {
       console.error('No token found');
       this.toast.show('Authentication required', 'error');
@@ -80,7 +101,7 @@ export class UsersComponent implements OnInit {
   }
 
   applyFiltersAndPagination() {
-    // Apply search filter
+    // Apply search and sorting only to the current page (allUsers)
     let filteredUsers = this.allUsers;
     if (this.searchTerm.trim()) {
       const searchLower = this.searchTerm.toLowerCase();
@@ -92,41 +113,11 @@ export class UsersComponent implements OnInit {
           (user.email && user.email.toLowerCase().includes(searchLower))
       );
     }
-
-    // Apply sorting
+    // Apply sorting to filtered users
     if (this.sortColumn) {
       filteredUsers = this.applySorting(filteredUsers);
     }
-
-    // Calculate pagination
-    const total = filteredUsers.length;
-    const lastPage = Math.ceil(total / this.pagination.per_page);
-    const startIndex =
-      (this.pagination.current_page - 1) * this.pagination.per_page;
-    const endIndex = startIndex + this.pagination.per_page;
-
-    // Get current page data
-    this.users = filteredUsers.slice(startIndex, endIndex);
-
-    // Update pagination meta
-    this.pagination = {
-      current_page: this.pagination.current_page,
-      per_page: this.pagination.per_page,
-      total: total,
-      from: total > 0 ? startIndex + 1 : 0,
-      to: Math.min(endIndex, total),
-      last_page: lastPage,
-    };
-
-    console.log('Applied filters and pagination:', {
-      total: total,
-      perPage: this.pagination.per_page,
-      currentPage: this.pagination.current_page,
-      lastPage: lastPage,
-      displayedCount: this.users.length,
-      sortColumn: this.sortColumn,
-      sortDirection: this.sortDirection,
-    });
+    this.users = filteredUsers;
   }
 
   showUser(user: any) {
@@ -252,7 +243,7 @@ export class UsersComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.applyFiltersAndPagination();
+    this.applyFiltersAndPagination(); // Do not reset pagination or reload from backend
   }
 
   applySorting(users: any[]): any[] {
@@ -285,17 +276,16 @@ export class UsersComponent implements OnInit {
 
   onSearch(term: string) {
     this.searchTerm = term;
-    this.pagination.current_page = 1; // Reset to first page when searching
-    this.applyFiltersAndPagination();
+    this.applyFiltersAndPagination(); // Do not reset pagination or reload from backend
   }
 
   goToPage(page: number) {
     this.pagination.current_page = page;
-    this.applyFiltersAndPagination();
+    this.loadCustomers();
   }
 
   onPerPageChange() {
-    this.pagination.current_page = 1; // Reset to first page when changing per page
-    this.applyFiltersAndPagination();
+    this.pagination.current_page = 1;
+    this.loadCustomers();
   }
 }

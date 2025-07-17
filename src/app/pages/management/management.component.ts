@@ -583,7 +583,6 @@ export class ManagementComponent implements OnInit {
     const target = event.target as HTMLSelectElement;
     const selectedRole = target.value;
     this.editAdminForm.roles = selectedRole ? [selectedRole] : [];
-    // Optionally, update rolePermissions if you want to reflect new role's permissions immediately
     const roleObj = this.availableRoles.find((r) => r.name === selectedRole);
     this.rolePermissions = roleObj
       ? roleObj.permissions.map((p) => p.name)
@@ -670,7 +669,8 @@ export class ManagementComponent implements OnInit {
     this.managementService
       .updateAdmin(token, this.editAdminForm.id, updateData)
       .subscribe({
-        next: () => {
+        next: (updateRes) => {
+          console.log('1. Update basic info response:', updateRes);
           // 2. Assign roles
           this.managementService
             .assignRoles(
@@ -679,61 +679,47 @@ export class ManagementComponent implements OnInit {
               this.editAdminForm.roles
             )
             .subscribe({
-              next: () => {
-                // 3. Assign direct permissions
-                this.managementService
-                  .assignPermissions(
-                    token,
-                    this.editAdminForm.id!,
-                    this.editAdminForm.direct_permissions
-                  )
-                  .subscribe({
-                    next: () => {
-                      this.editAdminLoading = false;
-                      // Update the admin in local data instead of reloading
-                      const adminIndex = this.allAdmins.findIndex(
-                        (admin) => admin.id === this.editAdminForm.id
-                      );
-                      if (adminIndex !== -1) {
-                        // Update the admin with new data
-                        this.allAdmins[adminIndex] = {
-                          ...this.allAdmins[adminIndex],
-                          first_name: this.editAdminForm.first_name,
-                          last_name: this.editAdminForm.last_name,
-                          email: this.editAdminForm.email,
-                          roles: this.availableRoles
-                            .filter((role) =>
-                              this.editAdminForm.roles.includes(role.name)
-                            )
-                            .map((role) => ({
-                              id: parseInt(role.id),
-                              name: role.name,
-                              permissions: role.permissions,
-                            })),
-                          direct_permissions: this.allPermissions
-                            .filter((permission) =>
-                              this.editAdminForm.direct_permissions.includes(
-                                permission.name
-                              )
-                            )
-                            .map((permission) => ({
-                              id:
-                                typeof permission.id === 'string'
-                                  ? parseInt(permission.id)
-                                  : permission.id,
-                              name: permission.name,
-                            })),
-                        };
-                        this.applyFiltersAndPagination();
-                      }
-                      this.showEditAdminModal = false;
-                      this.toast.show('Admin updated successfully', 'success');
-                    },
-                    error: () => {
-                      this.toast.show('Failed to assign permissions', 'error');
-                      this.editAdminLoading = false;
-                    },
-                  });
+              next: (rolesRes) => {
+                console.log('2. Assign roles response:', rolesRes);
+                this.editAdminLoading = false;
+                // Update the admin in local data instead of reloading
+                const adminIndex = this.allAdmins.findIndex(
+                  (admin) => admin.id === this.editAdminForm.id
+                );
+                if (adminIndex !== -1) {
+                  // Update the admin with new data
+                  this.allAdmins[adminIndex] = {
+                    ...this.allAdmins[adminIndex],
+                    first_name: this.editAdminForm.first_name,
+                    last_name: this.editAdminForm.last_name,
+                    email: this.editAdminForm.email,
+                    roles: this.availableRoles
+                      .filter((role) =>
+                        this.editAdminForm.roles.includes(role.name)
+                      )
+                      .map((role) => ({
+                        id: parseInt(role.id),
+                        name: role.name,
+                        permissions: role.permissions,
+                      })),
+                    direct_permissions: this.allPermissions
+                      .filter((permission) =>
+                        this.editAdminForm.direct_permissions.includes(
+                          permission.name
+                        )
+                      )
+                      .map((permission) => ({
+                        id:
+                          typeof permission.id === 'string'
+                            ? parseInt(permission.id)
+                            : permission.id,
+                        name: permission.name,
+                      })),
+                  };
+                  this.applyFiltersAndPagination();
+                }
+                this.showEditAdminModal = false;
+                this.toast.show('Admin updated successfully', 'success');
               },
               error: () => {
                 this.toast.show('Failed to assign roles', 'error');

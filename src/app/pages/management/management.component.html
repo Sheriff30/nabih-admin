@@ -59,9 +59,7 @@
       <div class="px-5 py-3 flex items-center gap-1">
         Date Created <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Actions <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
+      <div class="px-5 py-3 flex items-center gap-1">Actions</div>
     </div>
 
     <!-- Loading State -->
@@ -453,7 +451,6 @@
         name="edit_role"
         required
       >
-        <option value="">Select a role</option>
         <option *ngFor="let role of availableRoles" [value]="role.name">
           {{ formatRoleName(role.name) }}
         </option>

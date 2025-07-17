@@ -13,7 +13,7 @@
       </p>
     </div>
     <div class="flex gap-3 flex-col">
-      <label for="email">Email address:</label>
+      <label class="text-neutral-700" for="email">Email address:</label>
       <input
         type="email"
         id="email"
@@ -25,7 +25,7 @@
       />
     </div>
     <div class="flex gap-3 flex-col">
-      <label for="password">Password:</label>
+      <label class="text-neutral-700" for="password">Password:</label>
       <input
         type="password"
         id="password"
@@ -35,6 +35,20 @@
         class="p-3 shadow-[0px_1px_2px_0px_#E4E5E73D] border border-neutral-300 rounded-md text-sm placeholder:text-neutral-400"
         placeholder="Enter Password"
       />
+      <div class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="rememberPassword"
+          name="rememberPassword"
+          [(ngModel)]="rememberPassword"
+          class="accent-[#7F5EA3] w-4 h-4 rounded-md"
+        />
+        <label
+          for="rememberPassword"
+          class="text-neutral-700 text-sm cursor-pointer"
+          >Remember Password</label
+        >
+      </div>
     </div>
 
     <button
@@ -45,7 +59,5 @@
       <div *ngIf="!loading">Sign In</div>
       <div *ngIf="loading">Loading...</div>
     </button>
-
-    <div *ngIf="error" style="color: red">{{ error }}</div>
   </form>
 </div>

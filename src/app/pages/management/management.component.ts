@@ -137,7 +137,6 @@ export class ManagementComponent implements OnInit {
         .listAdmins(token, this.currentPage, this.perPage)
         .subscribe({
           next: (res) => {
-            console.log(res);
             this.allAdmins = res.data.admins; // allAdmins is now the current page only
             this.admins = res.data.admins; // admins is also the current page only
             // Update pagination meta from backend
@@ -659,6 +658,7 @@ export class ManagementComponent implements OnInit {
     // Check if there are any changes
     if (!this.hasChanges()) {
       this.toast.show('No changes detected', 'info');
+      this.showEditAdminModal = false;
       return;
     }
 
@@ -682,7 +682,6 @@ export class ManagementComponent implements OnInit {
       .updateAdmin(token, this.editAdminForm.id, updateData)
       .subscribe({
         next: (updateRes) => {
-          console.log('1. Update basic info response:', updateRes);
           // 2. Assign roles
           this.managementService
             .assignRoles(
@@ -692,7 +691,6 @@ export class ManagementComponent implements OnInit {
             )
             .subscribe({
               next: (rolesRes) => {
-                console.log('2. Assign roles response:', rolesRes);
                 this.editAdminLoading = false;
                 // Update the admin in local data instead of reloading
                 const adminIndex = this.allAdmins.findIndex(
@@ -734,14 +732,12 @@ export class ManagementComponent implements OnInit {
                 this.toast.show('Admin updated successfully', 'success');
               },
               error: (err) => {
-                console.log(err);
                 this.toast.show('Failed to assign roles', 'error');
                 this.editAdminLoading = false;
               },
             });
         },
         error: (err) => {
-          // console.log(err);
           let errorMessage = 'Failed to update admin info';
           if (
             err.status === 403 &&

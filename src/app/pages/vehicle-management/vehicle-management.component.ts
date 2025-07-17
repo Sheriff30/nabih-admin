@@ -1,72 +1,59 @@
 import { Component, OnInit } from '@angular/core';
-import { VehiclesService, Vehicle } from '../../services/vehicles.service';
-import { NgFor, NgIf, NgClass, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  VehicleManagementService,
+  ListVehiclesResponse,
+  VehicleResource,
+  VehicleCollectionMeta,
+} from '../../services/vehicles.service';
 import { ToastService } from '../../services/toast.service';
-
-interface VehicleOwnerSummary {
-  owner_id: number;
-  owner_name: string;
-  owner_email: string | null;
-  owner_phone: string | null;
-  vehicle_count: number;
-  vehicles: Vehicle[];
-}
-
-type SortField = 'number' | 'owner_name' | 'vehicle_count' | 'email' | 'phone';
-type SortDirection = 'asc' | 'desc';
+import { NgIf, NgFor, NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-vehicle-management',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, DatePipe, FormsModule],
+  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe],
   templateUrl: './vehicle-management.component.html',
   styleUrl: './vehicle-management.component.css',
 })
 export class VehicleManagementComponent implements OnInit {
-  allVehicles: Vehicle[] = [];
-  vehicleOwners: VehicleOwnerSummary[] = [];
-  filteredVehicleOwners: VehicleOwnerSummary[] = [];
-  loading = false;
-  error: string | null = null;
+  allVehicles: VehicleResource[] = [];
+  vehicles: VehicleResource[] = [];
+  pagination = {
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    from: 0,
+    to: 0,
+    last_page: 1,
+  };
+  searchTerm: string = '';
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  loading: boolean = false;
 
-  // Search and pagination
-  searchTerm = '';
-  currentPage = 1;
-  pageSize = 10;
-  pageSizeOptions = [5, 10, 20, 50];
+  showModal: boolean = false;
+  selectedVehicle: VehicleResource | null = null;
 
-  // Sorting
-  currentSortField: SortField = 'number';
-  currentSortDirection: SortDirection = 'asc';
+  editModalOpen: boolean = false;
+  editVehicle: VehicleResource | null = null;
+  editVehicleForm: any = null;
+  editLoading: boolean = false;
 
-  // Modal state
-  showModal = false;
-  selectedOwner: VehicleOwnerSummary | null = null;
-  selectedVehicleId: number | null = null;
-
-  editModalOpen = false;
-  editOwner: VehicleOwnerSummary | null = null;
-  editVehicleId: number | null = null;
-  editVehicleForm: any = {};
-  originalEditVehicleForm: any = {};
-  editLoading = false;
-
-  serviceHistoryModalOpen = false;
-  serviceHistoryOwner: VehicleOwnerSummary | null = null;
-  serviceHistoryVehicle: Vehicle | null = null;
+  serviceHistoryModalOpen: boolean = false;
+  serviceHistoryVehicle: VehicleResource | null = null;
+  serviceHistoryOwner: any = null;
   serviceHistoryTab: 'last' | 'previous' = 'last';
   lastService: any = null;
   previousServices: any[] = [];
   expandedServiceIndex: number | null = null;
 
-  deleteModalOpen = false;
-  deleteOwner: VehicleOwnerSummary | null = null;
-  deleteVehicleId: number | null = null;
-  deleteLoading = false;
+  deleteModalOpen: boolean = false;
+  vehicleToDelete: VehicleResource | null = null;
 
   constructor(
-    private vehiclesService: VehiclesService,
+    private vehicleService: VehicleManagementService,
     private toast: ToastService
   ) {}
 
@@ -74,403 +61,334 @@ export class VehicleManagementComponent implements OnInit {
     this.loadVehicles();
   }
 
-  loadVehicles(): void {
-    this.loading = true;
-    this.error = null;
+  loadVehicles() {
     const token = localStorage.getItem('token');
-    if (token) {
-      this.vehiclesService.listVehicles(token).subscribe({
-        next: (response) => {
-          console.log('Vehicles loaded successfully:', response);
-          this.allVehicles = response.data.vehicles;
-          this.groupVehiclesByOwner();
-          this.applySearch();
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error loading vehicles:', error);
-          this.error = 'Failed to load vehicles';
-          this.loading = false;
-          this.toast.show(
-            'Failed to load vehicles. Please try again.',
-            'error'
-          );
-        },
-      });
-    } else {
-      console.error('No authentication token found');
-      this.error = 'Authentication required';
+    if (!token) {
+      this.toast.show('You are not logged in. Please log in again.', 'error');
       this.loading = false;
-      this.toast.show('Authentication required. Please log in.', 'error');
+      return;
     }
-  }
-
-  groupVehiclesByOwner(): void {
-    const ownerMap = new Map<number, VehicleOwnerSummary>();
-
-    this.allVehicles.forEach((vehicle) => {
-      const ownerId = vehicle.owner.id;
-
-      if (ownerMap.has(ownerId)) {
-        // Owner already exists, increment vehicle count and add vehicle
-        const existingOwner = ownerMap.get(ownerId)!;
-        existingOwner.vehicle_count++;
-        existingOwner.vehicles.push(vehicle);
-      } else {
-        // New owner, create entry
-        ownerMap.set(ownerId, {
-          owner_id: ownerId,
-          owner_name: vehicle.owner.name,
-          owner_email: vehicle.owner.email,
-          owner_phone: vehicle.owner.phone,
-          vehicle_count: 1,
-          vehicles: [vehicle],
-        });
-      }
-    });
-
-    this.vehicleOwners = Array.from(ownerMap.values());
-    console.log('Grouped vehicle owners:', this.vehicleOwners);
-  }
-
-  applySearch(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredVehicleOwners = [...this.vehicleOwners];
-    } else {
-      const searchLower = this.searchTerm.toLowerCase();
-      this.filteredVehicleOwners = this.vehicleOwners.filter((owner) => {
-        // Search in owner details
-        const ownerMatch =
-          owner.owner_name.toLowerCase().includes(searchLower) ||
-          (owner.owner_email &&
-            owner.owner_email.toLowerCase().includes(searchLower)) ||
-          (owner.owner_phone &&
-            owner.owner_phone.toLowerCase().includes(searchLower)) ||
-          owner.vehicle_count.toString().includes(searchLower);
-
-        // Search in vehicle details
-        const vehicleMatch = owner.vehicles.some(
-          (vehicle) =>
-            vehicle.name.toLowerCase().includes(searchLower) ||
-            vehicle.plate_number.toLowerCase().includes(searchLower) ||
-            vehicle.make_brand.toLowerCase().includes(searchLower) ||
-            vehicle.model_year.toLowerCase().includes(searchLower)
-        );
-
-        return ownerMatch || vehicleMatch;
+    this.loading = true;
+    this.vehicleService
+      .listVehicles(
+        token,
+        this.pagination.current_page,
+        this.pagination.per_page
+      )
+      .subscribe({
+        next: (res: ListVehiclesResponse) => {
+          console.log(res);
+          this.allVehicles = res.data.vehicles;
+          // Update pagination meta from backend
+          this.pagination = {
+            current_page: Number(res.data.meta.current_page),
+            per_page: Number(res.data.meta.per_page),
+            total: Number(res.data.meta.total),
+            from:
+              res.data.vehicles.length > 0
+                ? (Number(res.data.meta.current_page) - 1) *
+                    Number(res.data.meta.per_page) +
+                  1
+                : 0,
+            to:
+              res.data.vehicles.length > 0
+                ? (Number(res.data.meta.current_page) - 1) *
+                    Number(res.data.meta.per_page) +
+                  res.data.vehicles.length
+                : 0,
+            last_page: Number(res.data.meta.last_page),
+          };
+          this.applyFiltersAndPagination();
+          this.loading = false;
+        },
+        error: (err: any) => {
+          this.loading = false;
+          this.allVehicles = [];
+          this.vehicles = [];
+          this.pagination = {
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            from: 0,
+            to: 0,
+            last_page: 1,
+          };
+          console.error('Vehicles API error:', err);
+        },
       });
-    }
-    this.currentPage = 1; // Reset to first page when searching
-    this.applySorting();
   }
 
-  applySorting(): void {
-    this.filteredVehicleOwners.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+  applyFiltersAndPagination() {
+    let filtered = this.allVehicles;
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (v) =>
+          (v.name && v.name.toLowerCase().includes(searchLower)) ||
+          (v.owner?.name && v.owner.name.toLowerCase().includes(searchLower)) ||
+          (v.plate_number &&
+            v.plate_number.toLowerCase().includes(searchLower)) ||
+          (v.make_brand && v.make_brand.toLowerCase().includes(searchLower))
+      );
+    }
+    if (this.sortColumn) {
+      filtered = this.applySorting(filtered);
+    }
+    this.vehicles = filtered;
+  }
 
-      switch (this.currentSortField) {
-        case 'number':
-          aValue = a.owner_id;
-          bValue = b.owner_id;
-          break;
-        case 'owner_name':
-          aValue = a.owner_name.toLowerCase();
-          bValue = b.owner_name.toLowerCase();
-          break;
-        case 'vehicle_count':
-          aValue = a.vehicle_count;
-          bValue = b.vehicle_count;
-          break;
-        case 'email':
-          aValue = (a.owner_email || '').toLowerCase();
-          bValue = (b.owner_email || '').toLowerCase();
-          break;
-        case 'phone':
-          aValue = (a.owner_phone || '').toLowerCase();
-          bValue = (b.owner_phone || '').toLowerCase();
-          break;
-        default:
-          return 0;
-      }
+  onSearch(term: string) {
+    this.searchTerm = term;
+    this.applyFiltersAndPagination();
+  }
 
-      if (aValue < bValue) {
-        return this.currentSortDirection === 'asc' ? -1 : 1;
+  sortVehicles(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applyFiltersAndPagination();
+  }
+
+  applySorting(vehicles: VehicleResource[]): VehicleResource[] {
+    return [...vehicles].sort((a, b) => {
+      let aValue = a[this.sortColumn as keyof VehicleResource];
+      let bValue = b[this.sortColumn as keyof VehicleResource];
+      if (aValue == null) aValue = '';
+      if (bValue == null) bValue = '';
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
-      if (aValue > bValue) {
-        return this.currentSortDirection === 'asc' ? 1 : -1;
-      }
+      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
   }
 
-  onSort(field: SortField): void {
-    if (this.currentSortField === field) {
-      // Toggle direction if same field
-      this.currentSortDirection =
-        this.currentSortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      // New field, set to ascending
-      this.currentSortField = field;
-      this.currentSortDirection = 'asc';
-    }
-    this.applySorting();
+  goToPage(page: number) {
+    this.pagination.current_page = page;
+    this.loadVehicles();
   }
 
-  getSortIcon(field: SortField): string {
-    if (this.currentSortField !== field) {
-      return '/icons/sort.svg';
-    }
-    return this.currentSortDirection === 'asc'
-      ? '/icons/sort.svg'
-      : '/icons/sort.svg';
+  onPerPageChange() {
+    this.pagination.current_page = 1;
+    this.loadVehicles();
   }
 
-  openModal(owner: VehicleOwnerSummary): void {
-    this.selectedOwner = owner;
-    this.selectedVehicleId =
-      owner.vehicles.length > 0 ? owner.vehicles[0].id : null;
+  openModal(vehicle: VehicleResource) {
+    this.selectedVehicle = vehicle;
     this.showModal = true;
   }
 
-  closeModal(): void {
+  closeModal() {
     this.showModal = false;
-    this.selectedOwner = null;
-    this.selectedVehicleId = null;
+    this.selectedVehicle = null;
   }
 
-  get selectedVehicle(): Vehicle | null {
-    if (!this.selectedOwner || !this.selectedVehicleId) return null;
-    const vehicle = this.selectedOwner.vehicles.find(
-      (v) => v.id === Number(this.selectedVehicleId)
-    );
-    console.log('Selected vehicle:', vehicle);
-    return vehicle || null;
-  }
-
-  onVehicleChange(): void {
-    // Convert to number to ensure proper comparison
-    this.selectedVehicleId = Number(this.selectedVehicleId);
-    console.log('Vehicle changed to:', this.selectedVehicleId);
-    console.log('Available vehicles:', this.selectedOwner?.vehicles);
-    console.log('Selected vehicle details:', this.selectedVehicle);
-  }
-
-  openEditModal(owner: VehicleOwnerSummary): void {
-    this.editOwner = owner;
-    this.editVehicleId =
-      owner.vehicles.length > 0 ? owner.vehicles[0].id : null;
+  openEditModal(vehicle: VehicleResource) {
+    this.editVehicle = vehicle;
+    // Only include fields present in the view modal
+    this.editVehicleForm = {
+      user_id: vehicle.owner.id,
+      name: vehicle.name,
+      make_brand: vehicle.make_brand,
+      model_year: vehicle.model_year,
+      vin_number: vehicle.vin_number,
+      mileage: vehicle.mileage,
+    };
     this.editModalOpen = true;
-    this.setEditForm();
   }
 
-  setEditForm(): void {
-    const vehicle = this.editOwner?.vehicles.find(
-      (v) => v.id === this.editVehicleId
-    );
-    if (vehicle) {
-      this.editVehicleForm = { ...vehicle };
-      this.originalEditVehicleForm = { ...vehicle };
+  closeEditModal() {
+    this.editModalOpen = false;
+    this.editVehicle = null;
+    this.editVehicleForm = null;
+    this.editLoading = false;
+  }
+
+  saveEditVehicle() {
+    if (!this.editVehicle || !this.editVehicleForm) return;
+
+    // Validation: required fields (no empty values allowed)
+    const requiredFields: { key: string; label: string }[] = [
+      { key: 'name', label: 'Vehicle Name' },
+      { key: 'make_brand', label: 'Brand' },
+      { key: 'model_year', label: 'Model Year' },
+      { key: 'vin_number', label: 'VIN Number' },
+      { key: 'mileage', label: 'Current Mileage' },
+    ];
+    for (const field of requiredFields) {
+      const value = this.editVehicleForm[field.key];
+      if (value === undefined || value === null || value === '') {
+        this.toast.show(`Please enter ${field.label}.`, 'warning');
+        return;
+      }
     }
-  }
 
-  onEditVehicleChange(): void {
-    this.editVehicleId = Number(this.editVehicleId);
-    this.setEditForm();
-  }
-
-  saveEditVehicle(): void {
-    if (!this.editOwner || !this.editVehicleId) return;
-    // Compare form with original
-    const isChanged = Object.keys(this.editVehicleForm).some(
-      (key) => this.editVehicleForm[key] !== this.originalEditVehicleForm[key]
-    );
-    if (!isChanged) {
+    // Check if any changes were made
+    const fieldsToCheck: (keyof VehicleResource)[] = [
+      'name',
+      'make_brand',
+      'model_year',
+      'vin_number',
+      'mileage',
+    ];
+    let changed = false;
+    for (const field of fieldsToCheck) {
+      if (this.editVehicleForm[field] !== this.editVehicle?.[field]) {
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) {
       this.toast.show('No changes detected.', 'info');
-      this.editModalOpen = false;
+      this.closeEditModal();
       return;
     }
+
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      this.toast.show('You are not logged in. Please log in again.', 'error');
+      this.editLoading = false;
+      return;
+    }
     this.editLoading = true;
-    this.vehiclesService
-      .updateVehicle(token, this.editVehicleId, {
-        user_id: this.editOwner.owner_id,
-        name: this.editVehicleForm.name,
-        make_brand: this.editVehicleForm.make_brand,
-        model_year: this.editVehicleForm.model_year,
-        vin_number: this.editVehicleForm.vin_number,
-        chassis_number: this.editVehicleForm.chassis_number,
-        mileage: this.editVehicleForm.mileage,
-        vehicle_type: this.editVehicleForm.vehicle_type,
-        plate_number: this.editVehicleForm.plate_number,
-      })
+    this.toast.show('Updating vehicle details...', 'info');
+    // Only send the allowed fields
+    const updatePayload = {
+      user_id: this.editVehicleForm.user_id,
+      name: this.editVehicleForm.name,
+      make_brand: this.editVehicleForm.make_brand,
+      model_year: this.editVehicleForm.model_year,
+      vin_number: this.editVehicleForm.vin_number,
+      mileage: this.editVehicleForm.mileage,
+    };
+    this.vehicleService
+      .updateVehicle(this.editVehicle.id, updatePayload, token)
       .subscribe({
         next: (res) => {
-          this.editLoading = false;
-          this.editModalOpen = false;
-          this.loadVehicles();
-          this.toast.show('Vehicle updated successfully!', 'success');
+          // Update the vehicle in the list
+          const idx = this.vehicles.findIndex(
+            (v) => v.id === this.editVehicle!.id
+          );
+          if (idx !== -1) {
+            this.vehicles[idx] = res.data;
+          }
+          this.toast.show('Vehicle details updated successfully!', 'success');
+          this.closeEditModal();
         },
         error: (err) => {
           this.editLoading = false;
-          this.toast.show(
-            'Failed to update vehicle. Please try again.',
-            'error'
-          );
+          this.toast.show('Something went wrong. Please try again.', 'error');
         },
       });
   }
 
-  formatMileage(value: number | null): string {
-    if (value === null || value === undefined) return '';
-    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
-
-  onMileageInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    // Remove all non-digit characters
-    const raw = input.value.replace(/[^0-9]/g, '');
-    this.editVehicleForm.mileage = raw ? parseInt(raw, 10) : null;
-    // Set the formatted value back to the input
-    input.value = this.formatMileage(this.editVehicleForm.mileage);
-  }
-
-  get paginatedVehicleOwners(): VehicleOwnerSummary[] {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    return this.filteredVehicleOwners.slice(startIndex, endIndex);
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredVehicleOwners.length / this.pageSize);
-  }
-
-  get startIndex(): number {
-    return (this.currentPage - 1) * this.pageSize + 1;
-  }
-
-  get endIndex(): number {
-    const end = this.currentPage * this.pageSize;
-    return Math.min(end, this.filteredVehicleOwners.length);
-  }
-
-  get pageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxVisiblePages = 5;
-
-    if (this.totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= this.totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      let startPage = Math.max(
-        1,
-        this.currentPage - Math.floor(maxVisiblePages / 2)
-      );
-      let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
-
-      if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-    }
-
-    return pages;
-  }
-
-  onPageChange(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
-  }
-
-  onPageSizeChange(): void {
-    this.currentPage = 1; // Reset to first page when changing page size
-  }
-
-  viewOwnerVehicles(owner: VehicleOwnerSummary): void {
-    console.log(`Vehicles for ${owner.owner_name}:`, owner.vehicles);
-  }
-
-  openServiceHistoryModal(owner: VehicleOwnerSummary, vehicleId: number): void {
-    this.serviceHistoryOwner = owner;
-    this.serviceHistoryVehicle =
-      owner.vehicles.find((v) => v.id === vehicleId) || null;
+  openServiceHistoryModal(vehicle: VehicleResource) {
+    this.serviceHistoryVehicle = vehicle;
+    this.serviceHistoryOwner = vehicle.owner;
     this.serviceHistoryModalOpen = true;
     this.serviceHistoryTab = 'last';
-    this.setServiceTabs();
+    if (vehicle.services && vehicle.services.length > 0) {
+      this.lastService = vehicle.services[0];
+      this.previousServices = vehicle.services.slice(1);
+    } else {
+      this.lastService = null;
+      this.previousServices = [];
+    }
   }
 
-  closeServiceHistoryModal(): void {
+  closeServiceHistoryModal() {
     this.serviceHistoryModalOpen = false;
-    this.serviceHistoryOwner = null;
     this.serviceHistoryVehicle = null;
+    this.serviceHistoryOwner = null;
     this.lastService = null;
     this.previousServices = [];
   }
 
-  setServiceTabs(): void {
-    if (!this.serviceHistoryVehicle || !this.serviceHistoryVehicle.services) {
-      this.lastService = null;
-      this.previousServices = [];
-      return;
-    }
-    const sorted = [...this.serviceHistoryVehicle.services].sort(
-      (a, b) =>
-        new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
-    );
-    this.lastService = sorted[0] || null;
-    this.previousServices = sorted.slice(1);
-  }
-
-  switchServiceTab(tab: 'last' | 'previous'): void {
+  switchServiceTab(tab: 'last' | 'previous') {
     this.serviceHistoryTab = tab;
   }
 
-  toggleAccordionService(idx: number): void {
-    this.expandedServiceIndex = this.expandedServiceIndex === idx ? null : idx;
+  setServiceTabs() {
+    if (
+      this.serviceHistoryVehicle &&
+      this.serviceHistoryVehicle.services &&
+      this.serviceHistoryVehicle.services.length > 0
+    ) {
+      this.lastService = this.serviceHistoryVehicle.services[0];
+      this.previousServices = this.serviceHistoryVehicle.services.slice(1);
+    } else {
+      this.lastService = null;
+      this.previousServices = [];
+    }
   }
 
-  openDeleteModal(owner: VehicleOwnerSummary): void {
-    this.deleteOwner = owner;
-    this.deleteVehicleId =
-      owner.vehicles.length > 0 ? owner.vehicles[0].id : null;
+  toggleAccordionService(index: number) {
+    if (this.expandedServiceIndex === index) {
+      this.expandedServiceIndex = null;
+    } else {
+      this.expandedServiceIndex = index;
+    }
+  }
+
+  openDeleteModal(vehicle: VehicleResource) {
+    this.vehicleToDelete = vehicle;
     this.deleteModalOpen = true;
   }
 
-  closeDeleteModal(): void {
+  closeDeleteModal() {
+    this.vehicleToDelete = null;
     this.deleteModalOpen = false;
-    this.deleteOwner = null;
-    this.deleteVehicleId = null;
   }
 
-  deleteVehicleConfirmed(): void {
-    if (!this.deleteOwner || !this.deleteVehicleId) return;
+  deleteVehicle() {
+    if (!this.vehicleToDelete) return;
     const token = localStorage.getItem('token');
-    if (!token) return;
-    this.deleteLoading = true;
-    this.vehiclesService.deleteVehicle(token, this.deleteVehicleId).subscribe({
-      next: () => {
-        this.deleteLoading = false;
-        this.deleteModalOpen = false;
-        this.loadVehicles();
-        // Recalculate pagination after deletion
-        const total = this.filteredVehicleOwners.length;
-        const lastPage = Math.max(1, Math.ceil(total / this.pageSize));
-        if (this.currentPage > lastPage) {
-          this.currentPage = lastPage;
-        }
-        this.applySearch();
-        this.toast.show('Vehicle deleted successfully!', 'success');
-      },
-      error: () => {
-        this.deleteLoading = false;
-        this.toast.show('Failed to delete vehicle. Please try again.', 'error');
-      },
-    });
+    if (!token) {
+      this.toast.show('You are not logged in. Please log in again.', 'error');
+      this.closeDeleteModal();
+      return;
+    }
+    this.vehicleService
+      .permanentlyDeleteVehicle(this.vehicleToDelete.id, token)
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.toast.show('Vehicle deleted successfully.', 'success');
+            // Remove from vehicles list
+            this.vehicles = this.vehicles.filter(
+              (v) => v.id !== this.vehicleToDelete!.id
+            );
+            this.allVehicles = this.allVehicles.filter(
+              (v) => v.id !== this.vehicleToDelete!.id
+            );
+            // If current page is now empty and not the first page, go to previous page
+            if (
+              this.vehicles.length === 0 &&
+              this.pagination.current_page > 1
+            ) {
+              this.pagination.current_page--;
+            }
+            this.loadVehicles();
+          } else {
+            this.toast.show(
+              res.message || 'Failed to delete vehicle.',
+              'error'
+            );
+          }
+          this.closeDeleteModal();
+        },
+        error: () => {
+          this.toast.show(
+            'Failed to delete vehicle. Please try again.',
+            'error'
+          );
+          this.closeDeleteModal();
+        },
+      });
   }
 }

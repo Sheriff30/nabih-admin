@@ -12,61 +12,51 @@
           placeholder="Search by vehicle name, owner, plate number, or brand"
           class="w-full text-xs bg-neutral-100 outline-none"
           [(ngModel)]="searchTerm"
-          (input)="applySearch()"
+          (ngModelChange)="onSearch($event)"
         />
       </div>
     </div>
 
     <!-- Header -->
     <div
-      class="grid grid-cols-[100px_minmax(151px,1fr)_172px_minmax(235px,1fr)_203px_203px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+      class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
     >
-      <div class="px-5 py-3 flex items-center gap-1">
-        Number
-        <img
-          src="/icons/sort.svg"
-          alt="sort-icon"
-          class="cursor-pointer"
-          (click)="onSort('number')"
-        />
+      <div class="px-5 py-3 flex items-center gap-1">Number</div>
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortVehicles('name')"
+      >
+        Vehicle Name
+        <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortVehicles('model_year')"
+      >
+        Model Year
+        <img src="/icons/sort.svg" alt="sort-icon" />
+      </div>
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortVehicles('make_brand')"
+      >
+        Brand
+        <img src="/icons/sort.svg" alt="sort-icon" />
+      </div>
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortVehicles('owner')"
+      >
         Owner Name
-        <img
-          src="/icons/sort.svg"
-          alt="sort-icon"
-          class="cursor-pointer"
-          (click)="onSort('owner_name')"
-        />
+        <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Number of cars
-        <img
-          src="/icons/sort.svg"
-          alt="sort-icon"
-          class="cursor-pointer"
-          (click)="onSort('vehicle_count')"
-        />
+      <div
+        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+        (click)="sortVehicles('plate_number')"
+      >
+        Plate Number
+        <img src="/icons/sort.svg" alt="sort-icon" />
       </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Email
-        <img
-          src="/icons/sort.svg"
-          alt="sort-icon"
-          class="cursor-pointer"
-          (click)="onSort('email')"
-        />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">
-        Phone Number
-        <img
-          src="/icons/sort.svg"
-          alt="sort-icon"
-          class="cursor-pointer"
-          (click)="onSort('phone')"
-        />
-      </div>
-
       <div class="px-5 py-3 flex items-center gap-1">Actions</div>
     </div>
 
@@ -80,82 +70,78 @@
       ></div>
     </div>
 
-    <!-- Table Rows -->
-    <ng-container *ngIf="!loading && paginatedVehicleOwners.length > 0">
-      <div
-        *ngFor="let owner of paginatedVehicleOwners; let i = index"
-        class="grid grid-cols-[100px_minmax(151px,1fr)_172px_minmax(235px,1fr)_203px_203px] bg-white text-sm"
-      >
-        <div class="px-5 py-3">{{ startIndex + i }}</div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ owner.owner_name || "-" }}</div>
+    <!-- Table Rows and Empty State -->
+    <ng-container *ngIf="!loading">
+      <ng-container *ngIf="vehicles.length > 0; else emptyState">
+        <div
+          *ngFor="let vehicle of vehicles; let i = index"
+          class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-white text-sm"
+        >
+          <div class="px-5 py-3">
+            {{ i + 1 + (pagination.current_page - 1) * pagination.per_page }}
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ vehicle.name }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ vehicle.model_year }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ vehicle.make_brand }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ vehicle.owner.name }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ vehicle.plate_number }}</div>
+          </div>
+          <div class="px-5 py-3 flex justify-center gap-2">
+            <img
+              src="/icons/eye.svg"
+              alt="view-icon"
+              class="h-[19px] w-[19px] cursor-pointer"
+              (click)="openModal(vehicle)"
+            />
+            <img
+              src="/icons/edit.svg"
+              alt="edit-icon"
+              class="h-[19px] w-[19px] cursor-pointer"
+              (click)="openEditModal(vehicle)"
+            />
+            <img
+              src="/icons/delete.svg"
+              alt="delete-icon"
+              class="h-[19px] w-[19px] cursor-pointer"
+              (click)="openDeleteModal(vehicle)"
+            />
+            <img
+              src="/icons/history.svg"
+              alt="history-icon"
+              class="h-[19px] w-[19px] cursor-pointer"
+              (click)="openServiceHistoryModal(vehicle)"
+            />
+          </div>
         </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ owner.vehicle_count }}</div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ owner.owner_email || "-" }}</div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ owner.owner_phone || "-" }}</div>
-        </div>
-        <div class="px-5 py-3 flex justify-center gap-2">
-          <img
-            src="/icons/eye.svg"
-            alt="view-icon"
-            class="h-[19px] w-[19px] cursor-pointer"
-            (click)="openModal(owner)"
-          />
-          <img
-            src="/icons/edit.svg"
-            alt="edit-icon"
-            class="h-[19px] w-[19px] cursor-pointer"
-            (click)="openEditModal(owner)"
-          />
-          <img
-            src="/icons/delete.svg"
-            alt="delete-icon"
-            class="h-[19px] w-[19px] cursor-pointer"
-            [class.opacity-50]="owner.vehicles.length === 0"
-            [class.cursor-not-allowed]="owner.vehicles.length === 0"
-            [attr.aria-disabled]="owner.vehicles.length === 0 ? true : null"
-            (click)="owner.vehicles.length > 0 && openDeleteModal(owner)"
-          />
-          <img
-            src="/icons/history.svg"
-            alt="history-icon"
-            class="h-[19px] w-[19px] cursor-pointer"
-            (click)="openServiceHistoryModal(owner, owner.vehicles[0].id || 0)"
-          />
-        </div>
-      </div>
+      </ng-container>
     </ng-container>
 
-    <!-- Empty State -->
-    <div
-      *ngIf="!loading && filteredVehicleOwners.length === 0"
-      class="flex justify-center items-center py-8 bg-white"
-    >
-      <div class="text-neutral-500">
-        {{
-          searchTerm
-            ? "No vehicle owners found matching your search."
-            : "No vehicle owners found."
-        }}
+    <ng-template #emptyState>
+      <div class="flex justify-center items-center py-8 bg-white">
+        <div class="text-neutral-500">No vehicles found.</div>
       </div>
-    </div>
+    </ng-template>
 
     <!-- Pagination -->
     <div
-      *ngIf="!loading && filteredVehicleOwners.length > 0"
+      *ngIf="!loading && vehicles.length > 0"
       class="flex justify-between py-4 px-5 bg-white items-center"
     >
       <div class="flex gap-2 items-center">
         <div>Show</div>
         <select
           class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="pageSize"
-          (change)="onPageSizeChange()"
+          [(ngModel)]="pagination.per_page"
+          (change)="onPerPageChange()"
         >
           <option [value]="10">10</option>
           <option [value]="20">20</option>
@@ -165,12 +151,7 @@
       </div>
       <div class="flex gap-4 items-center">
         <div class="text-neutral-500">
-          {{ (currentPage - 1) * pageSize + 1 }}-{{
-            currentPage * pageSize < filteredVehicleOwners.length
-              ? currentPage * pageSize
-              : filteredVehicleOwners.length
-          }}
-          of {{ filteredVehicleOwners.length }}
+          {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
         </div>
         <div class="flex items-center gap-1">
           <div>
@@ -178,18 +159,29 @@
               src="/icons/pagination-left.svg"
               alt=""
               class="cursor-pointer"
-              (click)="onPageChange(currentPage > 1 ? currentPage - 1 : 1)"
+              (click)="
+                pagination.current_page > 1
+                  ? goToPage(pagination.current_page - 1)
+                  : null
+              "
+              [class.opacity-50]="pagination.current_page === 1"
             />
           </div>
           <ul class="flex gap-1">
             <li
-              *ngFor="let page of pageNumbers"
-              (click)="onPageChange(page)"
-              [class.bg-neutral-100]="page === currentPage"
+              *ngFor="
+                let page of [].constructor(pagination.last_page);
+                let p = index
+              "
               class="py-2 px-4 rounded-md cursor-pointer"
-              [class.text-neutral-400]="page !== currentPage"
+              [ngClass]="
+                pagination.current_page === p + 1
+                  ? 'bg-neutral-100'
+                  : 'text-neutral-400'
+              "
+              (click)="goToPage(p + 1)"
             >
-              {{ page }}
+              {{ p + 1 }}
             </li>
           </ul>
           <div>
@@ -198,9 +190,12 @@
               alt=""
               class="cursor-pointer"
               (click)="
-                onPageChange(
-                  currentPage < totalPages ? currentPage + 1 : totalPages
-                )
+                pagination.current_page < pagination.last_page
+                  ? goToPage(pagination.current_page + 1)
+                  : null
+              "
+              [class.opacity-50]="
+                pagination.current_page === pagination.last_page
               "
             />
           </div>
@@ -210,7 +205,7 @@
   </div>
 </div>
 
-<!-- Vehicle Details Modal -->
+<!-- Vehicle Details Modal  -->
 <div
   *ngIf="showModal"
   class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
@@ -222,37 +217,17 @@
       class="border-b border-neutral-300 pb-6 items-center justify-between flex"
     >
       <div class="font-bold">Vehicle Details</div>
-      <div class="text-[#82645A]">
-        Number of vehicles ({{ selectedOwner?.vehicle_count }})
-      </div>
     </div>
-
-    <div class="grid gap-6">
-      <!-- Owner Information -->
+    <div class="grid gap-6" *ngIf="selectedVehicle">
       <div class="flex gap-3 justify-between flex-wrap items-center">
         <div>
-          <span class="text-neutral-600 font-medium">Owner Name:</span>
-          <span class="text-[#7F5EA3] font-medium">
-            {{ selectedOwner?.owner_name }}
-          </span>
+          <span class="text-neutral-600 font-medium">Owner Name: </span>
+          <span class="text-[#7F5EA3] font-medium">{{
+            selectedVehicle.owner.name
+          }}</span>
         </div>
-
-        <select
-          [(ngModel)]="selectedVehicleId"
-          (change)="onVehicleChange()"
-          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm max-w-[192px]"
-        >
-          <option
-            *ngFor="let vehicle of selectedOwner?.vehicles"
-            [value]="vehicle.id"
-          >
-            {{ vehicle.name }}
-          </option>
-        </select>
       </div>
-
-      <!-- Vehicle Details Form -->
-      <div *ngIf="selectedVehicle" class="grid gap-4">
+      <div class="grid gap-4">
         <div class="grid lg:grid-cols-2 gap-4">
           <div class="flex flex-col gap-1 col-span-full">
             <label class="text-sm font-[400] text-neutral-500"
@@ -302,15 +277,13 @@
             >
             <input
               type="text"
-              [value]="formatMileage(selectedVehicle.mileage)"
+              [value]="selectedVehicle.mileage"
               readonly
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm bg-neutral-50"
             />
           </div>
         </div>
       </div>
-
-      <!-- Close Button -->
       <button
         type="button"
         (click)="closeModal()"
@@ -323,7 +296,7 @@
   </div>
 </div>
 
-<!-- Edit Vehicle Modal -->
+<!-- Edit Vehicle Modal  -->
 <div
   *ngIf="editModalOpen"
   class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
@@ -336,94 +309,140 @@
       class="border-b border-neutral-300 pb-6 items-center justify-between flex"
     >
       <div class="font-bold">Edit Vehicle</div>
-      <div class="text-[#82645A]">
-        Number of vehicles ({{ editOwner?.vehicle_count }})
-      </div>
     </div>
-    <div class="grid gap-6">
+    <div class="grid gap-6" *ngIf="editVehicle && editVehicleForm">
       <div class="flex gap-3 justify-between flex-wrap items-center">
         <div>
-          <span class="text-neutral-600 font-medium">Owner Name:</span>
-          <span class="text-[#7F5EA3] font-medium">
-            {{ editOwner?.owner_name }}
-          </span>
+          <span class="text-neutral-600 font-medium">Owner Name: </span>
+          <span class="text-[#7F5EA3] font-medium">{{
+            editVehicle.owner.name
+          }}</span>
         </div>
-        <select
-          [(ngModel)]="editVehicleId"
-          (change)="onEditVehicleChange()"
-          name="editVehicleId"
-          class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm max-w-[192px]"
-        >
-          <option
-            *ngFor="let vehicle of editOwner?.vehicles"
-            [value]="vehicle.id"
-          >
-            {{ vehicle.name }}
-          </option>
-        </select>
       </div>
-      <div *ngIf="editVehicleForm" class="grid lg:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1 col-span-full">
-          <label class="text-sm font-[400] text-neutral-500"
-            >Vehicle Name</label
-          >
-          <input
-            type="text"
-            [(ngModel)]="editVehicleForm.name"
-            name="editName"
-            class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-            required
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-[400] text-neutral-500">Brand</label>
-          <input
-            type="text"
-            [(ngModel)]="editVehicleForm.make_brand"
-            name="editBrand"
-            class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-            required
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-[400] text-neutral-500">Model Year</label>
-          <input
-            type="text"
-            [(ngModel)]="editVehicleForm.model_year"
-            name="editModelYear"
-            class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-            maxlength="4"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-[400] text-neutral-500">VIN Number</label>
-          <input
-            type="text"
-            [(ngModel)]="editVehicleForm.vin_number"
-            name="editVin"
-            class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-            maxlength="50"
-          />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-[400] text-neutral-500"
-            >Current Mileage (km)</label
-          >
-          <input
-            type="text"
-            [value]="formatMileage(editVehicleForm.mileage)"
-            (input)="onMileageInput($event)"
-            name="editMileage"
-            class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-            maxlength="12"
-            autocomplete="off"
-          />
+      <div class="grid gap-4">
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 col-span-full">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Vehicle Name</label
+            >
+            <input
+              type="text"
+              [(ngModel)]="editVehicleForm.name"
+              name="editName"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              required
+              #nameInput="ngModel"
+            />
+            <div
+              *ngIf="nameInput.invalid && nameInput.touched"
+              class="text-red-500 text-xs mt-1"
+            >
+              Vehicle Name is required.
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-neutral-600">Brand</label>
+            <input
+              type="text"
+              [(ngModel)]="editVehicleForm.make_brand"
+              name="editBrand"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              required
+              #brandInput="ngModel"
+            />
+            <div
+              *ngIf="brandInput.invalid && brandInput.touched"
+              class="text-red-500 text-xs mt-1"
+            >
+              Brand is required.
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Model Year</label
+            >
+            <input
+              type="text"
+              [(ngModel)]="editVehicleForm.model_year"
+              name="editModelYear"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              maxlength="4"
+              required
+              pattern="^[0-9]{4}$"
+              #modelYearInput="ngModel"
+            />
+            <div
+              *ngIf="modelYearInput.invalid && modelYearInput.touched"
+              class="text-red-500 text-xs mt-1"
+            >
+              <span
+                *ngIf="
+                  modelYearInput.errors && modelYearInput.errors['required']
+                "
+                >Model Year is required.</span
+              >
+              <span
+                *ngIf="
+                  modelYearInput.errors && modelYearInput.errors['pattern']
+                "
+                >Enter a valid 4-digit year.</span
+              >
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >VIN Number</label
+            >
+            <input
+              type="text"
+              [(ngModel)]="editVehicleForm.vin_number"
+              name="editVin"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              maxlength="50"
+              required
+              #vinInput="ngModel"
+            />
+            <div
+              *ngIf="vinInput.invalid && vinInput.touched"
+              class="text-red-500 text-xs mt-1"
+            >
+              VIN Number is required.
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-[400] text-neutral-500"
+              >Current Mileage (km)</label
+            >
+            <input
+              type="number"
+              [(ngModel)]="editVehicleForm.mileage"
+              name="editMileage"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              maxlength="12"
+              autocomplete="off"
+              required
+              min="0"
+              #mileageInput="ngModel"
+            />
+            <div
+              *ngIf="mileageInput.invalid && mileageInput.touched"
+              class="text-red-500 text-xs mt-1"
+            >
+              <span
+                *ngIf="mileageInput.errors && mileageInput.errors['required']"
+                >Current Mileage is required.</span
+              >
+              <span *ngIf="mileageInput.errors && mileageInput.errors['min']"
+                >Mileage must be a positive number.</span
+              >
+            </div>
+          </div>
         </div>
       </div>
       <div class="flex justify-center gap-4 mt-4">
         <button
           type="button"
-          (click)="editModalOpen = false"
+          (click)="closeEditModal()"
           class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
           [disabled]="editLoading"
         >
@@ -447,7 +466,6 @@
   </form>
 </div>
 
-<!-- Service History Modal -->
 <div
   *ngIf="serviceHistoryModalOpen"
   class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
@@ -634,7 +652,7 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal  -->
 <div
   *ngIf="deleteModalOpen"
   class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
@@ -647,28 +665,22 @@
     >
       <img src="/icons/delete.png" alt="" />
       <div class="max-w-[200px]">
-        Are you sure you want to delete this vehicle?
+        Are you sure you want to delete <b>{{ vehicleToDelete?.name }}</b
+        >?
       </div>
     </h2>
-
     <div class="flex gap-4 w-full justify-center">
       <button
         class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
         (click)="closeDeleteModal()"
-        [disabled]="deleteLoading"
       >
         Cancel
       </button>
       <button
         class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
-        (click)="deleteVehicleConfirmed()"
-        [disabled]="deleteLoading"
+        (click)="deleteVehicle()"
       >
-        <div
-          *ngIf="deleteLoading"
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
-        <span *ngIf="!deleteLoading">Yes, Delete</span>
+        Yes, Delete
       </button>
     </div>
   </div>

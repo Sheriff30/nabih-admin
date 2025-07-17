@@ -24,8 +24,15 @@ export class SupportRequestsComponent implements OnInit {
   searchTerm: string = '';
   sortField: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  currentPage: number = 1;
-  pageSize: number = 10;
+  // Pagination meta from backend
+  pagination = {
+    current_page: 1,
+    per_page: 10,
+    total: 0,
+    from: 0,
+    to: 0,
+    last_page: 1,
+  };
 
   // Modal and tab state
   showModal = false;
@@ -53,83 +60,74 @@ export class SupportRequestsComponent implements OnInit {
   loadSupportRequests(): void {
     this.loading = true;
     this.error = null;
-
-    // Get token from localStorage
     const token = localStorage.getItem('token');
-
     if (!token) {
       this.error = 'No authentication token found';
       this.loading = false;
       this.toast.show('Authentication required. Please log in again.', 'error');
       return;
     }
-
-    // Fetch support requests
-    this.supportRequestsService.listSupportRequests(token).subscribe({
-      next: (response: SupportRequestsResponse) => {
-        console.log(response);
-        this.allSupportRequests = response.data.support_requests;
-        this.applyFilters();
-        this.loading = false;
-      },
-      error: (error: any) => {
-        this.error = 'Failed to load support requests';
-        this.loading = false;
-        this.toast.show(
-          'Failed to load support requests. Please try again.',
-          'error'
-        );
-      },
-    });
+    this.supportRequestsService
+      .listSupportRequests(
+        token,
+        this.pagination.current_page,
+        this.pagination.per_page
+      )
+      .subscribe({
+        next: (response: SupportRequestsResponse) => {
+          console.log(response);
+          this.allSupportRequests = response.data.support_requests; // current page only
+          this.supportRequests = response.data.support_requests; // current page only
+          // Update pagination meta from backend
+          this.pagination = {
+            current_page: Number(response.data.meta.current_page),
+            per_page: Number(response.data.meta.per_page),
+            total: Number(response.data.meta.total),
+            from:
+              response.data.support_requests.length > 0
+                ? (Number(response.data.meta.current_page) - 1) *
+                    Number(response.data.meta.per_page) +
+                  1
+                : 0,
+            to:
+              response.data.support_requests.length > 0
+                ? (Number(response.data.meta.current_page) - 1) *
+                    Number(response.data.meta.per_page) +
+                  response.data.support_requests.length
+                : 0,
+            last_page: Number(response.data.meta.last_page),
+          };
+          this.applyFiltersAndSorting();
+          this.loading = false;
+        },
+        error: (error: any) => {
+          this.error = 'Failed to load support requests';
+          this.loading = false;
+          this.toast.show(
+            'Failed to load support requests. Please try again.',
+            'error'
+          );
+        },
+      });
   }
 
-  onSearch(term: string) {
-    this.searchTerm = term;
-    this.currentPage = 1;
-    this.applyFilters();
-  }
-
-  onSort(field: string) {
-    if (this.sortField === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortField = field;
-      this.sortDirection = 'asc';
-    }
-    this.applyFilters();
-  }
-
-  onPageChange(page: number) {
-    this.currentPage = page;
-    this.applyFilters();
-  }
-
-  onPageSizeChange(size: number) {
-    this.pageSize = size;
-    this.currentPage = 1;
-    this.applyFilters();
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredAndSortedRequests.length / this.pageSize);
-  }
-
-  get filteredAndSortedRequests(): any[] {
-    // Search
-    let filtered = this.allSupportRequests.filter((req) => {
+  // Apply search and sorting only to the current page (allSupportRequests)
+  applyFiltersAndSorting() {
+    let filtered = this.allSupportRequests;
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      return (
-        req.request_id?.toLowerCase().includes(term) ||
-        req.subject?.toLowerCase().includes(term) ||
-        req.issue_type?.toLowerCase().includes(term)
-      );
-    });
-    // Sort
+      filtered = this.allSupportRequests.filter((req) => {
+        return (
+          req.request_id?.toLowerCase().includes(term) ||
+          req.subject?.toLowerCase().includes(term) ||
+          req.issue_type?.toLowerCase().includes(term)
+        );
+      });
+    }
     if (this.sortField) {
       filtered = filtered.slice().sort((a, b) => {
         let aValue = a[this.sortField];
         let bValue = b[this.sortField];
-        // For nested fields
         if (this.sortField.startsWith('user.')) {
           const key = this.sortField.split('.')[1];
           aValue = a.user ? a.user[key] : '';
@@ -146,17 +144,37 @@ export class SupportRequestsComponent implements OnInit {
         return 0;
       });
     }
-    return filtered;
+    this.supportRequests = filtered;
   }
 
-  applyFilters() {
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.supportRequests = this.filteredAndSortedRequests.slice(start, end);
+  onSearch(term: string) {
+    this.searchTerm = term;
+    this.applyFiltersAndSorting(); // Do not reload from backend
+  }
+
+  onSort(field: string) {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.applyFiltersAndSorting(); // Do not reload from backend
+  }
+
+  onPageChange(page: number) {
+    this.pagination.current_page = page;
+    this.loadSupportRequests();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pagination.per_page = size;
+    this.pagination.current_page = 1;
+    this.loadSupportRequests();
   }
 
   get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    return Array.from({ length: this.pagination.last_page }, (_, i) => i + 1);
   }
 
   openModal(request: any) {
@@ -247,12 +265,15 @@ export class SupportRequestsComponent implements OnInit {
             (r) => r.id !== this.requestToDelete.id
           );
           // Recalculate pagination after deletion
-          const total = this.filteredAndSortedRequests.length;
-          const lastPage = Math.max(1, Math.ceil(total / this.pageSize));
-          if (this.currentPage > lastPage) {
-            this.currentPage = lastPage;
+          const total = this.supportRequests.length;
+          const lastPage = Math.max(
+            1,
+            Math.ceil(total / this.pagination.per_page)
+          );
+          if (this.pagination.current_page > lastPage) {
+            this.pagination.current_page = lastPage;
           }
-          this.applyFilters();
+          this.applyFiltersAndSorting();
           this.closeDeleteModal();
           this.toast.show('Support request deleted successfully.', 'success');
         },

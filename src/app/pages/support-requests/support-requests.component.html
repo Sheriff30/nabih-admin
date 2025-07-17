@@ -153,8 +153,8 @@
         <div>Show</div>
         <select
           class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="pageSize"
-          (change)="onPageSizeChange(pageSize)"
+          [(ngModel)]="pagination.per_page"
+          (change)="onPageSizeChange(pagination.per_page)"
         >
           <option [value]="10">10</option>
           <option [value]="20">20</option>
@@ -164,12 +164,7 @@
       </div>
       <div class="flex gap-4 items-center">
         <div class="text-neutral-500">
-          {{ (currentPage - 1) * pageSize + 1 }}-{{
-            currentPage * pageSize < filteredAndSortedRequests.length
-              ? currentPage * pageSize
-              : filteredAndSortedRequests.length
-          }}
-          of {{ filteredAndSortedRequests.length }}
+          {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
         </div>
         <div class="flex items-center gap-1">
           <div>
@@ -177,16 +172,20 @@
               src="/icons/pagination-left.svg"
               alt=""
               class="cursor-pointer"
-              (click)="onPageChange(currentPage > 1 ? currentPage - 1 : 1)"
+              (click)="
+                onPageChange(
+                  pagination.current_page > 1 ? pagination.current_page - 1 : 1
+                )
+              "
             />
           </div>
           <ul class="flex gap-1">
             <li
               *ngFor="let page of pageNumbers"
               (click)="onPageChange(page)"
-              [class.bg-neutral-100]="page === currentPage"
+              [class.bg-neutral-100]="page === pagination.current_page"
               class="py-2 px-4 rounded-md cursor-pointer"
-              [class.text-neutral-400]="page !== currentPage"
+              [class.text-neutral-400]="page !== pagination.current_page"
             >
               {{ page }}
             </li>
@@ -198,7 +197,9 @@
               class="cursor-pointer"
               (click)="
                 onPageChange(
-                  currentPage < totalPages ? currentPage + 1 : totalPages
+                  pagination.current_page < pagination.last_page
+                    ? pagination.current_page + 1
+                    : pagination.last_page
                 )
               "
             />

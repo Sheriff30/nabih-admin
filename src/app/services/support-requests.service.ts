@@ -123,26 +123,9 @@ export class SupportRequestsService {
   listSupportRequests(
     token: string,
     page: number = 1,
-    perPage: number = 0,
-    search: string = '',
-    status?: string,
-    issueType?: string,
-    forceRefresh: boolean = false
+    perPage: number = 0
   ): Observable<SupportRequestsResponse> {
     // Check cache validity for first page without filters
-    if (
-      this.isCacheValid() &&
-      !forceRefresh &&
-      page === 1 &&
-      search === '' &&
-      !status &&
-      !issueType
-    ) {
-      return new Observable<SupportRequestsResponse>((observer) => {
-        observer.next(this.supportRequestsCache!.data);
-        observer.complete();
-      });
-    }
 
     const headers = this.getAuthHeaders(token);
 
@@ -150,9 +133,6 @@ export class SupportRequestsService {
     const params = new URLSearchParams();
     if (page > 1) params.append('page', page.toString());
     params.append('per_page', perPage.toString());
-    if (search.trim()) params.append('search', search.trim());
-    if (status) params.append('status', status);
-    if (issueType) params.append('issue_type', issueType);
 
     const url = `${this.apiUrl}/admins/support-requests${
       params.toString() ? '?' + params.toString() : ''
@@ -162,27 +142,12 @@ export class SupportRequestsService {
       this.http.get<SupportRequestsResponse>(url, { headers }).subscribe({
         next: (res) => {
           // Only cache the first page without filters
-          if (page === 1 && search === '' && !status && !issueType) {
-            this.setCache(res);
-          }
+
           observer.next(res);
           observer.complete();
         },
         error: (err) => {
           // If API fails and we have valid cache, return cached data as fallback
-          if (
-            this.isCacheValid() &&
-            page === 1 &&
-            search === '' &&
-            !status &&
-            !issueType
-          ) {
-            console.warn('API request failed, returning cached data:', err);
-            observer.next(this.supportRequestsCache!.data);
-            observer.complete();
-          } else {
-            observer.error(err);
-          }
         },
       });
     });

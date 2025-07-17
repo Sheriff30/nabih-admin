@@ -124,28 +124,9 @@ export class ManagementComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.setupSearch();
     this.loadAdmins();
     this.loadRoles();
     this.loadPermissions();
-  }
-
-  setupSearch(): void {
-    this.searchSubject
-      .pipe(
-        debounceTime(500), // Wait 500ms after user stops typing
-        distinctUntilChanged() // Only emit if value has changed
-      )
-      .subscribe((searchTerm) => {
-        this.currentPage = 1; // Reset to first page when searching
-        this.applyFiltersAndPagination();
-      });
-  }
-
-  onSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchTerm = target.value;
-    this.searchSubject.next(this.searchTerm);
   }
 
   loadAdmins(): void {
@@ -154,12 +135,22 @@ export class ManagementComponent implements OnInit {
       this.loading = true;
       this.error = null;
       this.managementService
-        .listAdmins(token, 1, 0, this.searchTerm)
+        .listAdmins(token, this.currentPage, this.perPage)
         .subscribe({
           next: (res) => {
             console.log(res);
-            this.allAdmins = res.data.admins;
-            this.applyFiltersAndPagination();
+            this.allAdmins = res.data.admins; // allAdmins is now the current page only
+            this.admins = res.data.admins; // admins is also the current page only
+            // Update pagination meta from backend
+            this.paginationMeta = {
+              current_page: Number(res.data.meta.current_page),
+              last_page: Number(res.data.meta.last_page),
+              per_page: Number(res.data.meta.per_page),
+              total: Number(res.data.meta.total),
+              next_page_url: res.data.meta.next_page_url,
+              prev_page_url: res.data.meta.prev_page_url,
+            };
+            this.applyFiltersAndSorting();
             this.loading = false;
           },
           error: (err) => {
@@ -349,6 +340,24 @@ export class ManagementComponent implements OnInit {
     };
   }
 
+  // Apply search and sorting only to the current page (allAdmins)
+  applyFiltersAndSorting(): void {
+    let filteredAdmins = this.allAdmins;
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
+      filteredAdmins = this.allAdmins.filter(
+        (admin) =>
+          admin.first_name.toLowerCase().includes(searchLower) ||
+          admin.last_name.toLowerCase().includes(searchLower) ||
+          admin.email.toLowerCase().includes(searchLower)
+      );
+    }
+    if (this.sortColumn) {
+      filteredAdmins = this.applySorting(filteredAdmins);
+    }
+    this.admins = filteredAdmins;
+  }
+
   // Sorting methods
   sortAdmins(column: string): void {
     if (this.sortColumn === column) {
@@ -357,7 +366,7 @@ export class ManagementComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.applyFiltersAndPagination();
+    this.applyFiltersAndSorting(); // Do not reload from backend
   }
 
   applySorting(admins: AdminUserResource[]): AdminUserResource[] {
@@ -397,32 +406,28 @@ export class ManagementComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= (this.paginationMeta?.last_page || 1)) {
       this.currentPage = page;
-      this.applyFiltersAndPagination();
+      this.loadAdmins();
     }
   }
 
   goToPreviousPage(): void {
     if (this.paginationMeta?.prev_page_url) {
       this.currentPage--;
-      this.applyFiltersAndPagination();
+      this.loadAdmins();
     }
   }
 
   goToNextPage(): void {
     if (this.paginationMeta?.next_page_url) {
       this.currentPage++;
-      this.applyFiltersAndPagination();
+      this.loadAdmins();
     }
   }
 
   onPerPageChange(newPerPage: number): void {
-    console.log('Per page changed:', {
-      oldValue: this.perPage,
-      newValue: newPerPage,
-    });
     this.perPage = newPerPage;
-    this.currentPage = 1; // Reset to first page when changing per page
-    this.applyFiltersAndPagination();
+    this.currentPage = 1;
+    this.loadAdmins();
   }
 
   getRoleNames(roles: any[]): string {
@@ -737,5 +742,12 @@ export class ManagementComponent implements OnInit {
           this.editAdminLoading = false;
         },
       });
+  }
+
+  // Search method for template binding
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchTerm = target.value;
+    this.applyFiltersAndSorting(); // Do not reload from backend
   }
 }

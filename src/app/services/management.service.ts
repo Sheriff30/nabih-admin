@@ -204,25 +204,14 @@ export class ManagementService {
   listAdmins(
     token: string,
     page: number = 1,
-    perPage: number = 0,
-    search: string = '',
-    forceRefresh: boolean = false
+    perPage: number = 0
   ): Observable<AdminsResponse> {
-    // Check cache validity for first page without search
-    if (this.isCacheValid() && !forceRefresh && page === 1 && search === '') {
-      return new Observable<AdminsResponse>((observer) => {
-        observer.next(this.adminsCache!.data);
-        observer.complete();
-      });
-    }
-
     const headers = this.getAuthHeaders(token);
 
     // Build query parameters
     const params = new URLSearchParams();
     if (page > 1) params.append('page', page.toString());
     params.append('per_page', perPage.toString());
-    if (search.trim()) params.append('search', search.trim());
 
     const url = `${this.apiUrl}/admins${
       params.toString() ? '?' + params.toString() : ''
@@ -231,16 +220,12 @@ export class ManagementService {
     return new Observable<AdminsResponse>((observer) => {
       this.http.get<AdminsResponse>(url, { headers }).subscribe({
         next: (res) => {
-          // Only cache the first page without search
-          if (page === 1 && search === '') {
-            this.setCache(res);
-          }
           observer.next(res);
           observer.complete();
         },
         error: (err) => {
           // If API fails and we have valid cache, return cached data as fallback
-          if (this.isCacheValid() && page === 1 && search === '') {
+          if (this.isCacheValid() && page === 1) {
             console.warn('API request failed, returning cached data:', err);
             observer.next(this.adminsCache!.data);
             observer.complete();

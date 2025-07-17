@@ -10,6 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -69,7 +70,11 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
   profile: any = null;
   isLoggingOut = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private toast: ToastService
+  ) {}
 
   logout() {
     this.isLoggingOut = true;
@@ -78,16 +83,22 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
       this.authService.logout(token).subscribe({
         next: () => {
           localStorage.removeItem('token');
+          this.toast.show('You have been logged out. See you soon!', 'success');
           this.router.navigate(['/login']);
           this.isLoggingOut = false;
         },
         error: () => {
           localStorage.removeItem('token');
+          this.toast.show(
+            'Logged out. If you need to log in again, just come back!',
+            'info'
+          );
           this.router.navigate(['/login']);
           this.isLoggingOut = false;
         },
       });
     } else {
+      this.toast.show('You are already logged out.', 'info');
       this.router.navigate(['/login']);
       this.isLoggingOut = false;
     }

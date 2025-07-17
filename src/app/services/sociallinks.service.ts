@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface SocialMediaLinkResource {
@@ -16,16 +16,18 @@ export interface SocialMediaLinkResource {
   updated_at: string;
 }
 
+export interface SocialMediaMeta {
+  current_page: number | string;
+  last_page: number | string;
+  per_page: number | string;
+  total: number | string;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+}
+
 export interface SocialMediaLinkCollection {
   social_media: SocialMediaLinkResource[];
-  meta: {
-    current_page: string;
-    last_page: string;
-    per_page: string;
-    total: string;
-    next_page_url: string;
-    prev_page_url: string;
-  };
+  meta: SocialMediaMeta;
 }
 
 export interface SocialMediaLinksResponse {
@@ -34,18 +36,11 @@ export interface SocialMediaLinksResponse {
   data: SocialMediaLinkCollection;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class SocialLinksService {
-  private apiUrl = 'https://13.60.228.234/api';
-
-  private socialLinksCache: {
-    data: SocialMediaLinksResponse;
-    timestamp: number;
-    expiresAt: number;
-  } | null = null;
-
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-  private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
+  private apiUrl = 'https://13.60.228.234/api/content/social-media-links';
 
   constructor(private http: HttpClient) {}
 
@@ -56,6 +51,17 @@ export class SocialLinksService {
       Authorization: `Bearer ${token}`,
     });
   }
+
+  // Social media links cache with expiration
+  private socialLinksCache: {
+    data: SocialMediaLinksResponse;
+    timestamp: number;
+    expiresAt: number;
+  } | null = null;
+
+  // Cache configuration
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
 
   private isCacheValid(): boolean {
     if (!this.socialLinksCache) return false;
@@ -93,14 +99,72 @@ export class SocialLinksService {
     };
   }
 
-  getSocialMediaLinks(token: string): Observable<SocialMediaLinksResponse> {
-    // Always fetch all data (no pagination)
+  getSocialMediaLinks(
+    token: string,
+    per_page: string = '15',
+    forceRefresh: boolean = false
+  ): Observable<SocialMediaLinksResponse> {
+    // Only cache default request (per_page = '15', no forceRefresh)
+    if (this.isCacheValid() && per_page === '15' && !forceRefresh) {
+      return new Observable<SocialMediaLinksResponse>((observer) => {
+        observer.next(this.socialLinksCache!.data);
+        observer.complete();
+      });
+    }
     const headers = this.getAuthHeaders(token);
-    const params = new URLSearchParams();
-    params.append('per_page', '0');
-    const url = `${
-      this.apiUrl
-    }/content/social-media-links?${params.toString()}`;
-    return this.http.get<SocialMediaLinksResponse>(url, { headers });
+    const params = new HttpParams().set('per_page', per_page);
+    return new Observable<SocialMediaLinksResponse>((observer) => {
+      this.http
+        .get<SocialMediaLinksResponse>(this.apiUrl, { headers, params })
+        .subscribe({
+          next: (res) => {
+            if (per_page === '15' && !forceRefresh) {
+              this.setCache(res);
+            }
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            // If API fails and we have valid cache, return cached data as fallback
+            if (this.isCacheValid() && per_page === '15' && !forceRefresh) {
+              observer.next(this.socialLinksCache!.data);
+              observer.complete();
+            } else {
+              observer.error(err);
+            }
+          },
+        });
+    });
+  }
+
+  updateSocialMediaLink(
+    token: string,
+    id: number,
+    data: {
+      type: string;
+      title: string;
+      url: string;
+      username: string | null;
+      description: string | null;
+      is_active: boolean;
+    }
+  ): Observable<SocialMediaLinksResponse> {
+    const headers = this.getAuthHeaders(token);
+    const url = `https://13.60.228.234/api/content/social-media-links/${id}`;
+    // Invalidate cache after successful update
+    return new Observable<SocialMediaLinksResponse>((observer) => {
+      this.http
+        .put<SocialMediaLinksResponse>(url, data, { headers })
+        .subscribe({
+          next: (res) => {
+            this.invalidateCache();
+            observer.next(res);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
+    });
   }
 }

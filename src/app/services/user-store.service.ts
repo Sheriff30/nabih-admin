@@ -1,29 +1,41 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class UserStoreService {
-  private profileSubject = new BehaviorSubject<any>(null);
-  private permissionsSubject = new BehaviorSubject<string[]>([]);
+  private profile: any = null;
+  private permissions: string[] = [];
+
+  constructor() {
+    // Load profile from localStorage if available
+    const stored = localStorage.getItem('userProfile');
+    if (stored) {
+      try {
+        this.profile = JSON.parse(stored);
+        this.permissions = (this.profile?.all_permissions || []).map(
+          (p: any) => p.name
+        );
+      } catch {
+        this.profile = null;
+        this.permissions = [];
+      }
+    }
+  }
 
   setProfile(profile: any) {
-    this.profileSubject.next(profile);
-    // Extract permissions from profile and set them
-    const permissions = profile?.all_permissions?.map((p: any) => p.name) || [];
-    this.permissionsSubject.next(permissions);
+    this.profile = profile;
+    this.permissions = (profile?.all_permissions || []).map((p: any) => p.name);
+    localStorage.setItem('userProfile', JSON.stringify(profile));
   }
 
-  getProfile(): Observable<any> {
-    return this.profileSubject.asObservable();
+  getProfile() {
+    return this.profile;
   }
 
-  getPermissions(): Observable<string[]> {
-    return this.permissionsSubject.asObservable();
+  getPermissions() {
+    return this.permissions;
   }
 
   hasPermission(permission: string): boolean {
-    return this.permissionsSubject.getValue().includes(permission);
+    return this.permissions.includes(permission);
   }
 }

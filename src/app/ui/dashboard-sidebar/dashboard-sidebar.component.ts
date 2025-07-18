@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { UserStoreService } from '../../services/user-store.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -51,6 +52,7 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     document.addEventListener('mousedown', this.handleClickOutside, true);
+    this.profile = this.userStore.getProfile();
   }
 
   ngOnDestroy(): void {
@@ -73,11 +75,13 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private userStore: UserStoreService
   ) {}
 
   logout() {
     this.isLoggingOut = true;
+    localStorage.removeItem('userProfile'); // Clear persisted profile
     const token = localStorage.getItem('token');
     if (token) {
       this.authService.logout(token).subscribe({

@@ -5,6 +5,7 @@ import { NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfileService } from '../../services/profile.service';
+import { UserStoreService } from '../../services/user-store.service';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,8 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router,
     private toast: ToastService,
-    private profileService: ProfileService // Inject ProfileService
+    private profileService: ProfileService, // Inject ProfileService
+    private userStore: UserStoreService // Inject UserStoreService
   ) {
     // Load remembered credentials if available
     const remembered = localStorage.getItem('rememberedCredentials');
@@ -74,13 +76,13 @@ export class LoginComponent {
           // Call getProfile and log the result
           this.profileService.getProfile().subscribe({
             next: (profile) => {
-              console.log('Profile:', profile);
+              this.userStore.setProfile(profile.data.admin); // Store profile globally
+              this.router.navigate(['/admin/dashboard']);
             },
             error: (err) => {
               console.error('Failed to fetch profile:', err);
             },
           });
-          this.router.navigate(['/admin/dashboard']);
         } else {
           this.error = response?.message || 'Login failed';
           this.toast.show('Check your email and password.', 'error');

@@ -5,7 +5,7 @@ import { NgIf } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfileService } from '../../services/profile.service';
-import { UserStoreService } from '../../services/user-store.service';
+import { PermissionsService } from '../../services/permissions-store.service';
 
 @Component({
   selector: 'app-login',
@@ -26,7 +26,7 @@ export class LoginComponent {
     private router: Router,
     private toast: ToastService,
     private profileService: ProfileService, // Inject ProfileService
-    private userStore: UserStoreService // Inject UserStoreService
+    private userStore: PermissionsService // Inject UserStoreService
   ) {
     // Load remembered credentials if available
     const remembered = localStorage.getItem('rememberedCredentials');
@@ -71,18 +71,12 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
         if (response && response.success) {
-          localStorage.setItem('token', response.data.token);
+          if (response.data) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+          }
           this.toast.show('Login successful!', 'success');
-          // Call getProfile and log the result
-          this.profileService.getProfile().subscribe({
-            next: (profile) => {
-              this.userStore.setProfile(profile.data.admin); // Store profile globally
-              this.router.navigate(['/admin/dashboard']);
-            },
-            error: (err) => {
-              console.error('Failed to fetch profile:', err);
-            },
-          });
+          this.router.navigate(['/admin/dashboard']);
         } else {
           this.error = response?.message || 'Login failed';
           this.toast.show('Check your email and password.', 'error');

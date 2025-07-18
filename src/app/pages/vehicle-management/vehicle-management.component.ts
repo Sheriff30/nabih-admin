@@ -10,7 +10,7 @@ import { NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { UserStoreService } from '../../services/user-store.service';
+import { PermissionsService } from '../../services/permissions-store.service';
 import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
@@ -57,27 +57,29 @@ export class VehicleManagementComponent implements OnInit {
   vehicleToDelete: VehicleResource | null = null;
 
   // FOR PERMISSIONS
-  profileLoading = true;
-  private profileSub: Subscription | undefined;
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
 
   constructor(
     private vehicleService: VehicleManagementService,
     private toast: ToastService,
-    public userStore: UserStoreService
+    public userStore: PermissionsService
   ) {}
 
   ngOnInit(): void {
-    this.profileSub = this.userStore.profile$.subscribe((profile) => {
-      if (profile) {
-        this.profileLoading = false;
+    this.permissionsSub = this.userStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
       }
-    });
+    );
     this.loadVehicles();
   }
 
   ngOnDestroy(): void {
-    if (this.profileSub) {
-      this.profileSub.unsubscribe();
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
     }
   }
 

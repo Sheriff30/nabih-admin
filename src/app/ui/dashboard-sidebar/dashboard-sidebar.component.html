@@ -13,7 +13,7 @@
   <div class="flex gap-3 flex-col items-center justify-center">
     <img src="/icons/logo.svg" alt="logo" class="w-[155px] h-[38px]" />
     <div class="color-[#392A4B] uppercase text-md font-semibold">
-      welcome back, {{ profile?.first_name }}
+      welcome back, {{ user?.first_name }}
     </div>
   </div>
   <!-- Nav -->
@@ -220,9 +220,9 @@
     />
     <div class="flex-1 min-w-0">
       <p class="text-sm font-semibold truncate">
-        {{ profile?.first_name }} {{ profile?.last_name }}
+        {{ user?.first_name }} {{ user?.last_name }}
       </p>
-      <p class="text-xs truncate">{{ profile?.email }}</p>
+      <p class="text-xs truncate">{{ user?.email }}</p>
     </div>
 
     <button

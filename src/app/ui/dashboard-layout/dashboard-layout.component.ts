@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { ProfileService } from '../../services/profile.service';
-import { UserStoreService } from '../../services/user-store.service';
+import { PermissionsService } from '../../services/permissions-store.service';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -32,26 +32,35 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private profileService: ProfileService,
-    private userStore: UserStoreService
+    private userStore: PermissionsService
   ) {}
 
-  private fetchProfileIfAuthenticated() {
+  private fetchPermissionsIfAuthenticated() {
     const token = localStorage.getItem('token');
     if (token) {
       this.profileService.getProfile().subscribe({
         next: (profile) => {
-          this.userStore.setProfile(profile.data.admin);
+          if (profile?.data?.admin?.all_permissions) {
+            const permissions = profile.data.admin.all_permissions.map(
+              (p: any) => p.name
+            );
+            this.userStore.setPermissions(permissions);
+          }
         },
         error: (err) => {
-          // Optionally handle error (e.g., force logout if unauthorized)
+          console.log(err);
         },
       });
     }
   }
 
   ngOnInit() {
-    // Fetch profile on load if token exists
-    this.fetchProfileIfAuthenticated();
+    // Fetch permissions on load if token exists
+    this.fetchPermissionsIfAuthenticated();
+    // Refresh every 10 minutes (600000 ms)
+    this.refreshSub = interval(600000).subscribe(() => {
+      this.fetchPermissionsIfAuthenticated();
+    });
   }
 
   ngOnDestroy() {

@@ -3,7 +3,7 @@ import { UsersService } from '../../services/users.service';
 import { ToastService } from '../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { UserStoreService } from '../../services/user-store.service';
+import { PermissionsService } from '../../services/permissions-store.service';
 import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 import { Subscription } from 'rxjs';
 
@@ -40,27 +40,29 @@ export class UsersComponent implements OnInit, OnDestroy {
   deleteLoading: boolean = false;
   updateLoading: boolean = false;
   originalUserData: any = null;
-  profileLoading = true;
-  private profileSub: Subscription | undefined;
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
 
   constructor(
     private usersService: UsersService,
     private toast: ToastService,
-    public userStore: UserStoreService
+    public userStore: PermissionsService
   ) {}
 
   ngOnInit() {
-    this.profileSub = this.userStore.profile$.subscribe((profile) => {
-      if (profile) {
-        this.profileLoading = false;
+    this.permissionsSub = this.userStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
       }
-    });
+    );
     this.loadCustomers();
   }
 
   ngOnDestroy() {
-    if (this.profileSub) {
-      this.profileSub.unsubscribe();
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
     }
   }
 

@@ -1,12 +1,12 @@
 <div
-  *ngIf="profileLoading"
+  *ngIf="permissionsLoading"
   class="flex justify-center items-center min-h-[300px]"
 >
   <div
     class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
   ></div>
 </div>
-<div *ngIf="!profileLoading">
+<div *ngIf="!permissionsLoading">
   <ng-container
     *ngIf="userStore.hasPermission('customer.view.list'); else denied"
   >

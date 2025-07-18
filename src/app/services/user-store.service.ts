@@ -1,34 +1,19 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class UserStoreService {
-  private profile: any = null;
+  private profileSubject = new BehaviorSubject<any>(null);
+  profile$ = this.profileSubject.asObservable();
   private permissions: string[] = [];
 
-  constructor() {
-    // Load profile from localStorage if available
-    const stored = localStorage.getItem('userProfile');
-    if (stored) {
-      try {
-        this.profile = JSON.parse(stored);
-        this.permissions = (this.profile?.all_permissions || []).map(
-          (p: any) => p.name
-        );
-      } catch {
-        this.profile = null;
-        this.permissions = [];
-      }
-    }
-  }
-
   setProfile(profile: any) {
-    this.profile = profile;
+    this.profileSubject.next(profile);
     this.permissions = (profile?.all_permissions || []).map((p: any) => p.name);
-    localStorage.setItem('userProfile', JSON.stringify(profile));
   }
 
   getProfile() {
-    return this.profile;
+    return this.profileSubject.value;
   }
 
   getPermissions() {

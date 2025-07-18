@@ -35,20 +35,23 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
     private userStore: UserStoreService
   ) {}
 
+  private fetchProfileIfAuthenticated() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.profileService.getProfile().subscribe({
+        next: (profile) => {
+          this.userStore.setProfile(profile.data.admin);
+        },
+        error: (err) => {
+          // Optionally handle error (e.g., force logout if unauthorized)
+        },
+      });
+    }
+  }
+
   ngOnInit() {
-    this.refreshSub = interval(600000).subscribe(() => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        this.profileService.getProfile().subscribe({
-          next: (profile) => {
-            this.userStore.setProfile(profile.data.admin);
-          },
-          error: (err) => {
-            console.log(err);
-          },
-        });
-      }
-    });
+    // Fetch profile on load if token exists
+    this.fetchProfileIfAuthenticated();
   }
 
   ngOnDestroy() {

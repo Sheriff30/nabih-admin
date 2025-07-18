@@ -12,6 +12,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { UserStoreService } from '../../services/user-store.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -52,11 +53,16 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     document.addEventListener('mousedown', this.handleClickOutside, true);
-    this.profile = this.userStore.getProfile();
+    this.profileSub = this.userStore.profile$.subscribe((profile) => {
+      this.profile = profile;
+    });
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('mousedown', this.handleClickOutside, true);
+    if (this.profileSub) {
+      this.profileSub.unsubscribe();
+    }
   }
 
   handleClickOutside = (event: MouseEvent) => {
@@ -70,6 +76,7 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
   @Output() closeSidebar = new EventEmitter<void>();
 
   profile: any = null;
+  private profileSub: Subscription | undefined;
   isLoggingOut = false;
 
   constructor(
@@ -81,7 +88,6 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
 
   logout() {
     this.isLoggingOut = true;
-    localStorage.removeItem('userProfile'); // Clear persisted profile
     const token = localStorage.getItem('token');
     if (token) {
       this.authService.logout(token).subscribe({
@@ -90,6 +96,7 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
           this.toast.show('You have been logged out. See you soon!', 'success');
           this.router.navigate(['/login']);
           this.isLoggingOut = false;
+          this.profile = null;
         },
         error: () => {
           localStorage.removeItem('token');
@@ -99,12 +106,14 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
           );
           this.router.navigate(['/login']);
           this.isLoggingOut = false;
+          this.profile = null;
         },
       });
     } else {
       this.toast.show('You are already logged out.', 'info');
       this.router.navigate(['/login']);
       this.isLoggingOut = false;
+      this.profile = null;
     }
   }
 

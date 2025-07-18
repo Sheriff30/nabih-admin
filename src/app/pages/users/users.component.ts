@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UsersService } from '../../services/users.service';
 import { ToastService } from '../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { UserStoreService } from '../../services/user-store.service';
 import { AccessDeniedComponent } from '../access-denied/access-denied.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -13,7 +14,7 @@ import { AccessDeniedComponent } from '../access-denied/access-denied.component'
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, OnDestroy {
   // All users from API (unfiltered)
   allUsers: any[] = [];
 
@@ -39,6 +40,8 @@ export class UsersComponent implements OnInit {
   deleteLoading: boolean = false;
   updateLoading: boolean = false;
   originalUserData: any = null;
+  profileLoading = true;
+  private profileSub: Subscription | undefined;
 
   constructor(
     private usersService: UsersService,
@@ -47,7 +50,18 @@ export class UsersComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.profileSub = this.userStore.profile$.subscribe((profile) => {
+      if (profile) {
+        this.profileLoading = false;
+      }
+    });
     this.loadCustomers();
+  }
+
+  ngOnDestroy() {
+    if (this.profileSub) {
+      this.profileSub.unsubscribe();
+    }
   }
 
   loadCustomers() {

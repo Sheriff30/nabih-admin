@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DashboardService } from '../../services/dashboard.service';
 import { NgFor, NgIf } from '@angular/common';
 import { DatePipe } from '@angular/common';
@@ -8,15 +8,26 @@ import { ChartConfiguration, ChartType } from 'chart.js';
 import { ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
+import { PermissionsService } from '../../services/permissions-store.service';
+import { Subscription } from 'rxjs';
+import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, NgClass, NgChartsModule, FormsModule],
+  imports: [
+    NgFor,
+    NgIf,
+    DatePipe,
+    NgClass,
+    NgChartsModule,
+    FormsModule,
+    AccessDeniedComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   loadingStatistics = true;
   statistics: any = null;
 
@@ -89,6 +100,9 @@ export class DashboardComponent implements OnInit {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
+
   updateMonthlyMaintenanceChart(data: any[]) {
     // Store all data for filtering
     this.allMonthlyMaintenanceData = data;
@@ -127,9 +141,19 @@ export class DashboardComponent implements OnInit {
     this.applyMonthRangeFilter();
   }
 
-  constructor(private dashboardService: DashboardService) {}
+  constructor(
+    private dashboardService: DashboardService,
+    public permissionsStore: PermissionsService
+  ) {}
 
   ngOnInit(): void {
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
+      }
+    );
     const token = localStorage.getItem('token');
     if (token) {
       this.loadMaintenanceLogs();
@@ -163,6 +187,12 @@ export class DashboardComponent implements OnInit {
       this.loadingStatistics = false;
       this.loadingLogs = false;
       this.loadingMonthlyMaintenance = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
     }
   }
 

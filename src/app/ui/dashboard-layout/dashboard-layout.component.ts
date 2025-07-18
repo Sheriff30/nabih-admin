@@ -32,6 +32,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   private refreshSub: Subscription | undefined;
   loading = true;
   error: string | null = null;
+  private permissionsRefreshIntervalMs = 600000;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -76,6 +77,12 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Fetch permissions on load if token exists
     this.fetchPermissionsIfAuthenticated();
+    // Periodically refresh permissions
+    this.refreshSub = interval(this.permissionsRefreshIntervalMs).subscribe(
+      () => {
+        this.fetchPermissionsIfAuthenticated();
+      }
+    );
   }
 
   ngOnDestroy() {

@@ -12,6 +12,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { Subscription } from 'rxjs';
+import { PermissionsService } from '../../services/permissions-store.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -77,12 +78,14 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private permissionsStore: PermissionsService
   ) {}
 
   logout() {
     this.isLoggingOut = true;
     localStorage.removeItem('user');
+    this.permissionsStore.clearPermissions();
     const token = localStorage.getItem('token');
     if (token) {
       this.authService.logout(token).subscribe({

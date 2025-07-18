@@ -17,4 +17,8 @@ export class PermissionsService {
   hasPermission(permission: string): boolean {
     return this.permissionsSubject.value.includes(permission);
   }
+
+  clearPermissions() {
+    this.permissionsSubject.next([]);
+  }
 }

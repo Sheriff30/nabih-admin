@@ -12,6 +12,7 @@ import { NgIf } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { ProfileService } from '../../services/profile.service';
 import { PermissionsService } from '../../services/permissions-store.service';
+import { AccessDeniedComponent } from '../../pages/access-denied/access-denied.component';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -21,6 +22,7 @@ import { PermissionsService } from '../../services/permissions-store.service';
     DashboardHeaderComponent,
     RouterModule,
     NgIf,
+    AccessDeniedComponent,
   ],
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.css',
@@ -28,6 +30,8 @@ import { PermissionsService } from '../../services/permissions-store.service';
 export class DashboardLayoutComponent implements OnInit, OnDestroy {
   sidebarOpen = false;
   private refreshSub: Subscription | undefined;
+  loading = true;
+  error: string | null = null;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -44,14 +48,28 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
             const permissions = profile.data.admin.all_permissions.map(
               (p: any) => p.name
             );
-            console.log(permissions);
             this.permissionStore.setPermissions(permissions);
+            this.loading = false;
+            this.error = null;
+          } else {
+            this.loading = false;
+            this.error = 'No permissions found.';
           }
         },
         error: (err) => {
           console.log(err);
+          this.loading = false;
+          if (err.status === 403) {
+            this.error =
+              err.error?.message || 'You do not have the right permissions.';
+          } else {
+            this.error = 'Failed to fetch permissions.';
+          }
         },
       });
+    } else {
+      this.loading = false;
+      this.error = 'No authentication token found.';
     }
   }
 

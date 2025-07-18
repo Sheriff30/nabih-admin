@@ -9,6 +9,21 @@
   ></app-dashboard-sidebar>
   <app-dashboard-header (openSidebar)="openSidebar()"></app-dashboard-header>
   <div class="p-4 lg:p-8 bg-[#E6E2F2A1] h-full overflow-auto">
-    <router-outlet></router-outlet>
+    <div *ngIf="loading" class="flex justify-center items-center min-h-[300px]">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+      ></div>
+    </div>
+    <ng-container *ngIf="!loading">
+      <app-access-denied
+        *ngIf="error"
+        [message]="error"
+        [icon]="'/icons/access.svg'"
+        [title]="'Access Denied'"
+      ></app-access-denied>
+      <ng-container *ngIf="!error">
+        <router-outlet></router-outlet>
+      </ng-container>
+    </ng-container>
   </div>
 </div>

@@ -41,6 +41,8 @@ export class LoginComponent {
   }
 
   login() {
+    // Clear old permissions before new login
+    this.userStore.clearPermissions();
     // Input validation
     if (!this.email || !this.email.trim()) {
       this.toast.show('Email is required.', 'warning');

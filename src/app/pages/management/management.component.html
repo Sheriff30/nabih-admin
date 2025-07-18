@@ -1,561 +1,590 @@
-<div class="w-full overflow-x-auto rounded-md">
-  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
-    <!-- Title & Search -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
-      <!-- Table title -->
-      <p class="font-bold">Admin Management</p>
-      <!-- Search -->
+<div
+  *ngIf="permissionsLoading"
+  class="flex justify-center items-center min-h-[300px]"
+>
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+  ></div>
+</div>
+<div *ngIf="!permissionsLoading">
+  <ng-container
+    *ngIf="permissionsStore.hasPermission('admin.view.list'); else denied"
+  >
+    <div class="w-full overflow-x-auto rounded-md">
       <div
-        class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+        class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
       >
-        <img src="/icons/search.svg" alt="search icon" />
-        <input
-          type="text"
-          placeholder="Search by name, phone number, or email"
-          class="w-full text-xs bg-neutral-100 outline-none"
-          [value]="searchTerm"
-          (input)="onSearchChange($event)"
-        />
-      </div>
-      <!-- Add Admin -->
-      <div
-        class="p-[10px] border bg-[#E6E2F2] max-w-[202px] cursor-pointer w-full border-[#7F5EA3] rounded-[50px] flex items-center justify-center gap-2"
-        (click)="showAddAdminModal()"
-      >
-        Add New Admin
-        <img class="w-[12px] h-[12px]" src="/icons/add-admin.svg" alt="" />
-      </div>
-    </div>
-
-    <!-- Header -->
-    <div
-      class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
-    >
-      <div class="px-5 py-3">Number</div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortAdmins('name')"
-      >
-        Admin Name <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortAdmins('email')"
-      >
-        Email <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortAdmins('role')"
-      >
-        Role <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortAdmins('status')"
-      >
-        Status <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">Actions</div>
-    </div>
-
-    <!-- Loading State -->
-    <div
-      *ngIf="loading"
-      class="flex items-center justify-center bg-white py-12"
-    >
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
-      ></div>
-    </div>
-
-    <!-- Table Rows -->
-    <ng-container *ngIf="!loading && admins.length > 0">
-      <div
-        *ngFor="let admin of admins; let i = index"
-        class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-white text-sm"
-      >
-        <div class="px-5 py-3">{{ (currentPage - 1) * perPage + i + 1 }}</div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">
-            {{ admin.first_name }} {{ admin.last_name }}
-          </div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ admin.email }}</div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
-          <div class="line-clamp-1">{{ getRoleNames(admin.roles) }}</div>
-        </div>
-        <div class="px-5 py-3 flex items-center gap-1">
+        <!-- Title & Search -->
+        <div class="flex justify-between py-4 px-5 bg-white items-center">
+          <!-- Table title -->
+          <p class="font-bold">Admin Management</p>
+          <!-- Search -->
           <div
-            [class]="
-              getStatusColor(admin) + ' w-full rounded-[4px] py-1 text-center'
-            "
+            class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
           >
-            {{ getStatusText(admin) }}
+            <img src="/icons/search.svg" alt="search icon" />
+            <input
+              type="text"
+              placeholder="Search by name, phone number, or email"
+              class="w-full text-xs bg-neutral-100 outline-none"
+              [value]="searchTerm"
+              (input)="onSearchChange($event)"
+            />
+          </div>
+          <!-- Add Admin -->
+          <div
+            class="p-[10px] border bg-[#E6E2F2] max-w-[202px] cursor-pointer w-full border-[#7F5EA3] rounded-[50px] flex items-center justify-center gap-2"
+            (click)="handleCreateAdmin()"
+          >
+            Add New Admin
+            <img class="w-[12px] h-[12px]" src="/icons/add-admin.svg" alt="" />
           </div>
         </div>
-        <div class="px-5 py-3 flex justify-center gap-2">
-          <img
-            src="/icons/delete.svg"
-            alt="delete-icon"
-            class="cursor-pointer w-[19px] h-[19px]"
-            (click)="openDeleteModal(admin)"
-            [class.opacity-50]="deleteLoading === admin.id"
-            [class.cursor-not-allowed]="deleteLoading === admin.id"
-            [style.pointer-events]="
-              deleteLoading === admin.id ? 'none' : 'auto'
-            "
-          />
 
-          <img
-            src="/icons/edit.svg"
-            alt=""
-            class="cursor-pointer w-[19px] h-[19px]"
-            (click)="openEditAdminModal(admin)"
-          />
+        <!-- Header -->
+        <div
+          class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+        >
+          <div class="px-5 py-3">Number</div>
           <div
-            *ngIf="deleteLoading === admin.id && !showDeleteModal"
-            class="ml-2 flex items-center"
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortAdmins('name')"
+          >
+            Admin Name <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortAdmins('email')"
+          >
+            Email <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortAdmins('role')"
+          >
+            Role <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortAdmins('status')"
+          >
+            Status <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">Actions</div>
+        </div>
+
+        <!-- Loading State -->
+        <div
+          *ngIf="loading"
+          class="flex items-center justify-center bg-white py-12"
+        >
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+          ></div>
+        </div>
+
+        <!-- Table Rows -->
+        <ng-container *ngIf="!loading && admins.length > 0">
+          <div
+            *ngFor="let admin of admins; let i = index"
+            class="grid grid-cols-[83px_minmax(177px,1fr)_minmax(227px,1fr)_minmax(151px,1fr)_162px_115px] bg-white text-sm"
+          >
+            <div class="px-5 py-3">
+              {{ (currentPage - 1) * perPage + i + 1 }}
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              <div class="line-clamp-1">
+                {{ admin.first_name }} {{ admin.last_name }}
+              </div>
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              <div class="line-clamp-1">{{ admin.email }}</div>
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              <div class="line-clamp-1">{{ getRoleNames(admin.roles) }}</div>
+            </div>
+            <div class="px-5 py-3 flex items-center gap-1">
+              <div
+                [class]="
+                  getStatusColor(admin) +
+                  ' w-full rounded-[4px] py-1 text-center'
+                "
+              >
+                {{ getStatusText(admin) }}
+              </div>
+            </div>
+            <div class="px-5 py-3 flex justify-center gap-2">
+              <img
+                src="/icons/delete.svg"
+                alt="delete-icon"
+                class="cursor-pointer w-[19px] h-[19px]"
+                (click)="handleDeleteAdmin(admin)"
+                [class.opacity-50]="deleteLoading === admin.id"
+                [class.cursor-not-allowed]="deleteLoading === admin.id"
+                [style.pointer-events]="
+                  deleteLoading === admin.id ? 'none' : 'auto'
+                "
+              />
+
+              <img
+                src="/icons/edit.svg"
+                alt=""
+                class="cursor-pointer w-[19px] h-[19px]"
+                (click)="handleEditAdmin(admin)"
+              />
+              <div
+                *ngIf="deleteLoading === admin.id && !showDeleteModal"
+                class="ml-2 flex items-center"
+              >
+                <div
+                  class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-rose-600"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Empty State -->
+        <div
+          *ngIf="!loading && admins.length === 0"
+          class="flex justify-center items-center py-8 bg-white"
+        >
+          <div class="text-neutral-500">
+            {{
+              searchTerm
+                ? "No admin users found matching your search"
+                : "No admin users found"
+            }}
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          *ngIf="paginationMeta && !loading && !error"
+          class="flex justify-between py-4 px-5 bg-white items-center"
+        >
+          <div class="flex gap-2 items-center">
+            <div>Show</div>
+            <select
+              class="border border-neutral-200 rounded-md p-2"
+              [(ngModel)]="perPage"
+              (ngModelChange)="onPerPageChange($event)"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+            <div>per page</div>
+          </div>
+          <div class="flex gap-4 items-center">
+            <div class="text-neutral-500">
+              {{
+                paginationMeta
+                  ? (paginationMeta.current_page - 1) *
+                      paginationMeta.per_page +
+                    1
+                  : 0
+              }}-{{
+                paginationMeta
+                  ? Math.min(
+                      paginationMeta.current_page * paginationMeta.per_page,
+                      paginationMeta.total
+                    )
+                  : 0
+              }}
+              of {{ paginationMeta.total }}
+            </div>
+            <div class="flex items-center gap-1">
+              <div
+                [class]="
+                  paginationMeta.prev_page_url
+                    ? 'cursor-pointer'
+                    : 'cursor-not-allowed opacity-50'
+                "
+                (click)="goToPreviousPage()"
+              >
+                <img src="/icons/pagination-left.svg" alt="previous" />
+              </div>
+              <ul class="flex gap-1">
+                <li
+                  *ngFor="let page of getPageNumbers()"
+                  [class]="
+                    page === paginationMeta.current_page
+                      ? 'py-2 px-4 rounded-md cursor-pointer bg-neutral-100'
+                      : 'py-2 px-4 rounded-md cursor-pointer text-neutral-400'
+                  "
+                  (click)="goToPage(page)"
+                >
+                  {{ page }}
+                </li>
+              </ul>
+              <div
+                [class]="
+                  paginationMeta.next_page_url
+                    ? 'cursor-pointer'
+                    : 'cursor-not-allowed opacity-50'
+                "
+                (click)="goToNextPage()"
+              >
+                <img src="/icons/pagination-right.svg" alt="next" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Admin Modal -->
+    <div
+      *ngIf="showAddAdminForm"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+    >
+      <form
+        class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6"
+        (ngSubmit)="onSubmit()"
+      >
+        <div
+          class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+        >
+          <h2 class="text-lg font-bold">Add a new administrator</h2>
+        </div>
+
+        <!-- Error/Success Messages -->
+
+        <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
+          <div>
+            <label class="block text-sm mb-1">First Name *</label>
+            <input
+              type="text"
+              class="w-full border rounded-[6px] p-2"
+              name="first_name"
+              [(ngModel)]="formData.first_name"
+              placeholder="Enter first name"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Last Name *</label>
+            <input
+              type="text"
+              class="w-full border rounded-[6px] p-2"
+              name="last_name"
+              [(ngModel)]="formData.last_name"
+              required
+              placeholder="Enter last name"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Email *</label>
+            <input
+              type="email"
+              class="w-full border rounded-[6px] p-2"
+              name="email"
+              [(ngModel)]="formData.email"
+              required
+              placeholder="example@email.com"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Password *</label>
+            <input
+              type="password"
+              class="w-full border rounded-[6px] p-2"
+              name="password"
+              [(ngModel)]="formData.password"
+              required
+              minlength="8"
+              placeholder="Enter Password"
+            />
+          </div>
+
+          <!-- Role Selection -->
+          <div class="col-span-full mx-auto">
+            <label class="block text-sm mb-1">Role</label>
+            <div
+              class="bg-[#82645A] py-[10px] px-[16px] flex justify-center items-center rounded-md max-w-[200px] w-full"
+            >
+              <img src="/icons/plus.svg" alt="" />
+              <select
+                class="bg-[#82645A] text-white underline border-none outline-none"
+                (change)="onRoleChange($event)"
+                [ngModel]="
+                  formData.roles && formData.roles.length > 0
+                    ? formData.roles[0]
+                    : ''
+                "
+                name="role"
+                required
+              >
+                <option value="">Select a role</option>
+                <option *ngFor="let role of availableRoles" [value]="role.name">
+                  {{ formatRoleName(role.name) }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center gap-2 items-center">
+          <div class="flex flex-1 justify-center gap-2">
+            <button
+              type="button"
+              class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+              (click)="hideAddAdminModal()"
+              [disabled]="formLoading"
+            >
+              <img src="/icons/cancel-btn.svg" alt="" />
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+              [disabled]="formLoading"
+            >
+              <img *ngIf="!formLoading" src="/icons/submit.svg" alt="" />
+              <div
+                *ngIf="formLoading"
+                class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+              ></div>
+              {{ formLoading ? "Creating..." : "Save" }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      *ngIf="showDeleteModal && adminToDelete"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+    >
+      <div
+        class="bg-white rounded-[20px] p-8 w-full max-w-[400px] shadow-lg flex flex-col items-center gap-6"
+      >
+        <h2
+          class="text-lg font-bold text-center text-rose-600 flex items-center gap-2"
+        >
+          <img src="/icons/delete.png" alt="" />
+          <div class="max-w-[200px]">
+            Are you sure you want to delete {{ adminToDelete.first_name }}
+            {{ adminToDelete.last_name }}?
+          </div>
+        </h2>
+
+        <div class="flex gap-4 w-full justify-center">
+          <button
+            class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
+            (click)="closeDeleteModal()"
+            [disabled]="deleteLoading === adminToDelete.id"
+          >
+            Cancel
+          </button>
+          <button
+            class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
+            (click)="confirmDeleteAdmin()"
+            [disabled]="deleteLoading === adminToDelete.id"
           >
             <div
-              class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-rose-600"
+              *ngIf="deleteLoading === adminToDelete.id"
+              class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
             ></div>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-
-    <!-- Empty State -->
-    <div
-      *ngIf="!loading && admins.length === 0"
-      class="flex justify-center items-center py-8 bg-white"
-    >
-      <div class="text-neutral-500">
-        {{
-          searchTerm
-            ? "No admin users found matching your search"
-            : "No admin users found"
-        }}
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div
-      *ngIf="paginationMeta && !loading && !error"
-      class="flex justify-between py-4 px-5 bg-white items-center"
-    >
-      <div class="flex gap-2 items-center">
-        <div>Show</div>
-        <select
-          class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="perPage"
-          (ngModelChange)="onPerPageChange($event)"
-        >
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="30">30</option>
-        </select>
-        <div>per page</div>
-      </div>
-      <div class="flex gap-4 items-center">
-        <div class="text-neutral-500">
-          {{
-            paginationMeta
-              ? (paginationMeta.current_page - 1) * paginationMeta.per_page + 1
-              : 0
-          }}-{{
-            paginationMeta
-              ? Math.min(
-                  paginationMeta.current_page * paginationMeta.per_page,
-                  paginationMeta.total
-                )
-              : 0
-          }}
-          of {{ paginationMeta.total }}
-        </div>
-        <div class="flex items-center gap-1">
-          <div
-            [class]="
-              paginationMeta.prev_page_url
-                ? 'cursor-pointer'
-                : 'cursor-not-allowed opacity-50'
-            "
-            (click)="goToPreviousPage()"
-          >
-            <img src="/icons/pagination-left.svg" alt="previous" />
-          </div>
-          <ul class="flex gap-1">
-            <li
-              *ngFor="let page of getPageNumbers()"
-              [class]="
-                page === paginationMeta.current_page
-                  ? 'py-2 px-4 rounded-md cursor-pointer bg-neutral-100'
-                  : 'py-2 px-4 rounded-md cursor-pointer text-neutral-400'
-              "
-              (click)="goToPage(page)"
-            >
-              {{ page }}
-            </li>
-          </ul>
-          <div
-            [class]="
-              paginationMeta.next_page_url
-                ? 'cursor-pointer'
-                : 'cursor-not-allowed opacity-50'
-            "
-            (click)="goToNextPage()"
-          >
-            <img src="/icons/pagination-right.svg" alt="next" />
-          </div>
+            <span *ngIf="deleteLoading !== adminToDelete.id">Yes, Delete</span>
+          </button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Add Admin Modal -->
-<div
-  *ngIf="showAddAdminForm"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
->
-  <form
-    class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6"
-    (ngSubmit)="onSubmit()"
-  >
+    <!-- Edit Admin Modal -->
     <div
-      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+      *ngIf="showEditAdminModal"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
     >
-      <h2 class="text-lg font-bold">Add a new administrator</h2>
-    </div>
-
-    <!-- Error/Success Messages -->
-
-    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
-      <div>
-        <label class="block text-sm mb-1">First Name *</label>
-        <input
-          type="text"
-          class="w-full border rounded-[6px] p-2"
-          name="first_name"
-          [(ngModel)]="formData.first_name"
-          placeholder="Enter first name"
-          required
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Last Name *</label>
-        <input
-          type="text"
-          class="w-full border rounded-[6px] p-2"
-          name="last_name"
-          [(ngModel)]="formData.last_name"
-          required
-          placeholder="Enter last name"
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Email *</label>
-        <input
-          type="email"
-          class="w-full border rounded-[6px] p-2"
-          name="email"
-          [(ngModel)]="formData.email"
-          required
-          placeholder="example@email.com"
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Password *</label>
-        <input
-          type="password"
-          class="w-full border rounded-[6px] p-2"
-          name="password"
-          [(ngModel)]="formData.password"
-          required
-          minlength="8"
-          placeholder="Enter Password"
-        />
-      </div>
-
-      <!-- Role Selection -->
-      <div class="col-span-full mx-auto">
-        <label class="block text-sm mb-1">Role</label>
+      <form
+        class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[760px] shadow-lg grid gap-4 h-[597px] overflow-y-auto"
+        (ngSubmit)="saveEditAdmin()"
+      >
         <div
-          class="bg-[#82645A] py-[10px] px-[16px] flex justify-center items-center rounded-md max-w-[200px] w-full"
+          class="flex justify-between border-b border-neutral-300 pb-6 items-center"
         >
-          <img src="/icons/plus.svg" alt="" />
+          <h2 class="text-lg font-bold">Edit Administrator</h2>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
+          <div>
+            <label class="block text-sm mb-1">First Name *</label>
+            <input
+              type="text"
+              class="w-full border rounded-[6px] p-2"
+              name="edit_first_name"
+              [(ngModel)]="editAdminForm.first_name"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Last Name *</label>
+            <input
+              type="text"
+              class="w-full border rounded-[6px] p-2"
+              name="edit_last_name"
+              [(ngModel)]="editAdminForm.last_name"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Email *</label>
+            <input
+              type="email"
+              class="w-full border rounded-[6px] p-2"
+              name="edit_email"
+              [(ngModel)]="editAdminForm.email"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Password</label>
+            <input
+              type="password"
+              class="w-full border rounded-[6px] p-2"
+              name="edit_password"
+              [(ngModel)]="editAdminForm.password"
+              minlength="8"
+              placeholder="Leave blank to keep current"
+            />
+          </div>
+        </div>
+        <!-- Role Selection -->
+        <div class="flex gap-2 items-center justify-between flex-wrap">
+          <div class="text-[#392A4B] font-bold">Permissions allowed</div>
           <select
-            class="bg-[#82645A] text-white underline border-none outline-none"
-            (change)="onRoleChange($event)"
+            class="py-[6.5px] px-[12px] rounded-md border border-[#E2E8F0] text-[#7F5EA3] font-bold"
+            (change)="onEditRoleChange($event)"
             [ngModel]="
-              formData.roles && formData.roles.length > 0
-                ? formData.roles[0]
+              editAdminForm.roles && editAdminForm.roles.length > 0
+                ? editAdminForm.roles[0]
                 : ''
             "
-            name="role"
+            name="edit_role"
             required
           >
-            <option value="">Select a role</option>
             <option *ngFor="let role of availableRoles" [value]="role.name">
               {{ formatRoleName(role.name) }}
             </option>
           </select>
         </div>
-      </div>
-    </div>
-
-    <div class="flex justify-center gap-2 items-center">
-      <div class="flex flex-1 justify-center gap-2">
+        <!-- Show all permissions for the admin -->
+        <div
+          class="flex gap-[10px] flex-wrap items-center h-[110px] overflow-y-auto overflow-hidden"
+        >
+          <span
+            *ngFor="let perm of allAdminPermissions"
+            class="bg-[#FFFF] p-3 rounded-md border border-[#E2E8F0]"
+          >
+            {{ perm }}
+          </span>
+        </div>
+        <!-- Edit Permissions Button -->
         <button
           type="button"
-          class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
-          (click)="hideAddAdminModal()"
-          [disabled]="formLoading"
+          class="underline text-[#7F5EA3]"
+          (click)="openPermissionsModal()"
         >
-          <img src="/icons/cancel-btn.svg" alt="" />
-          Cancel
+          Edit Permissions
         </button>
-        <button
-          type="submit"
-          class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
-          [disabled]="formLoading"
+
+        <div class="flex justify-center gap-2 items-center">
+          <button
+            type="button"
+            class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+            (click)="closeEditAdminModal()"
+            [disabled]="editAdminLoading"
+          >
+            <img src="/icons/cancel-btn.svg" alt="" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+            [disabled]="editAdminLoading"
+            (click)="handleUpdateAdmin()"
+          >
+            <img *ngIf="!editAdminLoading" src="/icons/submit.svg" alt="" />
+            <div
+              *ngIf="editAdminLoading"
+              class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+            ></div>
+            {{ editAdminLoading ? "Saving..." : "Save" }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Permissions Modal -->
+    <div
+      *ngIf="showPermissionsModal"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+    >
+      <form
+        class="bg-[#ffff] rounded-[20px] p-6 w-full max-w-[765px] shadow-lg grid gap-6"
+        (ngSubmit)="savePermissionsModal()"
+      >
+        <div
+          class="flex justify-between border-b border-neutral-300 pb-6 items-center"
         >
-          <img *ngIf="!formLoading" src="/icons/submit.svg" alt="" />
+          <h2 class="text-lg font-bold">Adding permissions</h2>
+        </div>
+
+        <div>
           <div
-            *ngIf="formLoading"
-            class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-          ></div>
-          {{ formLoading ? "Creating..." : "Save" }}
-        </button>
-      </div>
+            class="grid md:grid-cols-2 gap-5 max-h-64 overflow-y-auto bg-white p-2 rounded"
+          >
+            <label
+              *ngFor="let perm of allPermissions"
+              class="flex items-center gap-2 text-neutral-500"
+            >
+              <input
+                type="checkbox"
+                class="w-[24px] h-[24px] rounded-[6px]"
+                style="accent-color: #7f5ea3"
+                [checked]="
+                  permissionsModalDirect.includes(perm.name) ||
+                  rolePermissions.includes(perm.name)
+                "
+                [disabled]="rolePermissions.includes(perm.name)"
+                (change)="onPermissionsModalToggle(perm.name, $event)"
+              />
+              {{ perm.name }}
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-center gap-2 items-center">
+          <button
+            type="button"
+            class="px-4 py-2 bg-[#E6E2F2] max-w-[120px] w-full h-[40px] rounded-[60px] flex items-center justify-center gap-1"
+            (click)="closePermissionsModal()"
+            [disabled]="permissionsModalLoading"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-[#7F5EA3] max-w-[120px] w-full h-[40px] text-white rounded-[60px] flex items-center justify-center gap-1"
+            [disabled]="permissionsModalLoading"
+          >
+            <div
+              *ngIf="permissionsModalLoading"
+              class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+            ></div>
+            {{ permissionsModalLoading ? "Saving..." : "Save" }}
+          </button>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div
-  *ngIf="showDeleteModal && adminToDelete"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
->
-  <div
-    class="bg-white rounded-[20px] p-8 w-full max-w-[400px] shadow-lg flex flex-col items-center gap-6"
-  >
-    <h2
-      class="text-lg font-bold text-center text-rose-600 flex items-center gap-2"
-    >
-      <img src="/icons/delete.png" alt="" />
-      <div class="max-w-[200px]">
-        Are you sure you want to delete {{ adminToDelete.first_name }}
-        {{ adminToDelete.last_name }}?
-      </div>
-    </h2>
-
-    <div class="flex gap-4 w-full justify-center">
-      <button
-        class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
-        (click)="closeDeleteModal()"
-        [disabled]="deleteLoading === adminToDelete.id"
-      >
-        Cancel
-      </button>
-      <button
-        class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
-        (click)="confirmDeleteAdmin()"
-        [disabled]="deleteLoading === adminToDelete.id"
-      >
-        <div
-          *ngIf="deleteLoading === adminToDelete.id"
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
-        <span *ngIf="deleteLoading !== adminToDelete.id">Yes, Delete</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Admin Modal -->
-<div
-  *ngIf="showEditAdminModal"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
->
-  <form
-    class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[760px] shadow-lg grid gap-4 h-[597px] overflow-y-auto"
-    (ngSubmit)="saveEditAdmin()"
-  >
-    <div
-      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
-    >
-      <h2 class="text-lg font-bold">Edit Administrator</h2>
-    </div>
-
-    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
-      <div>
-        <label class="block text-sm mb-1">First Name *</label>
-        <input
-          type="text"
-          class="w-full border rounded-[6px] p-2"
-          name="edit_first_name"
-          [(ngModel)]="editAdminForm.first_name"
-          required
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Last Name *</label>
-        <input
-          type="text"
-          class="w-full border rounded-[6px] p-2"
-          name="edit_last_name"
-          [(ngModel)]="editAdminForm.last_name"
-          required
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Email *</label>
-        <input
-          type="email"
-          class="w-full border rounded-[6px] p-2"
-          name="edit_email"
-          [(ngModel)]="editAdminForm.email"
-          required
-        />
-      </div>
-      <div>
-        <label class="block text-sm mb-1">Password</label>
-        <input
-          type="password"
-          class="w-full border rounded-[6px] p-2"
-          name="edit_password"
-          [(ngModel)]="editAdminForm.password"
-          minlength="8"
-          placeholder="Leave blank to keep current"
-        />
-      </div>
-    </div>
-    <!-- Role Selection -->
-    <div class="flex gap-2 items-center justify-between flex-wrap">
-      <div class="text-[#392A4B] font-bold">Permissions allowed</div>
-      <select
-        class="py-[6.5px] px-[12px] rounded-md border border-[#E2E8F0] text-[#7F5EA3] font-bold"
-        (change)="onEditRoleChange($event)"
-        [ngModel]="
-          editAdminForm.roles && editAdminForm.roles.length > 0
-            ? editAdminForm.roles[0]
-            : ''
-        "
-        name="edit_role"
-        required
-      >
-        <option *ngFor="let role of availableRoles" [value]="role.name">
-          {{ formatRoleName(role.name) }}
-        </option>
-      </select>
-    </div>
-    <!-- Show all permissions for the admin -->
-    <div
-      class="flex gap-[10px] flex-wrap items-center h-[110px] overflow-y-auto overflow-hidden"
-    >
-      <span
-        *ngFor="let perm of allAdminPermissions"
-        class="bg-[#FFFF] p-3 rounded-md border border-[#E2E8F0]"
-      >
-        {{ perm }}
-      </span>
-    </div>
-    <!-- Edit Permissions Button -->
-    <button
-      type="button"
-      class="underline text-[#7F5EA3]"
-      (click)="openPermissionsModal()"
-    >
-      Edit Permissions
-    </button>
-
-    <div class="flex justify-center gap-2 items-center">
-      <button
-        type="button"
-        class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
-        (click)="closeEditAdminModal()"
-        [disabled]="editAdminLoading"
-      >
-        <img src="/icons/cancel-btn.svg" alt="" />
-        Cancel
-      </button>
-      <button
-        type="submit"
-        class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
-        [disabled]="editAdminLoading"
-      >
-        <img *ngIf="!editAdminLoading" src="/icons/submit.svg" alt="" />
-        <div
-          *ngIf="editAdminLoading"
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
-        {{ editAdminLoading ? "Saving..." : "Save" }}
-      </button>
-    </div>
-  </form>
-</div>
-
-<!-- Permissions Modal -->
-<div
-  *ngIf="showPermissionsModal"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
->
-  <form
-    class="bg-[#ffff] rounded-[20px] p-6 w-full max-w-[765px] shadow-lg grid gap-6"
-    (ngSubmit)="savePermissionsModal()"
-  >
-    <div
-      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
-    >
-      <h2 class="text-lg font-bold">Adding permissions</h2>
-    </div>
-
-    <div>
-      <div
-        class="grid md:grid-cols-2 gap-5 max-h-64 overflow-y-auto bg-white p-2 rounded"
-      >
-        <label
-          *ngFor="let perm of allPermissions"
-          class="flex items-center gap-2 text-neutral-500"
-        >
-          <input
-            type="checkbox"
-            class="w-[24px] h-[24px] rounded-[6px]"
-            style="accent-color: #7f5ea3"
-            [checked]="
-              permissionsModalDirect.includes(perm.name) ||
-              rolePermissions.includes(perm.name)
-            "
-            [disabled]="rolePermissions.includes(perm.name)"
-            (change)="onPermissionsModalToggle(perm.name, $event)"
-          />
-          {{ perm.name }}
-        </label>
-      </div>
-    </div>
-    <div class="flex justify-center gap-2 items-center">
-      <button
-        type="button"
-        class="px-4 py-2 bg-[#E6E2F2] max-w-[120px] w-full h-[40px] rounded-[60px] flex items-center justify-center gap-1"
-        (click)="closePermissionsModal()"
-        [disabled]="permissionsModalLoading"
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        class="px-4 py-2 bg-[#7F5EA3] max-w-[120px] w-full h-[40px] text-white rounded-[60px] flex items-center justify-center gap-1"
-        [disabled]="permissionsModalLoading"
-      >
-        <div
-          *ngIf="permissionsModalLoading"
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
-        {{ permissionsModalLoading ? "Saving..." : "Save" }}
-      </button>
-    </div>
-  </form>
+  </ng-container>
+  <ng-template #denied>
+    <app-access-denied
+      [message]="'You do not have permission to view the admin list.'"
+      [icon]="'/icons/access.svg'"
+      [title]="'Access Denied'"
+    />
+  </ng-template>
 </div>

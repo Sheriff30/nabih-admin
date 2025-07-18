@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
   ManagementService,
   AdminUserResource,
@@ -9,17 +9,19 @@ import {
 } from '../../services/management.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
+import { PermissionsService } from '../../services/permissions-store.service';
+import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
   selector: 'app-management',
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule],
+  imports: [NgIf, NgFor, FormsModule, AccessDeniedComponent],
   templateUrl: './management.component.html',
   styleUrl: './management.component.css',
 })
-export class ManagementComponent implements OnInit {
+export class ManagementComponent implements OnInit, OnDestroy {
   // All admins from API (unfiltered)
   allAdmins: AdminUserResource[] = [];
 
@@ -107,6 +109,8 @@ export class ManagementComponent implements OnInit {
   showPermissionsModal = false;
   permissionsModalLoading = false;
   permissionsModalDirect: string[] = [];
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
 
   // Getter to show all unique permissions for the admin (direct + role-based)
   get allAdminPermissions(): string[] {
@@ -119,13 +123,29 @@ export class ManagementComponent implements OnInit {
 
   constructor(
     private managementService: ManagementService,
-    private toast: ToastService
+    private toast: ToastService,
+    public permissionsStore: PermissionsService
   ) {}
 
   ngOnInit(): void {
-    this.loadAdmins();
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
+      }
+    );
+    if (!this.permissionsLoading) {
+      this.loadAdmins();
+    }
     this.loadRoles();
     this.loadPermissions();
+  }
+
+  ngOnDestroy(): void {
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
+    }
   }
 
   loadAdmins(): void {
@@ -756,5 +776,38 @@ export class ManagementComponent implements OnInit {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
     this.applyFiltersAndSorting(); // Do not reload from backend
+  }
+
+  // Permission-based handlers
+  handleDeleteAdmin(admin: AdminUserResource): void {
+    if (this.permissionsStore.hasPermission('admin.view.deleted')) {
+      this.openDeleteModal(admin);
+    } else {
+      this.toast.show('You do not have permission to delete admins.', 'error');
+    }
+  }
+
+  handleCreateAdmin(): void {
+    if (this.permissionsStore.hasPermission('admin.create')) {
+      this.showAddAdminModal();
+    } else {
+      this.toast.show('You do not have permission to create admins.', 'error');
+    }
+  }
+
+  handleUpdateAdmin(): void {
+    if (this.permissionsStore.hasPermission('admin.update')) {
+      this.saveEditAdmin();
+    } else {
+      this.toast.show('You do not have permission to update admins.', 'error');
+    }
+  }
+
+  handleEditAdmin(admin: AdminUserResource): void {
+    if (this.permissionsStore.hasPermission('admin.update')) {
+      this.openEditAdminModal(admin);
+    } else {
+      this.toast.show('You do not have permission to update admins.', 'error');
+    }
   }
 }

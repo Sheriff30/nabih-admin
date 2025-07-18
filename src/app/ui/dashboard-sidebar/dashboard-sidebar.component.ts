@@ -74,6 +74,7 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
   @Output() closeSidebar = new EventEmitter<void>();
 
   isLoggingOut = false;
+  showLogoutModal = false;
 
   constructor(
     private router: Router,
@@ -81,6 +82,19 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private permissionsStore: PermissionsService
   ) {}
+
+  openLogoutModal() {
+    this.showLogoutModal = true;
+  }
+
+  closeLogoutModal() {
+    this.showLogoutModal = false;
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+    this.logout();
+  }
 
   logout() {
     this.isLoggingOut = true;

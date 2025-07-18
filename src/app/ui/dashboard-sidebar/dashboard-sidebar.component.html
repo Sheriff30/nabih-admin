@@ -228,7 +228,7 @@
     <button
       class="cursor-pointer w-[19px] h-[19px] disabled:opacity-50 transition-opacity"
       title="Logout"
-      (click)="logout()"
+      (click)="openLogoutModal()"
       [disabled]="isLoggingOut"
     >
       <img
@@ -237,5 +237,40 @@
         [class.animate-spin]="isLoggingOut"
       />
     </button>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div
+    *ngIf="showLogoutModal"
+    class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-3"
+  >
+    <div
+      class="bg-white rounded-[20px] p-8 w-full max-w-[633px] max-h-[446px] h-full shadow-lg flex justify-center flex-col items-center gap-6"
+    >
+      <img
+        src="/icons/logout-confirm.svg"
+        alt="logout icon"
+        class="w-[85px] h-[85px]"
+      />
+      <h2 class="text-lg font-bold text-center text-[#E6004C]">
+        Are You Sure You Want To Logout ?
+      </h2>
+      <div class="flex gap-4 w-full justify-center">
+        <button
+          class="px-6 py-2 rounded-[6px] border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 transition"
+          (click)="closeLogoutModal()"
+          [disabled]="isLoggingOut"
+        >
+          Cancel
+        </button>
+        <button
+          class="px-6 py-2 bg-[#E6004C] text-white rounded-[6px] hover:bg-[#c2003d] transition"
+          (click)="confirmLogout()"
+          [disabled]="isLoggingOut"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
   </div>
 </div>

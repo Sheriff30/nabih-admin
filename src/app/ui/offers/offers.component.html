@@ -1,0 +1,475 @@
+<div class="flex justify-center items-center min-h-[400px] w-full">
+  <form
+    [formGroup]="offerForm"
+    (ngSubmit)="submitOffer()"
+    enctype="multipart/form-data"
+    class="bg-white rounded-[20px] p-6 w-full ggrid gap-6"
+  >
+    <div
+      class="flex justify-between border-b border-neutral-300 pb-6 items-center"
+    >
+      <h2 class="text-lg font-bold">Create a New Offer</h2>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4">
+      <div class="col-span-full">
+        <label class="block text-sm mb-1 font-semibold"
+          >Image <span class="text-red-500">*</span></label
+        >
+        <div
+          class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-[12px] bg-white py-6 cursor-pointer transition hover:border-[#7F5EA3] hover:bg-[#F3F0FA]"
+          (mousedown)="onDropzoneMouseDown($event, fileInput)"
+          (drop)="$event.preventDefault(); onFileChange($event)"
+          (dragover)="$event.preventDefault()"
+        >
+          <ng-container
+            *ngIf="!offerForm.get('image')?.value; else imagePreview"
+          >
+            <img
+              src="/icons/camera.svg"
+              alt="Upload"
+              class="w-10 h-10 mb-2 opacity-60"
+            />
+            <span class="text-neutral-500 text-sm"
+              >Click or drag an image here to upload (max 5MB)</span
+            >
+          </ng-container>
+          <ng-template #imagePreview>
+            <div class="relative inline-block mb-2">
+              <img
+                [src]="imagePreviewUrl"
+                alt="Preview"
+                class="max-h-32 rounded-md shadow"
+              />
+              <button
+                type="button"
+                (click)="removeImage($event, fileInput)"
+                class="absolute top-1 right-1 rounded-full p-1.5 bg-rose-50 hover:bg-rose-100 transition border border-rose-200 flex items-center justify-center z-10"
+                title="Remove image"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4 text-rose-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </ng-template>
+          <input
+            #fileInput
+            type="file"
+            (click)="$event.stopPropagation()"
+            (change)="onFileChange($event)"
+            accept="image/*"
+            [disabled]="loading"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            style="z-index: 2"
+          />
+        </div>
+        <div *ngIf="imageError" class="text-red-500 text-sm mt-1">
+          {{ imageError }}
+        </div>
+        <div
+          *ngIf="
+            !imageError &&
+            offerForm.get('image')?.invalid &&
+            offerForm.get('image')?.touched
+          "
+          class="text-red-500 text-sm mt-1"
+        >
+          Image is required.
+        </div>
+        <div class="text-xs text-neutral-400 mt-1">
+          Recommended: 800x600px, JPG/PNG, max 1MB.
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold">Active</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            formControlName="is_active"
+            class="sr-only peer"
+          />
+          <div
+            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 rounded-full peer peer-checked:bg-[#82645A] transition-all"
+          ></div>
+          <div
+            class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"
+          ></div>
+        </label>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold">Limited Time</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            formControlName="is_limited_time"
+            class="sr-only peer"
+          />
+          <div
+            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 rounded-full peer peer-checked:bg-[#82645A] transition-all"
+          ></div>
+          <div
+            class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"
+          ></div>
+        </label>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold">Display Order</label>
+        <input
+          type="number"
+          formControlName="display_order"
+          min="0"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Display order (optional)"
+        />
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold">Start Date</label>
+        <input
+          type="date"
+          formControlName="start_date"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Start date (optional)"
+        />
+        <div
+          *ngIf="
+            offerForm.get('start_date')?.errors &&
+            (offerForm.get('start_date')?.touched ||
+              offerForm.get('start_date')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('start_date')?.errors?.['required']"
+            >Start date is required.</ng-container
+          >
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold">End Date</label>
+        <input
+          type="date"
+          formControlName="end_date"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="End date (optional)"
+        />
+        <div
+          *ngIf="
+            offerForm.get('end_date')?.errors &&
+            (offerForm.get('end_date')?.touched ||
+              offerForm.get('end_date')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container *ngIf="offerForm.get('end_date')?.errors?.['required']"
+            >End date is required.</ng-container
+          >
+        </div>
+      </div>
+      <div class="col-span-full">
+        <label class="block text-sm mb-1 font-semibold">Button Link</label>
+        <input
+          type="text"
+          formControlName="button_link"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Enter button link (optional)"
+        />
+        <div
+          *ngIf="
+            offerForm.get('button_link')?.errors &&
+            (offerForm.get('button_link')?.touched ||
+              offerForm.get('button_link')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('button_link')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+          <ng-container
+            *ngIf="offerForm.get('button_link')?.errors?.['pattern']"
+            >Please enter a valid URL (e.g. https://example.com).</ng-container
+          >
+        </div>
+      </div>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-y-6 gap-x-4" [formGroupName]="'title'">
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Title (EN) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="en"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Enter English title"
+        />
+        <div
+          *ngIf="
+            offerForm.get('title.en')?.errors &&
+            (offerForm.get('title.en')?.touched ||
+              offerForm.get('title.en')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container *ngIf="offerForm.get('title.en')?.errors?.['required']"
+            >Title (EN) is required.</ng-container
+          >
+          <ng-container *ngIf="offerForm.get('title.en')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Title (AR) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="ar"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="أدخل العنوان بالعربية"
+        />
+        <div
+          *ngIf="
+            offerForm.get('title.ar')?.errors &&
+            (offerForm.get('title.ar')?.touched ||
+              offerForm.get('title.ar')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container *ngIf="offerForm.get('title.ar')?.errors?.['required']"
+            >Title (AR) is required.</ng-container
+          >
+          <ng-container *ngIf="offerForm.get('title.ar')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid lg:grid-cols-2 gap-y-6 gap-x-4"
+      [formGroupName]="'description'"
+    >
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Description (EN) <span class="text-red-500">*</span></label
+        >
+        <textarea
+          formControlName="en"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Enter English description"
+        ></textarea>
+        <div
+          *ngIf="
+            offerForm.get('description.en')?.errors &&
+            (offerForm.get('description.en')?.touched ||
+              offerForm.get('description.en')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('description.en')?.errors?.['required']"
+            >Description (EN) is required.</ng-container
+          >
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Description (AR) <span class="text-red-500">*</span></label
+        >
+        <textarea
+          formControlName="ar"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="أدخل الوصف بالعربية"
+        ></textarea>
+        <div
+          *ngIf="
+            offerForm.get('description.ar')?.errors &&
+            (offerForm.get('description.ar')?.touched ||
+              offerForm.get('description.ar')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('description.ar')?.errors?.['required']"
+            >Description (AR) is required.</ng-container
+          >
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid lg:grid-cols-2 gap-y-6 gap-x-4"
+      [formGroupName]="'discount_text'"
+    >
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Discount Text (EN) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="en"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Enter English discount text"
+        />
+        <div
+          *ngIf="
+            offerForm.get('discount_text.en')?.errors &&
+            (offerForm.get('discount_text.en')?.touched ||
+              offerForm.get('discount_text.en')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('discount_text.en')?.errors?.['required']"
+            >Discount Text (EN) is required.</ng-container
+          >
+          <ng-container
+            *ngIf="offerForm.get('discount_text.en')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Discount Text (AR) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="ar"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="أدخل نص الخصم بالعربية"
+        />
+        <div
+          *ngIf="
+            offerForm.get('discount_text.ar')?.errors &&
+            (offerForm.get('discount_text.ar')?.touched ||
+              offerForm.get('discount_text.ar')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('discount_text.ar')?.errors?.['required']"
+            >Discount Text (AR) is required.</ng-container
+          >
+          <ng-container
+            *ngIf="offerForm.get('discount_text.ar')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+    </div>
+    <div
+      class="grid lg:grid-cols-2 gap-y-6 gap-x-4"
+      [formGroupName]="'button_text'"
+    >
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Button Text (EN) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="en"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="Enter English button text"
+        />
+        <div
+          *ngIf="
+            offerForm.get('button_text.en')?.errors &&
+            (offerForm.get('button_text.en')?.touched ||
+              offerForm.get('button_text.en')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('button_text.en')?.errors?.['required']"
+            >Button Text (EN) is required.</ng-container
+          >
+          <ng-container
+            *ngIf="offerForm.get('button_text.en')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm mb-1 font-semibold"
+          >Button Text (AR) <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          formControlName="ar"
+          maxlength="255"
+          class="w-full border rounded-[6px] p-2 bg-white"
+          placeholder="أدخل نص الزر بالعربية"
+        />
+        <div
+          *ngIf="
+            offerForm.get('button_text.ar')?.errors &&
+            (offerForm.get('button_text.ar')?.touched ||
+              offerForm.get('button_text.ar')?.dirty)
+          "
+          class="text-red-500 text-sm"
+        >
+          <ng-container
+            *ngIf="offerForm.get('button_text.ar')?.errors?.['required']"
+            >Button Text (AR) is required.</ng-container
+          >
+          <ng-container
+            *ngIf="offerForm.get('button_text.ar')?.errors?.['maxlength']"
+            >Max 255 characters allowed.</ng-container
+          >
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center gap-2 items-center mt-2">
+      <button
+        type="button"
+        class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+        (click)="offerForm.reset()"
+        [disabled]="loading"
+      >
+        <img src="/icons/cancel-btn.svg" alt="cancel" />
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+        [disabled]="loading"
+        (click)="showAllErrorsIfInvalid($event)"
+      >
+        <img *ngIf="!loading" src="/icons/submit.svg" alt="submit" />
+        <div
+          *ngIf="loading"
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+        ></div>
+        <span *ngIf="!loading">Create Offer</span>
+        <span *ngIf="loading">Creating...</span>
+      </button>
+    </div>
+    <div
+      *ngIf="successMsg"
+      class="text-green-600 font-semibold mt-2 text-center"
+    >
+      {{ successMsg }}
+    </div>
+    <div *ngIf="errorMsg" class="text-red-600 font-semibold mt-2 text-center">
+      {{ errorMsg }}
+    </div>
+  </form>
+</div>

@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { PermissionsService } from '../../services/permissions-store.service';
 import { Subscription } from 'rxjs';
 import { AccessDeniedComponent } from '../access-denied/access-denied.component';
+import { OffersComponent } from '../../ui/offers/offers.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +24,7 @@ import { AccessDeniedComponent } from '../access-denied/access-denied.component'
     NgChartsModule,
     FormsModule,
     AccessDeniedComponent,
+    OffersComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',

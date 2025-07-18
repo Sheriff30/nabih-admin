@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
   SocialLinksService,
   SocialMediaLinkResource,
@@ -6,28 +6,47 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../services/toast.service';
+import { PermissionsService } from '../../services/permissions-store.service';
+import { Subscription } from 'rxjs';
+import { AccessDeniedComponent } from '../../pages/access-denied/access-denied.component';
 
 @Component({
   selector: 'app-social-links',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccessDeniedComponent],
   templateUrl: './social-links.component.html',
   styleUrl: './social-links.component.css',
 })
-export class SocialLinksComponent implements OnInit {
+export class SocialLinksComponent implements OnInit, OnDestroy {
   socialLinks: SocialMediaLinkResource[] = [];
   editedLinks: SocialMediaLinkResource[] = [];
   loading = false;
   saving = false;
   error: string | null = null;
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
 
   constructor(
     private socialLinksService: SocialLinksService,
-    private toast: ToastService
+    private toast: ToastService,
+    public permissionsStore: PermissionsService
   ) {}
 
   ngOnInit(): void {
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
+      }
+    );
     this.fetchSocialLinks();
+  }
+
+  ngOnDestroy(): void {
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
+    }
   }
 
   fetchSocialLinks(): void {
@@ -62,6 +81,13 @@ export class SocialLinksComponent implements OnInit {
   }
 
   saveLinks() {
+    if (!this.permissionsStore.hasPermission('content.social-media.manage')) {
+      this.toast.show(
+        'You do not have permission to manage social links.',
+        'error'
+      );
+      return;
+    }
     this.saving = true;
     this.error = null;
     const token = localStorage.getItem('token');

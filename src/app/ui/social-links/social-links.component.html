@@ -1,60 +1,85 @@
-<div style="min-height: 400px; position: relative">
+<div
+  *ngIf="permissionsLoading"
+  class="flex justify-center items-center min-h-[300px]"
+>
   <div
-    *ngIf="loading"
-    class="flex items-center justify-center bg-white py-12 absolute inset-0 z-10"
+    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+  ></div>
+</div>
+<div *ngIf="!permissionsLoading">
+  <ng-container
+    *ngIf="
+      permissionsStore.hasPermission('content.social-media.view.list');
+      else denied
+    "
   >
-    <div
-      class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
-    ></div>
-  </div>
-  <div class="grid lg:grid-cols-2 gap-6" [class.opacity-50]="loading">
-    <ng-container *ngFor="let link of editedLinks; let i = index">
+    <!-- original content starts here -->
+    <div style="min-height: 400px; position: relative">
       <div
-        class="p-4 shadow-[0px_1px_12px_0px_#191B231A] flex gap-[10px] flex-col rounded-[10px]"
+        *ngIf="loading"
+        class="flex items-center justify-center bg-white py-12 absolute inset-0 z-10"
       >
-        <div class="grid grid-cols-[30px_1fr] gap-[10px]">
-          <div class="text-neutral-600 col-start-2">{{ link.title }}:</div>
-        </div>
-        <div class="flex gap-[10px] items-center w-full">
-          <img
-            [src]="'/icons/' + link.icon + '.svg'"
-            alt=""
-            class="w-[30px] h-[30px]"
-          />
-          <input
-            type="text"
-            class="shadow-[0px_1px_2px_0px_#E4E5E73D] rounded-[6px] border-neutral-200 border w-full py-[12.5px] px-[14px]"
-            [ngClass]="{ underline: link.type !== 'phone' }"
-            [(ngModel)]="
-              editedLinks[i][link.type === 'phone' ? 'username' : 'url']
-            "
-            (ngModelChange)="
-              onInputChange(
-                i,
-                link.type === 'phone' ? 'username' : 'url',
-                $event
-              )
-            "
-          />
-        </div>
-      </div>
-    </ng-container>
-
-    <button
-      class="px-4 mt-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
-      [disabled]="saving || loading"
-      (click)="saveLinks()"
-    >
-      <ng-container *ngIf="!saving; else savingSpinner">
-        <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
-        Save Links
-      </ng-container>
-      <ng-template #savingSpinner>
         <div
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
         ></div>
-        Saving...
-      </ng-template>
-    </button>
-  </div>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6" [class.opacity-50]="loading">
+        <ng-container *ngFor="let link of editedLinks; let i = index">
+          <div
+            class="p-4 shadow-[0px_1px_12px_0px_#191B231A] flex gap-[10px] flex-col rounded-[10px]"
+          >
+            <div class="grid grid-cols-[30px_1fr] gap-[10px]">
+              <div class="text-neutral-600 col-start-2">{{ link.title }}:</div>
+            </div>
+            <div class="flex gap-[10px] items-center w-full">
+              <img
+                [src]="'/icons/' + link.icon + '.svg'"
+                alt=""
+                class="w-[30px] h-[30px]"
+              />
+              <input
+                type="text"
+                class="shadow-[0px_1px_2px_0px_#E4E5E73D] rounded-[6px] border-neutral-200 border w-full py-[12.5px] px-[14px]"
+                [ngClass]="{ underline: link.type !== 'phone' }"
+                [(ngModel)]="
+                  editedLinks[i][link.type === 'phone' ? 'username' : 'url']
+                "
+                (ngModelChange)="
+                  onInputChange(
+                    i,
+                    link.type === 'phone' ? 'username' : 'url',
+                    $event
+                  )
+                "
+              />
+            </div>
+          </div>
+        </ng-container>
+
+        <button
+          class="px-4 mt-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
+          [disabled]="saving || loading"
+          (click)="saveLinks()"
+        >
+          <ng-container *ngIf="!saving; else savingSpinner">
+            <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
+            Save Links
+          </ng-container>
+          <ng-template #savingSpinner>
+            <div
+              class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+            ></div>
+            Saving...
+          </ng-template>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #denied>
+    <app-access-denied
+      [message]="'You do not have permission to view social links.'"
+      [icon]="'/icons/access.svg'"
+      [title]="'Access Denied'"
+    />
+  </ng-template>
 </div>

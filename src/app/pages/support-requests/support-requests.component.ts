@@ -6,11 +6,14 @@ import {
   SupportRequestsResponse,
 } from '../../services/support-requests.service';
 import { ToastService } from '../../services/toast.service';
+import { PermissionsService } from '../../services/permissions-store.service';
+import { Subscription } from 'rxjs';
+import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
   selector: 'app-support-requests',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccessDeniedComponent],
   templateUrl: './support-requests.component.html',
   styleUrl: './support-requests.component.css',
 })
@@ -48,13 +51,31 @@ export class SupportRequestsComponent implements OnInit {
   requestToDelete: any = null;
   deleteLoading: boolean = false;
 
+  // permissions
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
+
   constructor(
     private supportRequestsService: SupportRequestsService,
-    private toast: ToastService
+    private toast: ToastService,
+    public permissionsStore: PermissionsService
   ) {}
 
   ngOnInit(): void {
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
+      }
+    );
     this.loadSupportRequests();
+  }
+
+  ngOnDestroy(): void {
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
+    }
   }
 
   loadSupportRequests(): void {
@@ -291,5 +312,28 @@ export class SupportRequestsComponent implements OnInit {
           );
         },
       });
+  }
+
+  // Permissions
+  handleViewRequest(request: any) {
+    if (this.permissionsStore.hasPermission('support.view.single')) {
+      this.openModal(request);
+    } else {
+      this.toast.show(
+        'You do not have permission to view support request details.',
+        'error'
+      );
+    }
+  }
+
+  handleDeleteRequest(request: any) {
+    if (this.permissionsStore.hasPermission('support.view.deleted')) {
+      this.openDeleteModal(request);
+    } else {
+      this.toast.show(
+        'You do not have permission to delete support requests.',
+        'error'
+      );
+    }
   }
 }

@@ -1,416 +1,448 @@
-<div class="w-full overflow-x-auto rounded-md">
-  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
-    <!-- Title & Search -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
-      <p class="font-bold">Support Requests List</p>
-      <div
-        class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
-      >
-        <img src="/icons/search.svg" alt="search icon" />
-        <input
-          type="text"
-          placeholder="Search by request ID, subject, or issue type"
-          class="w-full text-xs bg-neutral-100 outline-none"
-          [(ngModel)]="searchTerm"
-          (input)="onSearch(searchTerm)"
-        />
-      </div>
-    </div>
-    <!-- Header -->
-    <div
-      class="grid grid-cols-[130px_minmax(95px,1fr)_130px_minmax(117px,1fr)_minmax(94px,1fr)_150px_97px_96px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
-    >
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('request_id')"
-      >
-        Request ID <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('subject')"
-      >
-        Subject <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('issue_type')"
-      >
-        Issue Type <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('details')"
-      >
-        Details <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('user.email')"
-      >
-        Email <img src="/icons/sort.svg" alt="sort-icon" />
-        <span *ngIf="sortField === 'user.email'"></span>
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('date_created')"
-      >
-        Date Created <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="onSort('status')"
-      >
-        Status <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">Actions</div>
-    </div>
-    <!-- Loading State -->
-    <div
-      *ngIf="loading"
-      class="flex items-center justify-center bg-white py-12"
-    >
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
-      ></div>
-    </div>
-    <!-- Table Rows -->
-    <ng-container *ngIf="!loading">
-      <ng-container *ngIf="supportRequests.length > 0; else noData">
-        <div
-          *ngFor="let request of supportRequests"
-          class="grid grid-cols-[115px_minmax(105px,1fr)_130px_minmax(117px,1fr)_minmax(94px,1fr)_150px_97px_96px] bg-white text-sm"
-        >
-          <div class="px-5 py-3">{{ request.request_id }}</div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ request.subject }}</div>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ request.issue_type }}</div>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ request.details }}</div>
-          </div>
-
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ request.user?.email || "-" }}</div>
-          </div>
-          <div class="px-5 py-3 flex justify-center gap-1">
-            {{ request.date_created }}
-          </div>
-          <div class="px-3 py-3 flex justify-center">
-            <div
-              [ngClass]="{
-                'bg-orange-50 border border-orange-200 text-orange-400':
-                  request.status === 'pending',
-                'bg-blue-50 border border-blue-200 text-blue-400':
-                  request.status === 'open',
-                'bg-neutral-50 border border-neutral-200 text-neutral-400':
-                  request.status === 'closed'
-              }"
-              class="w-full rounded-[4px] px-1 py-0.5 text-center"
-            >
-              {{ request.status | titlecase }}
-            </div>
-          </div>
-          <div class="px-5 py-3 flex justify-center gap-1">
-            <img
-              src="/icons/eye.svg"
-              alt="view-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openModal(request)"
-            />
-            <img
-              src="/icons/delete.svg"
-              alt="delete-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openDeleteModal(request)"
-            />
-          </div>
-        </div>
-      </ng-container>
-      <ng-template #noData>
-        <div class="text-center py-8 text-neutral-500 bg-white">
-          No support requests found.
-        </div>
-      </ng-template>
-    </ng-container>
-
-    <!-- Pagination -->
-    <div
-      *ngIf="!loading && supportRequests.length > 0"
-      class="flex justify-between py-4 px-5 bg-white items-center"
-    >
-      <div class="flex gap-2 items-center">
-        <div>Show</div>
-        <select
-          class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="pagination.per_page"
-          (change)="onPageSizeChange(pagination.per_page)"
-        >
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="30">30</option>
-        </select>
-        <div>per page</div>
-      </div>
-      <div class="flex gap-4 items-center">
-        <div class="text-neutral-500">
-          {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
-        </div>
-        <div class="flex items-center gap-1">
-          <div>
-            <img
-              src="/icons/pagination-left.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                onPageChange(
-                  pagination.current_page > 1 ? pagination.current_page - 1 : 1
-                )
-              "
-            />
-          </div>
-          <ul class="flex gap-1">
-            <li
-              *ngFor="let page of pageNumbers"
-              (click)="onPageChange(page)"
-              [class.bg-neutral-100]="page === pagination.current_page"
-              class="py-2 px-4 rounded-md cursor-pointer"
-              [class.text-neutral-400]="page !== pagination.current_page"
-            >
-              {{ page }}
-            </li>
-          </ul>
-          <div>
-            <img
-              src="/icons/pagination-right.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                onPageChange(
-                  pagination.current_page < pagination.last_page
-                    ? pagination.current_page + 1
-                    : pagination.last_page
-                )
-              "
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal -->
 <div
-  *ngIf="showModal"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+  *ngIf="permissionsLoading"
+  class="flex justify-center items-center min-h-[300px]"
 >
-  <form
-    (ngSubmit)="activeTab === 'admin' ? submitAdminResponse() : null"
-    class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6 relative"
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+  ></div>
+</div>
+<div *ngIf="!permissionsLoading">
+  <ng-container
+    *ngIf="permissionsStore.hasPermission('support.view.list'); else denied"
   >
-    <div class="border-b border-neutral-300 pb-6 items-center">
-      Request Details - Account Issue
-    </div>
-    <div class="flex gap-2 justify-center text-sm">
-      <button
-        type="button"
-        (click)="setTab('details')"
-        [ngClass]="{
-          ' text-[#7F5EA3] border-b-2 border-[#7F5EA3]':
-            activeTab === 'details',
-          ' text-neutral-500': activeTab !== 'details'
-        }"
-        class="px-4 py-2 focus:outline-none"
-      >
-        Complaint Details
-      </button>
-      <button
-        type="button"
-        (click)="setTab('admin')"
-        [ngClass]="{
-          ' text-[#7F5EA3] border-b-2 border-[#7F5EA3]': activeTab === 'admin',
-          ' text-neutral-500': activeTab !== 'admin'
-        }"
-        class="px-4 py-2 focus:outline-none"
-      >
-        Admin Response
-      </button>
-    </div>
-    <div class="pt-4 text-sm">
-      <!-- Complaint Details Tab -->
+    <div class="w-full overflow-x-auto rounded-md">
       <div
-        *ngIf="activeTab === 'details' && selectedRequest"
-        class="grid gap-6"
+        class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
       >
-        <div class="flex-col flex gap-[5px]">
+        <!-- Title & Search -->
+        <div class="flex justify-between py-4 px-5 bg-white items-center">
+          <p class="font-bold">Support Requests List</p>
           <div
-            class="bg-[#E8D1C6] flex justify-around gap-2 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
+            class="max-w-[288px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
           >
-            <div>
-              <span class="text-neutral-600">Request ID:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.request_id }}
-              </span>
-            </div>
-            <div>
-              <span class="text-neutral-600">Subject:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.subject }}
-              </span>
-            </div>
-            <div>
-              <span class="text-neutral-600">Issue Type:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.issue_type }}
-              </span>
-            </div>
-          </div>
-          <div
-            class="bg-[#E8D1C6] flex justify-around gap-1 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
-          >
-            <div>
-              <span class="text-neutral-600">Email:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.user?.email || "-" }}
-              </span>
-            </div>
-            <div>
-              <span class="text-neutral-600">Phone Number:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.user?.phone || "-" }}
-              </span>
-            </div>
-          </div>
-          <div
-            class="bg-[#E8D1C6] flex justify-around gap-1 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
-          >
-            <div>
-              <span class="text-neutral-600">Date Created:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.date_created }}
-              </span>
-            </div>
-            <div>
-              <span class="text-neutral-600">Status:</span>
-              <span class="text-[#392A4B] font-medium">
-                {{ selectedRequest.status | titlecase }}
-              </span>
-            </div>
+            <img src="/icons/search.svg" alt="search icon" />
+            <input
+              type="text"
+              placeholder="Search by request ID, subject, or issue type"
+              class="w-full text-xs bg-neutral-100 outline-none"
+              [(ngModel)]="searchTerm"
+              (input)="onSearch(searchTerm)"
+            />
           </div>
         </div>
-
-        <div class="flex gap-1 flex-col">
-          <span>Details:</span>
-          <div
-            class="bg-white rounded-md p-3 h-[96px] overflow-y-auto text-neutral-500"
-          >
-            {{ selectedRequest.details }}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          (click)="closeModal()"
-          class="px-4 py-2 mx-auto bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+        <!-- Header -->
+        <div
+          class="grid grid-cols-[130px_minmax(95px,1fr)_130px_minmax(117px,1fr)_minmax(94px,1fr)_150px_97px_96px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
         >
-          <img src="/icons/cancel.svg" alt="close" class="w-6 h-6" />
-          Cancel
-        </button>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('request_id')"
+          >
+            Request ID <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('subject')"
+          >
+            Subject <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('issue_type')"
+          >
+            Issue Type <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('details')"
+          >
+            Details <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('user.email')"
+          >
+            Email <img src="/icons/sort.svg" alt="sort-icon" />
+            <span *ngIf="sortField === 'user.email'"></span>
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('date_created')"
+          >
+            Date Created <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="onSort('status')"
+          >
+            Status <img src="/icons/sort.svg" alt="sort-icon" />
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">Actions</div>
+        </div>
+        <!-- Loading State -->
+        <div
+          *ngIf="loading"
+          class="flex items-center justify-center bg-white py-12"
+        >
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+          ></div>
+        </div>
+        <!-- Table Rows -->
+        <ng-container *ngIf="!loading">
+          <ng-container *ngIf="supportRequests.length > 0; else noData">
+            <div
+              *ngFor="let request of supportRequests"
+              class="grid grid-cols-[115px_minmax(105px,1fr)_130px_minmax(117px,1fr)_minmax(94px,1fr)_150px_97px_96px] bg-white text-sm"
+            >
+              <div class="px-5 py-3">{{ request.request_id }}</div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ request.subject }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ request.issue_type }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ request.details }}</div>
+              </div>
+
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ request.user?.email || "-" }}</div>
+              </div>
+              <div class="px-5 py-3 flex justify-center gap-1">
+                {{ request.date_created }}
+              </div>
+              <div class="px-3 py-3 flex justify-center">
+                <div
+                  [ngClass]="{
+                    'bg-orange-50 border border-orange-200 text-orange-400':
+                      request.status === 'pending',
+                    'bg-blue-50 border border-blue-200 text-blue-400':
+                      request.status === 'open',
+                    'bg-neutral-50 border border-neutral-200 text-neutral-400':
+                      request.status === 'closed'
+                  }"
+                  class="w-full rounded-[4px] px-1 py-0.5 text-center"
+                >
+                  {{ request.status | titlecase }}
+                </div>
+              </div>
+              <div class="px-5 py-3 flex justify-center gap-1">
+                <img
+                  src="/icons/eye.svg"
+                  alt="view-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleViewRequest(request)"
+                />
+                <img
+                  src="/icons/delete.svg"
+                  alt="delete-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleDeleteRequest(request)"
+                />
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noData>
+            <div class="text-center py-8 text-neutral-500 bg-white">
+              No support requests found.
+            </div>
+          </ng-template>
+        </ng-container>
+
+        <!-- Pagination -->
+        <div
+          *ngIf="!loading && supportRequests.length > 0"
+          class="flex justify-between py-4 px-5 bg-white items-center"
+        >
+          <div class="flex gap-2 items-center">
+            <div>Show</div>
+            <select
+              class="border border-neutral-200 rounded-md p-2"
+              [(ngModel)]="pagination.per_page"
+              (change)="onPageSizeChange(pagination.per_page)"
+            >
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="30">30</option>
+            </select>
+            <div>per page</div>
+          </div>
+          <div class="flex gap-4 items-center">
+            <div class="text-neutral-500">
+              {{ pagination.from }}-{{ pagination.to }} of
+              {{ pagination.total }}
+            </div>
+            <div class="flex items-center gap-1">
+              <div>
+                <img
+                  src="/icons/pagination-left.svg"
+                  alt=""
+                  class="cursor-pointer"
+                  (click)="
+                    onPageChange(
+                      pagination.current_page > 1
+                        ? pagination.current_page - 1
+                        : 1
+                    )
+                  "
+                />
+              </div>
+              <ul class="flex gap-1">
+                <li
+                  *ngFor="let page of pageNumbers"
+                  (click)="onPageChange(page)"
+                  [class.bg-neutral-100]="page === pagination.current_page"
+                  class="py-2 px-4 rounded-md cursor-pointer"
+                  [class.text-neutral-400]="page !== pagination.current_page"
+                >
+                  {{ page }}
+                </li>
+              </ul>
+              <div>
+                <img
+                  src="/icons/pagination-right.svg"
+                  alt=""
+                  class="cursor-pointer"
+                  (click)="
+                    onPageChange(
+                      pagination.current_page < pagination.last_page
+                        ? pagination.current_page + 1
+                        : pagination.last_page
+                    )
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <!-- Admin Response Tab -->
-      <div *ngIf="activeTab === 'admin' && selectedRequest" class="grid gap-4">
-        <div class="max-w-[600px] mx-auto w-full">
-          <label class="block mb-2 text-xs">Admin Response</label>
-          <textarea
-            [(ngModel)]="adminResponse"
-            name="adminResponse"
-            rows="4"
-            class="w-full border text-neutral-500 border-neutral-300 rounded-[6px] p-2 text-xs"
-            maxlength="5000"
-            required
-          ></textarea>
+    </div>
+    <!-- Modal -->
+    <div
+      *ngIf="showModal"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+    >
+      <form
+        (ngSubmit)="activeTab === 'admin' ? submitAdminResponse() : null"
+        class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6 relative"
+      >
+        <div class="border-b border-neutral-300 pb-6 items-center">
+          Request Details - Account Issue
         </div>
-        <select
-          [(ngModel)]="adminStatus"
-          name="adminStatus"
-          class="w-full border border-neutral-300 rounded-[6px] p-2 max-w-[220px] mx-auto"
-          required
-        >
-          <option value="pending">Pending</option>
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-        </select>
-        <div *ngIf="formError" class="text-red-500 mb-2">{{ formError }}</div>
-        <div class="flex justify-center gap-2 items-center mt-4">
+        <div class="flex gap-2 justify-center text-sm">
           <button
             type="button"
-            class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
-            (click)="closeModal()"
-            [disabled]="submitting"
+            (click)="setTab('details')"
+            [ngClass]="{
+              ' text-[#7F5EA3] border-b-2 border-[#7F5EA3]':
+                activeTab === 'details',
+              ' text-neutral-500': activeTab !== 'details'
+            }"
+            class="px-4 py-2 focus:outline-none"
           >
-            <img src="/icons/cancel-btn.svg" alt="" />
+            Complaint Details
+          </button>
+          <button
+            type="button"
+            (click)="setTab('admin')"
+            [ngClass]="{
+              ' text-[#7F5EA3] border-b-2 border-[#7F5EA3]':
+                activeTab === 'admin',
+              ' text-neutral-500': activeTab !== 'admin'
+            }"
+            class="px-4 py-2 focus:outline-none"
+          >
+            Admin Response
+          </button>
+        </div>
+        <div class="pt-4 text-sm">
+          <!-- Complaint Details Tab -->
+          <div
+            *ngIf="activeTab === 'details' && selectedRequest"
+            class="grid gap-6"
+          >
+            <div class="flex-col flex gap-[5px]">
+              <div
+                class="bg-[#E8D1C6] flex justify-around gap-2 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
+              >
+                <div>
+                  <span class="text-neutral-600">Request ID:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.request_id }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-neutral-600">Subject:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.subject }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-neutral-600">Issue Type:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.issue_type }}
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-[#E8D1C6] flex justify-around gap-1 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
+              >
+                <div>
+                  <span class="text-neutral-600">Email:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.user?.email || "-" }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-neutral-600">Phone Number:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.user?.phone || "-" }}
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-[#E8D1C6] flex justify-around gap-1 items-center flex-wrap text-center py-[6px] px-[22px] rounded-md"
+              >
+                <div>
+                  <span class="text-neutral-600">Date Created:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.date_created }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-neutral-600">Status:</span>
+                  <span class="text-[#392A4B] font-medium">
+                    {{ selectedRequest.status | titlecase }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-1 flex-col">
+              <span>Details:</span>
+              <div
+                class="bg-white rounded-md p-3 h-[96px] overflow-y-auto text-neutral-500"
+              >
+                {{ selectedRequest.details }}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="px-4 py-2 mx-auto bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+            >
+              <img src="/icons/cancel.svg" alt="close" class="w-6 h-6" />
+              Cancel
+            </button>
+          </div>
+          <!-- Admin Response Tab -->
+          <div
+            *ngIf="activeTab === 'admin' && selectedRequest"
+            class="grid gap-4"
+          >
+            <div class="max-w-[600px] mx-auto w-full">
+              <label class="block mb-2 text-xs">Admin Response</label>
+              <textarea
+                [(ngModel)]="adminResponse"
+                name="adminResponse"
+                rows="4"
+                class="w-full border text-neutral-500 border-neutral-300 rounded-[6px] p-2 text-xs"
+                maxlength="5000"
+                required
+              ></textarea>
+            </div>
+            <select
+              [(ngModel)]="adminStatus"
+              name="adminStatus"
+              class="w-full border border-neutral-300 rounded-[6px] p-2 max-w-[220px] mx-auto"
+              required
+            >
+              <option value="pending">Pending</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+            <div *ngIf="formError" class="text-red-500 mb-2">
+              {{ formError }}
+            </div>
+            <div class="flex justify-center gap-2 items-center mt-4">
+              <button
+                type="button"
+                class="px-4 py-2 bg-[#E6E2F2] max-w-[223px] w-full h-[60px] rounded-[60px] flex items-center justify-center gap-1"
+                (click)="closeModal()"
+                [disabled]="submitting"
+              >
+                <img src="/icons/cancel-btn.svg" alt="" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
+                [disabled]="submitting"
+              >
+                <img *ngIf="!submitting" src="/icons/submit.svg" alt="" />
+                <div
+                  *ngIf="submitting"
+                  class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
+                ></div>
+                {{ submitting ? "Saving..." : "Send" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      *ngIf="showDeleteModal && requestToDelete"
+      class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
+    >
+      <div
+        class="bg-white rounded-[20px] p-8 w-full max-w-[400px] shadow-lg flex flex-col items-center gap-6"
+      >
+        <h2
+          class="text-lg font-bold text-center text-rose-600 flex items-center gap-2"
+        >
+          <img src="/icons/delete.png" alt="" />
+          <div class="max-w-[200px]">
+            Are you sure you want to delete request
+            <span class="font-semibold">{{ requestToDelete.request_id }}</span>
+            ({{ requestToDelete.subject }})?
+          </div>
+        </h2>
+        <div class="flex gap-4 w-full justify-center">
+          <button
+            class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
+            (click)="closeDeleteModal()"
+            [disabled]="deleteLoading"
+          >
             Cancel
           </button>
           <button
-            type="submit"
-            class="px-4 py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1"
-            [disabled]="submitting"
+            class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
+            (click)="confirmDeleteRequest()"
+            [disabled]="deleteLoading"
           >
-            <img *ngIf="!submitting" src="/icons/submit.svg" alt="" />
             <div
-              *ngIf="submitting"
+              *ngIf="deleteLoading"
               class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
             ></div>
-            {{ submitting ? "Saving..." : "Send" }}
+            <span *ngIf="!deleteLoading">Yes, Delete</span>
           </button>
         </div>
       </div>
     </div>
-  </form>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div
-  *ngIf="showDeleteModal && requestToDelete"
-  class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-3"
->
-  <div
-    class="bg-white rounded-[20px] p-8 w-full max-w-[400px] shadow-lg flex flex-col items-center gap-6"
-  >
-    <h2
-      class="text-lg font-bold text-center text-rose-600 flex items-center gap-2"
-    >
-      <img src="/icons/delete.png" alt="" />
-      <div class="max-w-[200px]">
-        Are you sure you want to delete request
-        <span class="font-semibold">{{ requestToDelete.request_id }}</span> ({{
-          requestToDelete.subject
-        }})?
-      </div>
-    </h2>
-    <div class="flex gap-4 w-full justify-center">
-      <button
-        class="px-6 py-2 text-rose-600 rounded-[60px] border border-rose-600 flex items-center justify-center gap-1"
-        (click)="closeDeleteModal()"
-        [disabled]="deleteLoading"
-      >
-        Cancel
-      </button>
-      <button
-        class="px-6 py-2 bg-rose-600 text-white rounded-[60px] flex items-center justify-center gap-1"
-        (click)="confirmDeleteRequest()"
-        [disabled]="deleteLoading"
-      >
-        <div
-          *ngIf="deleteLoading"
-          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"
-        ></div>
-        <span *ngIf="!deleteLoading">Yes, Delete</span>
-      </button>
-    </div>
-  </div>
+  </ng-container>
+  <ng-template #denied>
+    <app-access-denied
+      [message]="
+        'You do not have permission to view the support requests list.'
+      "
+      [icon]="'/icons/access.svg'"
+      [title]="'Access Denied'"
+    />
+  </ng-template>
 </div>

@@ -44,6 +44,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
             const permissions = profile.data.admin.all_permissions.map(
               (p: any) => p.name
             );
+            console.log(permissions);
             this.permissionStore.setPermissions(permissions);
           }
         },

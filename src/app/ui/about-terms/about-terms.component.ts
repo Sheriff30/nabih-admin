@@ -1,18 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from '../../services/settings.service';
 import { NgIf } from '@angular/common';
 import { ToastService } from '../../services/toast.service';
+import { PermissionsService } from '../../services/permissions-store.service';
+import { Subscription } from 'rxjs';
+import { AccessDeniedComponent } from '../../pages/access-denied/access-denied.component';
 
 @Component({
   selector: 'app-about-terms',
   standalone: true,
-  imports: [QuillModule, FormsModule],
+  imports: [QuillModule, FormsModule, AccessDeniedComponent, NgIf],
   templateUrl: './about-terms.component.html',
   styleUrl: './about-terms.component.css',
 })
-export class AboutTermsComponent {
+export class AboutTermsComponent implements OnInit, OnDestroy {
   // Form state
   type: string = 'about';
   user_type: string = 'both';
@@ -27,12 +30,44 @@ export class AboutTermsComponent {
   message = '';
   error = '';
 
+  permissionsLoading = true;
+  private permissionsSub: Subscription | undefined;
+
   constructor(
     private settingsService: SettingsService,
-    private toast: ToastService
+    private toast: ToastService,
+    public permissionsStore: PermissionsService
   ) {}
 
+  ngOnInit(): void {
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
+      (permissions) => {
+        if (permissions && permissions.length > 0) {
+          this.permissionsLoading = false;
+        }
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    if (this.permissionsSub) {
+      this.permissionsSub.unsubscribe();
+    }
+  }
+
   submitStaticContent(type: string) {
+    if (
+      !(
+        this.permissionsStore.hasPermission('content.static.update') ||
+        this.permissionsStore.hasPermission('content.static.create')
+      )
+    ) {
+      this.toast.show(
+        'You do not have permission to update or create static content.',
+        'error'
+      );
+      return;
+    }
     this.loading = true;
     this.message = '';
     this.error = '';

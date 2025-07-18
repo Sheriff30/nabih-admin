@@ -32,7 +32,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private profileService: ProfileService,
-    private userStore: PermissionsService
+    private permissionStore: PermissionsService
   ) {}
 
   private fetchPermissionsIfAuthenticated() {
@@ -44,7 +44,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
             const permissions = profile.data.admin.all_permissions.map(
               (p: any) => p.name
             );
-            this.userStore.setPermissions(permissions);
+            this.permissionStore.setPermissions(permissions);
           }
         },
         error: (err) => {
@@ -57,10 +57,6 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Fetch permissions on load if token exists
     this.fetchPermissionsIfAuthenticated();
-    // Refresh every 10 minutes (600000 ms)
-    this.refreshSub = interval(600000).subscribe(() => {
-      this.fetchPermissionsIfAuthenticated();
-    });
   }
 
   ngOnDestroy() {

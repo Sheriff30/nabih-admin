@@ -8,7 +8,7 @@
 </div>
 <div *ngIf="!permissionsLoading">
   <ng-container
-    *ngIf="userStore.hasPermission('customer.view.list'); else denied"
+    *ngIf="permissionsStore.hasPermission('customer.view.list'); else denied"
   >
     <div class="w-full overflow-x-auto rounded-md">
       <div

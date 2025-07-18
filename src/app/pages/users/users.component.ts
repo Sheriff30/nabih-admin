@@ -46,11 +46,11 @@ export class UsersComponent implements OnInit, OnDestroy {
   constructor(
     private usersService: UsersService,
     private toast: ToastService,
-    public userStore: PermissionsService
+    public permissionsStore: PermissionsService
   ) {}
 
   ngOnInit() {
-    this.permissionsSub = this.userStore.permissions$.subscribe(
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
       (permissions) => {
         if (permissions && permissions.length > 0) {
           this.permissionsLoading = false;
@@ -316,7 +316,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   // PERMISSIONS
 
   handleViewUser(user: any) {
-    if (this.userStore.hasPermission('customer.view.single')) {
+    if (this.permissionsStore.hasPermission('customer.view.single')) {
       this.showUser(user);
     } else {
       this.toast.show(
@@ -327,7 +327,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   handleDeleteUser(user: any) {
-    if (this.userStore.hasPermission('customer.delete')) {
+    if (this.permissionsStore.hasPermission('customer.delete')) {
       this.deleteUser(user);
     } else {
       this.toast.show('You do not have permission to delete users.', 'error');
@@ -335,7 +335,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   handleUpdateUser() {
-    if (this.userStore.hasPermission('customer.update')) {
+    if (this.permissionsStore.hasPermission('customer.update')) {
       this.saveUser();
     } else {
       this.toast.show('You do not have permission to update users.', 'error');

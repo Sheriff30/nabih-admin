@@ -63,11 +63,11 @@ export class VehicleManagementComponent implements OnInit {
   constructor(
     private vehicleService: VehicleManagementService,
     private toast: ToastService,
-    public userStore: PermissionsService
+    public permissionsStore: PermissionsService
   ) {}
 
   ngOnInit(): void {
-    this.permissionsSub = this.userStore.permissions$.subscribe(
+    this.permissionsSub = this.permissionsStore.permissions$.subscribe(
       (permissions) => {
         if (permissions && permissions.length > 0) {
           this.permissionsLoading = false;
@@ -415,7 +415,7 @@ export class VehicleManagementComponent implements OnInit {
 
   // PERMISSIONS
   handleViewVehicle(vehicle: VehicleResource) {
-    if (this.userStore.hasPermission('vehicle.view.single')) {
+    if (this.permissionsStore.hasPermission('vehicle.view.single')) {
       this.openModal(vehicle);
     } else {
       this.toast.show(
@@ -426,7 +426,7 @@ export class VehicleManagementComponent implements OnInit {
   }
 
   handleEditVehicle(vehicle: VehicleResource) {
-    if (this.userStore.hasPermission('vehicle.update')) {
+    if (this.permissionsStore.hasPermission('vehicle.update')) {
       this.openEditModal(vehicle);
     } else {
       this.toast.show('You do not have permission to edit vehicles.', 'error');
@@ -434,7 +434,7 @@ export class VehicleManagementComponent implements OnInit {
   }
 
   handleDeleteVehicle(vehicle: VehicleResource) {
-    if (this.userStore.hasPermission('vehicle.delete')) {
+    if (this.permissionsStore.hasPermission('vehicle.delete')) {
       this.openDeleteModal(vehicle);
     } else {
       this.toast.show(
@@ -445,7 +445,7 @@ export class VehicleManagementComponent implements OnInit {
   }
 
   handleViewHistory(vehicle: VehicleResource) {
-    if (this.userStore.hasPermission('vehicle.view.single')) {
+    if (this.permissionsStore.hasPermission('vehicle.view.single')) {
       this.openServiceHistoryModal(vehicle);
     } else {
       this.toast.show(

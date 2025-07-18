@@ -6,13 +6,14 @@ import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { ProfileService } from '../../services/profile.service';
 import { PermissionsService } from '../../services/permissions-store.service';
+import { LoginBgSvgComponent } from '../../ui/login-bg-svg/login-bg-svg.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, NgIf, LoginBgSvgComponent],
 })
 export class LoginComponent {
   email: string = 'superadmin@nabih.com';

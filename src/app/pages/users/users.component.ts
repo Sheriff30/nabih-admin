@@ -296,4 +296,33 @@ export class UsersComponent implements OnInit {
     this.pagination.current_page = 1;
     this.loadCustomers();
   }
+
+  // PERMISSIONS
+
+  handleViewUser(user: any) {
+    if (this.userStore.hasPermission('customer.view.single')) {
+      this.showUser(user);
+    } else {
+      this.toast.show(
+        'You do not have permission to view user details.',
+        'error'
+      );
+    }
+  }
+
+  handleDeleteUser(user: any) {
+    if (this.userStore.hasPermission('customer.delete')) {
+      this.deleteUser(user);
+    } else {
+      this.toast.show('You do not have permission to delete users.', 'error');
+    }
+  }
+
+  handleUpdateUser() {
+    if (this.userStore.hasPermission('customer.update')) {
+      this.saveUser();
+    } else {
+      this.toast.show('You do not have permission to update users.', 'error');
+    }
+  }
 }

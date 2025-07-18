@@ -1,208 +1,234 @@
-<div class="w-full overflow-x-auto rounded-md">
-  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
-    <!-- Title & Search -->
-    <div class="flex justify-between py-4 px-5 bg-white items-center">
-      <p class="font-bold">Vehicle Management</p>
+<div
+  *ngIf="profileLoading"
+  class="flex justify-center items-center min-h-[300px]"
+>
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+  ></div>
+</div>
+<div *ngIf="!profileLoading">
+  <ng-container
+    *ngIf="userStore.hasPermission('vehicle.view.list'); else denied"
+  >
+    <div class="w-full overflow-x-auto rounded-md">
       <div
-        class="max-w-[350px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+        class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
       >
-        <img src="/icons/search.svg" alt="search icon" />
-        <input
-          type="text"
-          placeholder="Search by vehicle name, owner, plate number, or brand"
-          class="w-full text-xs bg-neutral-100 outline-none"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearch($event)"
-        />
-      </div>
-    </div>
+        <!-- Title & Search -->
+        <div class="flex justify-between py-4 px-5 bg-white items-center">
+          <p class="font-bold">Vehicle Management</p>
+          <div
+            class="max-w-[350px] w-full flex bg-neutral-100 gap-1 p-[10px] rounded-md"
+          >
+            <img src="/icons/search.svg" alt="search icon" />
+            <input
+              type="text"
+              placeholder="Search by vehicle name, owner, plate number, or brand"
+              class="w-full text-xs bg-neutral-100 outline-none"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearch($event)"
+            />
+          </div>
+        </div>
 
-    <!-- Header -->
-    <div
-      class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
-    >
-      <div class="px-5 py-3 flex items-center gap-1">Number</div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortVehicles('name')"
-      >
-        Vehicle Name
-        <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortVehicles('model_year')"
-      >
-        Model Year
-        <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortVehicles('make_brand')"
-      >
-        Brand
-        <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortVehicles('owner')"
-      >
-        Owner Name
-        <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div
-        class="px-5 py-3 flex items-center gap-1 cursor-pointer"
-        (click)="sortVehicles('plate_number')"
-      >
-        Plate Number
-        <img src="/icons/sort.svg" alt="sort-icon" />
-      </div>
-      <div class="px-5 py-3 flex items-center gap-1">Actions</div>
-    </div>
-
-    <!-- Loading State -->
-    <div
-      *ngIf="loading"
-      class="flex items-center justify-center bg-white py-12"
-    >
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
-      ></div>
-    </div>
-
-    <!-- Table Rows and Empty State -->
-    <ng-container *ngIf="!loading">
-      <ng-container *ngIf="vehicles.length > 0; else emptyState">
+        <!-- Header -->
         <div
-          *ngFor="let vehicle of vehicles; let i = index"
-          class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-white text-sm"
+          class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
         >
-          <div class="px-5 py-3">
-            {{ i + 1 + (pagination.current_page - 1) * pagination.per_page }}
+          <div class="px-5 py-3 flex items-center gap-1">Number</div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortVehicles('name')"
+          >
+            Vehicle Name
+            <img src="/icons/sort.svg" alt="sort-icon" />
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ vehicle.name }}</div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortVehicles('model_year')"
+          >
+            Model Year
+            <img src="/icons/sort.svg" alt="sort-icon" />
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ vehicle.model_year }}</div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortVehicles('make_brand')"
+          >
+            Brand
+            <img src="/icons/sort.svg" alt="sort-icon" />
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ vehicle.make_brand }}</div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortVehicles('owner')"
+          >
+            Owner Name
+            <img src="/icons/sort.svg" alt="sort-icon" />
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ vehicle.owner.name }}</div>
+          <div
+            class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+            (click)="sortVehicles('plate_number')"
+          >
+            Plate Number
+            <img src="/icons/sort.svg" alt="sort-icon" />
           </div>
-          <div class="px-5 py-3 flex items-center gap-1">
-            <div class="line-clamp-1">{{ vehicle.plate_number }}</div>
-          </div>
-          <div class="px-5 py-3 flex justify-center gap-2">
-            <img
-              src="/icons/eye.svg"
-              alt="view-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openModal(vehicle)"
-            />
-            <img
-              src="/icons/edit.svg"
-              alt="edit-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openEditModal(vehicle)"
-            />
-            <img
-              src="/icons/delete.svg"
-              alt="delete-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openDeleteModal(vehicle)"
-            />
-            <img
-              src="/icons/history.svg"
-              alt="history-icon"
-              class="h-[19px] w-[19px] cursor-pointer"
-              (click)="openServiceHistoryModal(vehicle)"
-            />
-          </div>
+          <div class="px-5 py-3 flex items-center gap-1">Actions</div>
         </div>
-      </ng-container>
-    </ng-container>
 
-    <ng-template #emptyState>
-      <div class="flex justify-center items-center py-8 bg-white">
-        <div class="text-neutral-500">No vehicles found.</div>
-      </div>
-    </ng-template>
-
-    <!-- Pagination -->
-    <div
-      *ngIf="!loading && vehicles.length > 0"
-      class="flex justify-between py-4 px-5 bg-white items-center"
-    >
-      <div class="flex gap-2 items-center">
-        <div>Show</div>
-        <select
-          class="border border-neutral-200 rounded-md p-2"
-          [(ngModel)]="pagination.per_page"
-          (change)="onPerPageChange()"
+        <!-- Loading State -->
+        <div
+          *ngIf="loading"
+          class="flex items-center justify-center bg-white py-12"
         >
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="30">30</option>
-        </select>
-        <div>per page</div>
-      </div>
-      <div class="flex gap-4 items-center">
-        <div class="text-neutral-500">
-          {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5EA3]"
+          ></div>
         </div>
-        <div class="flex items-center gap-1">
-          <div>
-            <img
-              src="/icons/pagination-left.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                pagination.current_page > 1
-                  ? goToPage(pagination.current_page - 1)
-                  : null
-              "
-              [class.opacity-50]="pagination.current_page === 1"
-            />
-          </div>
-          <ul class="flex gap-1">
-            <li
-              *ngFor="
-                let page of [].constructor(pagination.last_page);
-                let p = index
-              "
-              class="py-2 px-4 rounded-md cursor-pointer"
-              [ngClass]="
-                pagination.current_page === p + 1
-                  ? 'bg-neutral-100'
-                  : 'text-neutral-400'
-              "
-              (click)="goToPage(p + 1)"
+
+        <!-- Table Rows and Empty State -->
+        <ng-container *ngIf="!loading">
+          <ng-container *ngIf="vehicles.length > 0; else emptyState">
+            <div
+              *ngFor="let vehicle of vehicles; let i = index"
+              class="grid grid-cols-[100px_minmax(151px,1fr)_152px_153px_minmax(185px,1fr)_160px_163px] bg-white text-sm"
             >
-              {{ p + 1 }}
-            </li>
-          </ul>
-          <div>
-            <img
-              src="/icons/pagination-right.svg"
-              alt=""
-              class="cursor-pointer"
-              (click)="
-                pagination.current_page < pagination.last_page
-                  ? goToPage(pagination.current_page + 1)
-                  : null
-              "
-              [class.opacity-50]="
-                pagination.current_page === pagination.last_page
-              "
-            />
+              <div class="px-5 py-3">
+                {{
+                  i + 1 + (pagination.current_page - 1) * pagination.per_page
+                }}
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ vehicle.name }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ vehicle.model_year }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ vehicle.make_brand }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ vehicle.owner.name }}</div>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-1">
+                <div class="line-clamp-1">{{ vehicle.plate_number }}</div>
+              </div>
+              <div class="px-5 py-3 flex justify-center gap-2">
+                <img
+                  src="/icons/eye.svg"
+                  alt="view-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleViewVehicle(vehicle)"
+                />
+                <img
+                  src="/icons/edit.svg"
+                  alt="edit-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleEditVehicle(vehicle)"
+                />
+                <img
+                  src="/icons/delete.svg"
+                  alt="delete-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleDeleteVehicle(vehicle)"
+                />
+                <img
+                  src="/icons/history.svg"
+                  alt="history-icon"
+                  class="h-[19px] w-[19px] cursor-pointer"
+                  (click)="handleViewHistory(vehicle)"
+                />
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #emptyState>
+          <div class="flex justify-center items-center py-8 bg-white">
+            <div class="text-neutral-500">No vehicles found.</div>
+          </div>
+        </ng-template>
+
+        <!-- Pagination -->
+        <div
+          *ngIf="!loading && vehicles.length > 0"
+          class="flex justify-between py-4 px-5 bg-white items-center"
+        >
+          <div class="flex gap-2 items-center">
+            <div>Show</div>
+            <select
+              class="border border-neutral-200 rounded-md p-2"
+              [(ngModel)]="pagination.per_page"
+              (change)="onPerPageChange()"
+            >
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="30">30</option>
+            </select>
+            <div>per page</div>
+          </div>
+          <div class="flex gap-4 items-center">
+            <div class="text-neutral-500">
+              {{ pagination.from }}-{{ pagination.to }} of
+              {{ pagination.total }}
+            </div>
+            <div class="flex items-center gap-1">
+              <div>
+                <img
+                  src="/icons/pagination-left.svg"
+                  alt=""
+                  class="cursor-pointer"
+                  (click)="
+                    pagination.current_page > 1
+                      ? goToPage(pagination.current_page - 1)
+                      : null
+                  "
+                  [class.opacity-50]="pagination.current_page === 1"
+                />
+              </div>
+              <ul class="flex gap-1">
+                <li
+                  *ngFor="
+                    let page of [].constructor(pagination.last_page);
+                    let p = index
+                  "
+                  class="py-2 px-4 rounded-md cursor-pointer"
+                  [ngClass]="
+                    pagination.current_page === p + 1
+                      ? 'bg-neutral-100'
+                      : 'text-neutral-400'
+                  "
+                  (click)="goToPage(p + 1)"
+                >
+                  {{ p + 1 }}
+                </li>
+              </ul>
+              <div>
+                <img
+                  src="/icons/pagination-right.svg"
+                  alt=""
+                  class="cursor-pointer"
+                  (click)="
+                    pagination.current_page < pagination.last_page
+                      ? goToPage(pagination.current_page + 1)
+                      : null
+                  "
+                  [class.opacity-50]="
+                    pagination.current_page === pagination.last_page
+                  "
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </ng-container>
+  <ng-template #denied>
+    <app-access-denied
+      [message]="'You do not have permission to view the vehicle list.'"
+      [icon]="'/icons/access.svg'"
+      [title]="'Access Denied'"
+    />
+  </ng-template>
 </div>
 
 <!-- Vehicle Details Modal  -->

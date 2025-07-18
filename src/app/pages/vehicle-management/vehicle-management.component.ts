@@ -9,17 +9,21 @@ import { ToastService } from '../../services/toast.service';
 import { NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { UserStoreService } from '../../services/user-store.service';
+import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
   selector: 'app-vehicle-management',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe],
+  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe, AccessDeniedComponent],
   templateUrl: './vehicle-management.component.html',
   styleUrl: './vehicle-management.component.css',
 })
 export class VehicleManagementComponent implements OnInit {
   allVehicles: VehicleResource[] = [];
   vehicles: VehicleResource[] = [];
+
   pagination = {
     current_page: 1,
     per_page: 10,
@@ -52,13 +56,29 @@ export class VehicleManagementComponent implements OnInit {
   deleteModalOpen: boolean = false;
   vehicleToDelete: VehicleResource | null = null;
 
+  // FOR PERMISSIONS
+  profileLoading = true;
+  private profileSub: Subscription | undefined;
+
   constructor(
     private vehicleService: VehicleManagementService,
-    private toast: ToastService
+    private toast: ToastService,
+    public userStore: UserStoreService
   ) {}
 
   ngOnInit(): void {
+    this.profileSub = this.userStore.profile$.subscribe((profile) => {
+      if (profile) {
+        this.profileLoading = false;
+      }
+    });
     this.loadVehicles();
+  }
+
+  ngOnDestroy(): void {
+    if (this.profileSub) {
+      this.profileSub.unsubscribe();
+    }
   }
 
   loadVehicles() {
@@ -389,5 +409,47 @@ export class VehicleManagementComponent implements OnInit {
           this.closeDeleteModal();
         },
       });
+  }
+
+  // PERMISSIONS
+  handleViewVehicle(vehicle: VehicleResource) {
+    if (this.userStore.hasPermission('vehicle.view.single')) {
+      this.openModal(vehicle);
+    } else {
+      this.toast.show(
+        'You do not have permission to view vehicle details.',
+        'error'
+      );
+    }
+  }
+
+  handleEditVehicle(vehicle: VehicleResource) {
+    if (this.userStore.hasPermission('vehicle.update')) {
+      this.openEditModal(vehicle);
+    } else {
+      this.toast.show('You do not have permission to edit vehicles.', 'error');
+    }
+  }
+
+  handleDeleteVehicle(vehicle: VehicleResource) {
+    if (this.userStore.hasPermission('vehicle.delete')) {
+      this.openDeleteModal(vehicle);
+    } else {
+      this.toast.show(
+        'You do not have permission to delete vehicles.',
+        'error'
+      );
+    }
+  }
+
+  handleViewHistory(vehicle: VehicleResource) {
+    if (this.userStore.hasPermission('vehicle.view.single')) {
+      this.openServiceHistoryModal(vehicle);
+    } else {
+      this.toast.show(
+        'You do not have permission to view vehicle history.',
+        'error'
+      );
+    }
   }
 }

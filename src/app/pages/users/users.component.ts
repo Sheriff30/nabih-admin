@@ -3,11 +3,13 @@ import { UsersService } from '../../services/users.service';
 import { ToastService } from '../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { UserStoreService } from '../../services/user-store.service';
+import { AccessDeniedComponent } from '../access-denied/access-denied.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccessDeniedComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
 })
@@ -40,7 +42,8 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private usersService: UsersService,
-    private toast: ToastService
+    private toast: ToastService,
+    public userStore: UserStoreService
   ) {}
 
   ngOnInit() {

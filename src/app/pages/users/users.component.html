@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="userStore.hasPermission('customer.view.list')">
   <div class="w-full overflow-x-auto rounded-md">
     <div
       class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden"
@@ -193,6 +193,13 @@
     </div>
   </div>
 </div>
+
+<app-access-denied
+  *ngIf="!userStore.hasPermission('customer.view.list')"
+  [message]="'You do not have permission to view the user list.'"
+  [icon]="'/icons/access.svg'"
+  [title]="'Access Denied'"
+/>
 
 <!-- Edit User Modal -->
 <div

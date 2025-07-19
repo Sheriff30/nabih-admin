@@ -130,6 +130,16 @@ export class WorkshopComponent implements OnInit, AfterViewChecked {
           aValue = a.services[0]?.name || '';
           bValue = b.services[0]?.name || '';
         }
+        // Special case for vendor_email
+        else if (this.sortColumn === 'vendor_email') {
+          aValue = a.vendor?.email || '';
+          bValue = b.vendor?.email || '';
+        }
+        // Special case for vendor_phone
+        else if (this.sortColumn === 'vendor_phone') {
+          aValue = a.vendor?.phone_number || '';
+          bValue = b.vendor?.phone_number || '';
+        }
         if (typeof aValue === 'string') aValue = aValue.toLowerCase();
         if (typeof bValue === 'string') bValue = bValue.toLowerCase();
         if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;

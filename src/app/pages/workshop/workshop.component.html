@@ -1,5 +1,5 @@
 <div class="w-full overflow-x-auto rounded-md">
-  <div class="min-w-[1065px] divide-y-[1px] divide-neutral-200 overflow-hidden">
+  <div class="min-w-[1227px] divide-y-[1px] divide-neutral-200 overflow-hidden">
     <!-- Title & Search -->
     <div class="flex justify-between py-4 px-5 bg-white items-center">
       <p class="font-bold">Workshop Management</p>
@@ -28,7 +28,7 @@
     <ng-container *ngIf="!loading">
       <!-- Header -->
       <div
-        class="grid grid-cols-[83px_minmax(246px,1fr)_minmax(246px,1fr)_129px_246px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
+        class="grid grid-cols-[83px_minmax(180px,1fr)_minmax(180px,1fr)_129px_minmax(180px,1fr)_180px_180px_115px] bg-neutral-50 divide-x-[1px] divide-white text-sm"
       >
         <div class="px-5 py-3">Number</div>
         <div
@@ -36,36 +36,36 @@
           (click)="onSort('name')"
         >
           Workshop Name <img src="/icons/sort.svg" alt="sort-icon" />
-          <span *ngIf="sortColumn === 'name'">{{
-            sortDirection === "asc" ? "▲" : "▼"
-          }}</span>
         </div>
         <div
           class="px-5 py-3 flex items-center gap-1 cursor-pointer"
           (click)="onSort('services')"
         >
           Service Type <img src="/icons/sort.svg" alt="sort-icon" />
-          <span *ngIf="sortColumn === 'services'">{{
-            sortDirection === "asc" ? "▲" : "▼"
-          }}</span>
         </div>
         <div
           class="px-5 py-3 flex items-center gap-1 cursor-pointer"
           (click)="onSort('city')"
         >
           Location <img src="/icons/sort.svg" alt="sort-icon" />
-          <span *ngIf="sortColumn === 'city'">{{
-            sortDirection === "asc" ? "▲" : "▼"
-          }}</span>
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('vendor_email')"
+        >
+          Vendor Email <img src="/icons/sort.svg" alt="sort-icon" />
+        </div>
+        <div
+          class="px-5 py-3 flex items-center gap-1 cursor-pointer"
+          (click)="onSort('vendor_phone')"
+        >
+          Vendor Phone <img src="/icons/sort.svg" alt="sort-icon" />
         </div>
         <div
           class="px-5 py-3 flex items-center gap-1 cursor-pointer"
           (click)="onSort('is_active')"
         >
           Status <img src="/icons/sort.svg" alt="sort-icon" />
-          <span *ngIf="sortColumn === 'is_active'">{{
-            sortDirection === "asc" ? "▲" : "▼"
-          }}</span>
         </div>
         <div class="px-5 py-3 flex items-center gap-1">Actions</div>
       </div>
@@ -74,7 +74,7 @@
         *ngFor="let workshop of filteredAndSortedWorkshops; let i = index"
       >
         <div
-          class="grid grid-cols-[83px_minmax(246px,1fr)_minmax(246px,1fr)_129px_246px_115px] bg-white text-sm"
+          class="grid grid-cols-[83px_minmax(180px,1fr)_minmax(180px,1fr)_129px_minmax(180px,1fr)_180px_180px_115px] bg-white text-sm"
         >
           <div class="px-5 py-3">{{ (currentPage - 1) * perPage + i + 1 }}</div>
           <div class="px-5 py-3 flex items-center gap-1">
@@ -108,6 +108,14 @@
                 >{{ workshop.address || "" }}
               </ng-container>
               <ng-template #noLocation>-</ng-template>
+            </div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">{{ workshop.vendor?.email || "-" }}</div>
+          </div>
+          <div class="px-5 py-3 flex items-center gap-1">
+            <div class="line-clamp-1">
+              {{ workshop.vendor?.phone_number || "-" }}
             </div>
           </div>
           <div class="px-5 py-3 flex items-center gap-1">

@@ -189,16 +189,72 @@
                   "
                 />
               </div>
-              <ul class="flex gap-1">
-                <li
-                  *ngFor="let page of pageNumbers"
-                  (click)="onPageChange(page)"
-                  [class.bg-neutral-100]="page === pagination.current_page"
-                  class="py-2 px-4 rounded-md cursor-pointer"
-                  [class.text-neutral-400]="page !== pagination.current_page"
+              <ul class="flex gap-1 items-center">
+                <ng-container
+                  *ngFor="
+                    let page of [].constructor(pagination.last_page || 0);
+                    let i = index
+                  "
                 >
-                  {{ page }}
-                </li>
+                  <!--First page-->
+                  <li
+                    *ngIf="i === 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="pagination.current_page === 1"
+                    [class.text-neutral-400]="pagination.current_page !== 1"
+                    (click)="onPageChange(1)"
+                  >
+                    1
+                  </li>
+                  <!--Left ellipsis-->
+                  <li
+                    *ngIf="pagination.current_page > 4 && i === 1"
+                    class="py-2 px-4"
+                  >
+                    ...
+                  </li>
+
+                  <!--Middle pages-->
+                  <li
+                    *ngIf="
+                      i > 0 &&
+                      i < pagination.last_page - 1 &&
+                      i + 1 >= pagination.current_page - 1 &&
+                      i + 1 <= pagination.current_page + 1
+                    "
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="pagination.current_page === i + 1"
+                    [class.text-neutral-400]="pagination.current_page !== i + 1"
+                    (click)="onPageChange(i + 1)"
+                  >
+                    {{ i + 1 }}
+                  </li>
+
+                  <!--Right ellipsis-->
+                  <li
+                    *ngIf="
+                      pagination.current_page < pagination.last_page - 3 &&
+                      i === pagination.last_page - 2
+                    "
+                    class="py-2 px-4"
+                  >
+                    ...
+                  </li>
+                  <!--Last page-->
+                  <li
+                    *ngIf="i === pagination.last_page - 1 && i > 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="
+                      pagination.current_page === pagination.last_page
+                    "
+                    [class.text-neutral-400]="
+                      pagination.current_page !== pagination.last_page
+                    "
+                    (click)="onPageChange(pagination.last_page)"
+                  >
+                    {{ pagination.last_page }}
+                  </li>
+                </ng-container>
               </ul>
               <div>
                 <img

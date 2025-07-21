@@ -331,19 +331,69 @@
                   (click)="currentPage > 1 && onPageChange(currentPage - 1)"
                 />
               </div>
-              <ul class="flex gap-1">
-                <li
+              <ul class="flex gap-1 items-center">
+                <ng-container
                   *ngFor="
-                    let page of [].constructor(maintenanceMeta?.last_page || 1);
-                    let p = index
+                    let page of [].constructor(maintenanceMeta?.last_page || 0);
+                    let i = index
                   "
-                  class="py-2 px-4 rounded-md cursor-pointer"
-                  [class.bg-neutral-100]="currentPage === p + 1"
-                  [class.text-neutral-400]="currentPage !== p + 1"
-                  (click)="onPageChange(p + 1)"
                 >
-                  {{ p + 1 }}
-                </li>
+                  <!--First page-->
+                  <li
+                    *ngIf="i === 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="currentPage === 1"
+                    [class.text-neutral-400]="currentPage !== 1"
+                    (click)="onPageChange(1)"
+                  >
+                    1
+                  </li>
+                  <!--Left ellipsis-->
+                  <li *ngIf="currentPage > 4 && i === 1" class="py-2 px-4">
+                    ...
+                  </li>
+
+                  <!--Middle pages-->
+                  <li
+                    *ngIf="
+                      i > 0 &&
+                      i < maintenanceMeta.last_page - 1 &&
+                      i + 1 >= currentPage - 1 &&
+                      i + 1 <= currentPage + 1
+                    "
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="currentPage === i + 1"
+                    [class.text-neutral-400]="currentPage !== i + 1"
+                    (click)="onPageChange(i + 1)"
+                  >
+                    {{ i + 1 }}
+                  </li>
+
+                  <!--Right ellipsis-->
+                  <li
+                    *ngIf="
+                      currentPage < maintenanceMeta.last_page - 3 &&
+                      i === maintenanceMeta.last_page - 2
+                    "
+                    class="py-2 px-4"
+                  >
+                    ...
+                  </li>
+                  <!--Last page-->
+                  <li
+                    *ngIf="i === maintenanceMeta.last_page - 1 && i > 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="
+                      currentPage === maintenanceMeta.last_page
+                    "
+                    [class.text-neutral-400]="
+                      currentPage !== maintenanceMeta.last_page
+                    "
+                    (click)="onPageChange(maintenanceMeta.last_page)"
+                  >
+                    {{ maintenanceMeta.last_page }}
+                  </li>
+                </ng-container>
               </ul>
               <div>
                 <img

@@ -205,18 +205,77 @@
               >
                 <img src="/icons/pagination-left.svg" alt="previous" />
               </div>
-              <ul class="flex gap-1">
-                <li
-                  *ngFor="let page of getPageNumbers()"
-                  [class]="
-                    page === paginationMeta.current_page
-                      ? 'py-2 px-4 rounded-md cursor-pointer bg-neutral-100'
-                      : 'py-2 px-4 rounded-md cursor-pointer text-neutral-400'
+              <ul class="flex gap-1 items-center">
+                <ng-container
+                  *ngFor="
+                    let page of [].constructor(paginationMeta.last_page || 0);
+                    let i = index
                   "
-                  (click)="goToPage(page)"
                 >
-                  {{ page }}
-                </li>
+                  <!--First page-->
+                  <li
+                    *ngIf="i === 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="paginationMeta.current_page === 1"
+                    [class.text-neutral-400]="paginationMeta.current_page !== 1"
+                    (click)="goToPage(1)"
+                  >
+                    1
+                  </li>
+                  <!--Left ellipsis-->
+                  <li
+                    *ngIf="paginationMeta.current_page > 4 && i === 1"
+                    class="py-2 px-4"
+                  >
+                    ...
+                  </li>
+
+                  <!--Middle pages-->
+                  <li
+                    *ngIf="
+                      i > 0 &&
+                      i < paginationMeta.last_page - 1 &&
+                      i + 1 >= paginationMeta.current_page - 1 &&
+                      i + 1 <= paginationMeta.current_page + 1
+                    "
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="
+                      paginationMeta.current_page === i + 1
+                    "
+                    [class.text-neutral-400]="
+                      paginationMeta.current_page !== i + 1
+                    "
+                    (click)="goToPage(i + 1)"
+                  >
+                    {{ i + 1 }}
+                  </li>
+
+                  <!--Right ellipsis-->
+                  <li
+                    *ngIf="
+                      paginationMeta.current_page <
+                        paginationMeta.last_page - 3 &&
+                      i === paginationMeta.last_page - 2
+                    "
+                    class="py-2 px-4"
+                  >
+                    ...
+                  </li>
+                  <!--Last page-->
+                  <li
+                    *ngIf="i === paginationMeta.last_page - 1 && i > 0"
+                    class="py-2 px-4 rounded-md cursor-pointer"
+                    [class.bg-neutral-100]="
+                      paginationMeta.current_page === paginationMeta.last_page
+                    "
+                    [class.text-neutral-400]="
+                      paginationMeta.current_page !== paginationMeta.last_page
+                    "
+                    (click)="goToPage(paginationMeta.last_page)"
+                  >
+                    {{ paginationMeta.last_page }}
+                  </li>
+                </ng-container>
               </ul>
               <div
                 [class]="

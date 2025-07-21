@@ -40,11 +40,15 @@ export class DashboardSidebarComponent implements OnInit, OnDestroy {
       label: 'Support Requests',
       href: '/admin/dashboard/support-requests',
     },
+
     {
       label: 'Admin Management',
       href: '/admin/dashboard/management',
     },
-
+    {
+      label: 'Offers',
+      href: '/admin/dashboard/offers',
+    },
     {
       label: 'Settings',
       href: '/admin/dashboard/settings',

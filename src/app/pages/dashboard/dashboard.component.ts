@@ -24,7 +24,6 @@ import { OffersComponent } from '../../ui/offers/offers.component';
     NgChartsModule,
     FormsModule,
     AccessDeniedComponent,
-    OffersComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',

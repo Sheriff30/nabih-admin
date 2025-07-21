@@ -10,6 +10,7 @@ import { SupportRequestsComponent } from './pages/support-requests/support-reque
 import { VehicleManagementComponent } from './pages/vehicle-management/vehicle-management.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { WorkshopComponent } from './pages/workshop/workshop.component';
+import { OffersComponent } from './ui/offers/offers.component';
 
 export const routes: Routes = [
   {
@@ -47,6 +48,10 @@ export const routes: Routes = [
       {
         path: 'workshop',
         component: WorkshopComponent,
+      },
+      {
+        path: 'offers',
+        component: OffersComponent,
       },
     ],
   },

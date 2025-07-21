@@ -1,23 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
   Validators,
-  FormControl,
   ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { OffersService } from '../../services/offers.service';
 import { ToastService } from '../../services/toast.service';
-import { NgIf } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-offers',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf],
+  imports: [ReactiveFormsModule, NgIf, CommonModule, FormsModule],
   templateUrl: './offers.component.html',
   styleUrl: './offers.component.css',
 })
-export class OffersComponent {
+export class OffersComponent implements OnInit {
   offerForm: FormGroup;
   loading = false;
   successMsg = '';
@@ -25,44 +27,170 @@ export class OffersComponent {
   imagePreviewUrl: string | null = null;
   imageError: string | null = null;
 
+  // Table state
+  offers: any[] = [];
+  offersLoading = false;
+  meta: any = null;
+  searchTerm: string = '';
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  currentPage: number = 1;
+  perPage: number = 10;
+  Math = Math;
+  showCreateForm = false;
+
   constructor(
     private fb: FormBuilder,
     private offersService: OffersService,
     private toast: ToastService
   ) {
-    this.offerForm = this.fb.group({
-      image: [null, Validators.required],
-      is_active: [true],
-      display_order: [null],
-      start_date: [null, Validators.required],
-      end_date: [null, Validators.required],
-      button_link: [
-        null,
-        [
-          Validators.maxLength(255),
-          Validators.pattern(
-            /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i
-          ),
+    this.offerForm = this.fb.group(
+      {
+        image: [null, Validators.required],
+        is_active: [true],
+        display_order: [null],
+        start_date: [null, Validators.required],
+        end_date: [null, Validators.required],
+        button_link: [
+          null,
+          [
+            Validators.maxLength(255),
+            Validators.pattern(
+              /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i
+            ),
+          ],
         ],
-      ],
-      is_limited_time: [false],
-      title: this.fb.group({
-        en: ['', [Validators.required, Validators.maxLength(255)]],
-        ar: ['', [Validators.required, Validators.maxLength(255)]],
-      }),
-      description: this.fb.group({
-        en: ['', Validators.required],
-        ar: ['', Validators.required],
-      }),
-      discount_text: this.fb.group({
-        en: ['', [Validators.required, Validators.maxLength(255)]],
-        ar: ['', [Validators.required, Validators.maxLength(255)]],
-      }),
-      button_text: this.fb.group({
-        en: ['', [Validators.required, Validators.maxLength(255)]],
-        ar: ['', [Validators.required, Validators.maxLength(255)]],
-      }),
-    });
+        is_limited_time: [false],
+        title: this.fb.group({
+          en: ['', [Validators.required, Validators.maxLength(255)]],
+          ar: ['', [Validators.required, Validators.maxLength(255)]],
+        }),
+        description: this.fb.group({
+          en: ['', Validators.required],
+          ar: ['', Validators.required],
+        }),
+        discount_text: this.fb.group({
+          en: ['', [Validators.required, Validators.maxLength(255)]],
+          ar: ['', [Validators.required, Validators.maxLength(255)]],
+        }),
+        button_text: this.fb.group({
+          en: ['', [Validators.required, Validators.maxLength(255)]],
+          ar: ['', [Validators.required, Validators.maxLength(255)]],
+        }),
+      },
+      { validators: this.dateRangeValidator }
+    );
+  }
+
+  dateRangeValidator(control: AbstractControl): ValidationErrors | null {
+    const startDate = control.get('start_date')?.value;
+    const endDate = control.get('end_date')?.value;
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      return { dateRange: true };
+    }
+    return null;
+  }
+
+  ngOnInit(): void {
+    this.loadOffers();
+  }
+
+  loadOffers() {
+    this.offersLoading = true;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.toast.show('Authentication token not found.', 'error');
+      this.offersLoading = false;
+      return;
+    }
+    this.offersService
+      .getOffers(token, this.currentPage, this.perPage)
+      .subscribe({
+        next: (res) => {
+          if (res.success && res.data.offers) {
+            this.offers = res.data.offers;
+            this.meta = res.data.meta;
+          } else {
+            this.toast.show('Failed to load offers.', 'error');
+          }
+          this.offersLoading = false;
+        },
+        error: (err) => {
+          this.toast.show('An error occurred while fetching offers.', 'error');
+          this.offersLoading = false;
+        },
+      });
+  }
+
+  toggleCreateForm() {
+    this.showCreateForm = !this.showCreateForm;
+    if (!this.showCreateForm) {
+      this.offerForm.reset();
+      this.imagePreviewUrl = null;
+      this.imageError = null;
+    }
+  }
+
+  get filteredAndSortedOffers(): any[] {
+    let filtered = this.offers;
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (o) =>
+          o.title?.en?.toLowerCase().includes(term) ||
+          o.title?.ar?.toLowerCase().includes(term)
+      );
+    }
+    if (this.sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any = a[this.sortColumn];
+        let bValue: any = b[this.sortColumn];
+        if (this.sortColumn === 'title') {
+          aValue = a.title?.en || '';
+          bValue = b.title?.en || '';
+        }
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return filtered;
+  }
+
+  onSearch(term: string) {
+    this.searchTerm = term;
+    this.currentPage = 1;
+    this.loadOffers();
+  }
+
+  onSort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+    this.loadOffers();
+  }
+
+  onPerPageChange(newPerPage: number) {
+    this.perPage = newPerPage;
+    this.currentPage = 1;
+    this.loadOffers();
+  }
+
+  get totalPages(): number {
+    return this.meta?.last_page || 1;
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   onFileChange(event: any) {
@@ -138,7 +266,6 @@ export class OffersComponent {
     this.offerForm.disable();
     this.successMsg = '';
     this.errorMsg = '';
-    this.imagePreviewUrl = null;
     const formData = new FormData();
     const value = this.offerForm.value;
     formData.append('image', value.image);
@@ -167,8 +294,11 @@ export class OffersComponent {
         this.successMsg = 'Offer created successfully!';
         this.toast.show(this.successMsg, 'success');
         this.offerForm.reset();
+        this.imagePreviewUrl = null;
         this.loading = false;
         this.offerForm.enable();
+        this.toggleCreateForm();
+        this.loadOffers();
       },
       error: (err) => {
         console.log(err);

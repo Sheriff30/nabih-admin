@@ -276,7 +276,7 @@ export class OffersComponent implements OnInit {
   onSearch(term: string) {
     this.searchTerm = term;
     this.currentPage = 1;
-    this.loadOffers();
+    // No need to call loadOffers(), front-end filtering will handle it.
   }
 
   onSort(column: string) {
@@ -286,6 +286,7 @@ export class OffersComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
+    // No need to call loadOffers(), front-end sorting will handle it.
   }
 
   onPageChange(page: number) {

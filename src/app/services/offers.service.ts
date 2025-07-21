@@ -31,17 +31,27 @@ export class OffersService {
   getOffers(
     token: string,
     page: number = 1,
-    perPage: number = 10
+    perPage: number = 10,
+    searchTerm: string = '',
+    sortColumn: string = '',
+    sortDirection: 'asc' | 'desc' = 'asc'
   ): Observable<any> {
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       Accept: 'application/json',
     });
 
-    let params = new HttpParams().set('page', page.toString());
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('per_page', perPage.toString());
 
-    if (perPage > 0) {
-      params = params.set('per_page', perPage.toString());
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+
+    if (sortColumn) {
+      params = params.set('sort_by', sortColumn);
+      params = params.set('sort_direction', sortDirection);
     }
 
     return this.http.get<any>(this.apiUrl, { headers, params });

@@ -38,6 +38,12 @@ export class OffersComponent implements OnInit {
   perPage: number = 10;
   Math = Math;
   showCreateForm = false;
+  showEditForm = false;
+  editOfferId: number | null = null;
+  editImagePreviewUrl: string | null = null;
+  showDeleteConfirmation = false;
+  offerToDelete: any = null;
+  private initialEditFormValue: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -46,7 +52,7 @@ export class OffersComponent implements OnInit {
   ) {
     this.offerForm = this.fb.group(
       {
-        image: [null, Validators.required],
+        image: [null], // No required validator here
         is_active: [true],
         display_order: [null],
         start_date: [null, Validators.required],
@@ -78,7 +84,12 @@ export class OffersComponent implements OnInit {
           ar: ['', [Validators.required, Validators.maxLength(255)]],
         }),
       },
-      { validators: this.dateRangeValidator }
+      {
+        validators: [
+          this.dateRangeValidator,
+          this.imageRequiredValidator.bind(this),
+        ],
+      }
     );
   }
 
@@ -87,6 +98,25 @@ export class OffersComponent implements OnInit {
     const endDate = control.get('end_date')?.value;
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       return { dateRange: true };
+    }
+    return null;
+  }
+
+  /**
+   * Custom validator: require image if creating, or if editing and no image exists
+   */
+  imageRequiredValidator(form: AbstractControl): ValidationErrors | null {
+    // If in edit mode and there is an existing image, image is not required
+    const image = form.get('image')?.value;
+    if (this.showEditForm) {
+      if (!image && !this.editImagePreviewUrl) {
+        return { imageRequired: true };
+      }
+    } else {
+      // In create mode, image is always required
+      if (!image) {
+        return { imageRequired: true };
+      }
     }
     return null;
   }
@@ -107,6 +137,7 @@ export class OffersComponent implements OnInit {
       .getOffers(token, this.currentPage, this.perPage)
       .subscribe({
         next: (res) => {
+          console.log(res);
           if (res.success && res.data.offers) {
             this.offers = res.data.offers;
             this.meta = res.data.meta;
@@ -129,6 +160,89 @@ export class OffersComponent implements OnInit {
       this.imagePreviewUrl = null;
       this.imageError = null;
     }
+  }
+
+  openEditForm(offer: any) {
+    this.showEditForm = true;
+    this.editOfferId = offer.id;
+    this.offerForm.reset();
+    this.imageError = null;
+    // Patch form with offer data
+    this.offerForm.patchValue({
+      image: null, // No file selected yet
+      is_active: offer.is_active,
+      display_order: offer.display_order,
+      start_date: offer.start_date ? offer.start_date.slice(0, 10) : null,
+      end_date: offer.end_date ? offer.end_date.slice(0, 10) : null,
+      button_link: offer.button_link,
+      is_limited_time: offer.is_limited_time,
+      title: {
+        en: offer.title?.en || '',
+        ar: offer.title?.ar || '',
+      },
+      description: {
+        en: offer.description?.en || '',
+        ar: offer.description?.ar || '',
+      },
+      discount_text: {
+        en: offer.discount_text?.en || '',
+        ar: offer.discount_text?.ar || '',
+      },
+      button_text: {
+        en: offer.button_text?.en || '',
+        ar: offer.button_text?.ar || '',
+      },
+    });
+    this.initialEditFormValue = this.offerForm.value; // Store for comparison
+    this.editImagePreviewUrl = offer.image_url || null;
+    this.imagePreviewUrl = null;
+  }
+
+  closeEditForm() {
+    this.showEditForm = false;
+    this.editOfferId = null;
+    this.editImagePreviewUrl = null;
+    this.offerForm.reset();
+    this.imageError = null;
+    this.imagePreviewUrl = null;
+    this.initialEditFormValue = null;
+  }
+
+  openDeleteConfirmation(offer: any) {
+    this.offerToDelete = offer;
+    this.showDeleteConfirmation = true;
+  }
+
+  closeDeleteConfirmation() {
+    this.offerToDelete = null;
+    this.showDeleteConfirmation = false;
+  }
+
+  confirmDelete() {
+    if (!this.offerToDelete) return;
+
+    this.loading = true;
+    const token = localStorage.getItem('token') || '';
+
+    this.offersService.deleteOffer(this.offerToDelete.id, token).subscribe({
+      next: (res) => {
+        this.toast.show('Offer deleted successfully!', 'success');
+
+        // If the last item on a page is deleted, go to the previous page
+        if (this.filteredAndSortedOffers.length === 1 && this.currentPage > 1) {
+          this.currentPage--;
+        }
+
+        this.loadOffers(); // Refresh the list
+        this.closeDeleteConfirmation();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.toast.show('Failed to delete offer. Please try again.', 'error');
+        this.loading = false;
+        this.closeDeleteConfirmation();
+      },
+    });
   }
 
   get filteredAndSortedOffers(): any[] {
@@ -205,7 +319,7 @@ export class OffersComponent implements OnInit {
         return;
       }
       // Validate file size (max 2MB)
-      if (file.size > 1 * 1024 * 1024) {
+      if (file.size > 2 * 1024 * 1024) {
         this.imageError = 'Image must be less than 2MB.';
         this.offerForm.patchValue({ image: null });
         this.imagePreviewUrl = null;
@@ -224,6 +338,7 @@ export class OffersComponent implements OnInit {
             this.imageError = null;
             this.offerForm.patchValue({ image: file });
             this.imagePreviewUrl = e.target.result;
+            this.editImagePreviewUrl = null; // Remove old preview if new image selected
           }
         };
         img.src = e.target.result;
@@ -248,6 +363,7 @@ export class OffersComponent implements OnInit {
     this.imagePreviewUrl = null;
     this.imageError = null;
     fileInput.value = '';
+    this.editImagePreviewUrl = null;
   }
 
   showAllErrorsIfInvalid(event: Event) {
@@ -269,7 +385,7 @@ export class OffersComponent implements OnInit {
     const formData = new FormData();
     const value = this.offerForm.value;
     formData.append('image', value.image);
-    formData.append('is_active', value.is_active ? '1' : '0');
+    formData.append('is_active', value.is_active);
     if (value.display_order !== null && value.display_order !== undefined)
       formData.append('display_order', value.display_order);
     if (value.start_date)
@@ -277,7 +393,7 @@ export class OffersComponent implements OnInit {
     if (value.end_date)
       formData.append('end_date', this.toBackendDate(value.end_date));
     if (value.button_link) formData.append('button_link', value.button_link);
-    formData.append('is_limited_time', value.is_limited_time ? '1' : '0');
+    formData.append('is_limited_time', value.is_limited_time);
     // Translation fields as arrays
     formData.append('title[en]', value.title.en);
     formData.append('title[ar]', value.title.ar);
@@ -314,6 +430,86 @@ export class OffersComponent implements OnInit {
         this.offerForm.enable();
       },
     });
+  }
+
+  submitEditOffer() {
+    if (this.offerForm.invalid || this.editOfferId === null) {
+      this.offerForm.markAllAsTouched();
+      return;
+    }
+
+    const currentValue = this.offerForm.value;
+    // A new image was selected if `currentValue.image` is a File object.
+    const newImageSelected = !!currentValue.image;
+    // Compare form values, ignoring the 'image' property which is handled separately.
+    const initialValueForCompare = {
+      ...this.initialEditFormValue,
+      image: null,
+    };
+    const currentValueForCompare = { ...currentValue, image: null };
+
+    if (
+      !newImageSelected &&
+      JSON.stringify(initialValueForCompare) ===
+        JSON.stringify(currentValueForCompare)
+    ) {
+      this.toast.show('No changes detected.', 'info');
+      this.closeEditForm();
+      return;
+    }
+
+    this.loading = true;
+    this.offerForm.disable();
+    this.successMsg = '';
+    this.errorMsg = '';
+    const formData = new FormData();
+    const value = this.offerForm.value;
+    // Only append image if a new one is selected
+    if (value.image) {
+      formData.append('image', value.image);
+    }
+    formData.append('is_active', value.is_active);
+    if (value.display_order !== null && value.display_order !== undefined)
+      formData.append('display_order', value.display_order);
+    if (value.start_date)
+      formData.append('start_date', this.toBackendDate(value.start_date));
+    if (value.end_date)
+      formData.append('end_date', this.toBackendDate(value.end_date));
+    if (value.button_link) formData.append('button_link', value.button_link);
+    formData.append('is_limited_time', value.is_limited_time);
+    // Translation fields as single strings (not arrays/objects)
+    formData.append('title', value.title.en);
+    formData.append('description', value.description.en);
+    formData.append('discount_text', value.discount_text.en);
+    formData.append('button_text', value.button_text.en);
+    const token = localStorage.getItem('token') || '';
+    this.offersService
+      .updateOffer(this.editOfferId, formData, token)
+      .subscribe({
+        next: (res) => {
+          this.successMsg = 'Offer updated successfully!';
+          this.toast.show(this.successMsg, 'success');
+          this.offerForm.reset();
+          this.imagePreviewUrl = null;
+          this.editImagePreviewUrl = null;
+          this.loading = false;
+          this.offerForm.enable();
+          this.closeEditForm();
+          this.loadOffers();
+        },
+        error: (err) => {
+          if (err.status === 422) {
+            this.errorMsg = 'Please check the form for errors and try again.';
+          } else if (err.status === 401) {
+            this.errorMsg = 'You are not authorized. Please log in again.';
+          } else {
+            this.errorMsg = 'Something went wrong. Please try again later.';
+          }
+          this.toast.show(this.errorMsg, 'error');
+          this.loading = false;
+          this.offerForm.enable();
+        },
+      });
   }
 
   getToday(): string {

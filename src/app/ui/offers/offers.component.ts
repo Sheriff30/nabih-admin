@@ -386,7 +386,7 @@ export class OffersComponent implements OnInit {
     const formData = new FormData();
     const value = this.offerForm.value;
     formData.append('image', value.image);
-    formData.append('is_active', value.is_active);
+    formData.append('is_active', value.is_active ? '1' : '0');
     if (value.display_order !== null && value.display_order !== undefined)
       formData.append('display_order', value.display_order);
     if (value.start_date)
@@ -394,7 +394,7 @@ export class OffersComponent implements OnInit {
     if (value.end_date)
       formData.append('end_date', this.toBackendDate(value.end_date));
     if (value.button_link) formData.append('button_link', value.button_link);
-    formData.append('is_limited_time', value.is_limited_time);
+    formData.append('is_limited_time', value.is_limited_time ? '1' : '0');
     // Translation fields as arrays
     formData.append('title[en]', value.title.en);
     formData.append('title[ar]', value.title.ar);
@@ -469,7 +469,7 @@ export class OffersComponent implements OnInit {
     if (value.image) {
       formData.append('image', value.image);
     }
-    formData.append('is_active', value.is_active);
+    formData.append('is_active', value.is_active ? '1' : '0');
     if (value.display_order !== null && value.display_order !== undefined)
       formData.append('display_order', value.display_order);
     if (value.start_date)
@@ -477,7 +477,7 @@ export class OffersComponent implements OnInit {
     if (value.end_date)
       formData.append('end_date', this.toBackendDate(value.end_date));
     if (value.button_link) formData.append('button_link', value.button_link);
-    formData.append('is_limited_time', value.is_limited_time);
+    formData.append('is_limited_time', value.is_limited_time ? '1' : '0');
     // Translation fields as single strings (not arrays/objects)
     formData.append('title', value.title.en);
     formData.append('description', value.description.en);

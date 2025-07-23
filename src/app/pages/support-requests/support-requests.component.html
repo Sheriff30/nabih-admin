@@ -108,7 +108,9 @@
               </div>
 
               <div class="px-5 py-3 flex items-center gap-1">
-                <div class="line-clamp-1">{{ request.user?.email || "-" }}</div>
+                <div class="line-clamp-1">
+                  {{ request.user?.email || "Not provided" }}
+                </div>
               </div>
               <div class="px-5 py-3 flex justify-center gap-1">
                 {{ request.date_created }}
@@ -348,13 +350,13 @@
                 <div>
                   <span class="text-neutral-600">Email:</span>
                   <span class="text-[#392A4B] font-medium">
-                    {{ selectedRequest.user?.email || "-" }}
+                    {{ selectedRequest.user?.email || "Not provided" }}
                   </span>
                 </div>
                 <div>
                   <span class="text-neutral-600">Phone Number:</span>
                   <span class="text-[#392A4B] font-medium">
-                    {{ selectedRequest.user?.phone || "-" }}
+                    {{ selectedRequest.user?.phone || "Not provided" }}
                   </span>
                 </div>
               </div>

@@ -85,7 +85,6 @@ export class SupportRequestsComponent implements OnInit {
     if (!token) {
       this.error = 'No authentication token found';
       this.loading = false;
-      this.toast.show('Authentication required. Please log in again.', 'error');
       return;
     }
     this.supportRequestsService
@@ -220,7 +219,6 @@ export class SupportRequestsComponent implements OnInit {
     if (!this.selectedRequest) return;
     if (!this.adminResponse.trim()) {
       this.formError = 'Response is required.';
-      this.toast.show('Please enter a response before saving.', 'error');
       return;
     }
     this.submitting = true;
@@ -229,7 +227,6 @@ export class SupportRequestsComponent implements OnInit {
     if (!token) {
       this.formError = 'No authentication token found';
       this.submitting = false;
-      this.toast.show('Authentication required. Please log in again.', 'error');
       return;
     }
     this.supportRequestsService
@@ -319,10 +316,7 @@ export class SupportRequestsComponent implements OnInit {
     if (this.permissionsStore.hasPermission('support.view.single')) {
       this.openModal(request);
     } else {
-      this.toast.show(
-        'You do not have permission to view support request details.',
-        'error'
-      );
+      // Permission denied - no action taken, UI should handle display
     }
   }
 
@@ -330,10 +324,7 @@ export class SupportRequestsComponent implements OnInit {
     if (this.permissionsStore.hasPermission('support.view.deleted')) {
       this.openDeleteModal(request);
     } else {
-      this.toast.show(
-        'You do not have permission to delete support requests.',
-        'error'
-      );
+      // Permission denied - no action taken, UI should handle display
     }
   }
 }

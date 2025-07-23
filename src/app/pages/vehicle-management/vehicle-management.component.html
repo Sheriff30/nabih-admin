@@ -415,6 +415,18 @@
             >
               Vehicle Name is required.
             </div>
+            <div
+              *ngIf="editVehicleErrors['name']"
+              class="text-red-500 text-xs mt-1"
+            >
+              {{ editVehicleErrors["name"] }}
+            </div>
+            <div
+              *ngIf="editVehicleErrors['general']"
+              class="text-red-500 text-xs mt-1"
+            >
+              {{ editVehicleErrors["general"] }}
+            </div>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-neutral-600">Brand</label>

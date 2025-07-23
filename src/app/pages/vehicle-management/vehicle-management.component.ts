@@ -44,6 +44,7 @@ export class VehicleManagementComponent implements OnInit {
   editVehicle: VehicleResource | null = null;
   editVehicleForm: any = null;
   editLoading: boolean = false;
+  editVehicleErrors: { [key: string]: string } = {};
 
   serviceHistoryModalOpen: boolean = false;
   serviceHistoryVehicle: VehicleResource | null = null;
@@ -298,12 +299,32 @@ export class VehicleManagementComponent implements OnInit {
           if (idx !== -1) {
             this.vehicles[idx] = res.data;
           }
+          this.editVehicleErrors = {}; // Clear errors on success
           this.toast.show('Vehicle details updated successfully!', 'success');
           this.closeEditModal();
         },
         error: (err) => {
           this.editLoading = false;
-          this.toast.show('Something went wrong. Please try again.', 'error');
+          if (err.status === 422 && err.error && err.error.message) {
+            // Try to parse field errors if present, otherwise fallback to message
+            if (err.error.errors) {
+              this.editVehicleErrors = err.error.errors;
+              this.toast.show(
+                'Something went wrong. Please try again',
+                'error'
+              );
+            } else {
+              this.toast.show(
+                'Something went wrong. Please try again',
+                'error'
+              );
+              this.editVehicleErrors = { general: err.error.message };
+            }
+          } else {
+            this.editVehicleErrors = {
+              general: 'Something went wrong. Please try again.',
+            };
+          }
         },
       });
   }

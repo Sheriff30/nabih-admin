@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from '../../services/settings.service';
-import { NgIf } from '@angular/common';
+import { NgIf, NgClass } from '@angular/common';
 import { ToastService } from '../../services/toast.service';
 import { PermissionsService } from '../../services/permissions-store.service';
 import { Subscription } from 'rxjs';
@@ -16,6 +16,9 @@ import { AccessDeniedComponent } from '../../pages/access-denied/access-denied.c
   styleUrl: './about-terms.component.css',
 })
 export class AboutTermsComponent implements OnInit, OnDestroy {
+  // Character limits
+  readonly CHARACTER_LIMIT = 1000;
+
   // Form state
   type: string = 'about';
   user_type: string = 'both';
@@ -25,6 +28,20 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   aboutEn: string = '';
   termsAr: string = '';
   termsEn: string = '';
+
+  // Original content for change detection
+  originalAboutAr: string = '';
+  originalAboutEn: string = '';
+  originalTermsAr: string = '';
+  originalTermsEn: string = '';
+  originalIsActive: boolean = true;
+
+  // Validation errors
+  aboutArError: string = '';
+  aboutEnError: string = '';
+  termsArError: string = '';
+  termsEnError: string = '';
+
   // UI state
   loading = false;
   loadingContent = false;
@@ -57,6 +74,102 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Character count helpers
+  getPlainTextLength(htmlContent: string): number {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    return tempDiv.textContent?.length || 0;
+  }
+
+  getAboutArCharCount(): number {
+    return this.getPlainTextLength(this.aboutAr);
+  }
+
+  getAboutEnCharCount(): number {
+    return this.getPlainTextLength(this.aboutEn);
+  }
+
+  getTermsArCharCount(): number {
+    return this.getPlainTextLength(this.termsAr);
+  }
+
+  getTermsEnCharCount(): number {
+    return this.getPlainTextLength(this.termsEn);
+  }
+
+  isCharacterLimitExceeded(content: string): boolean {
+    return this.getPlainTextLength(content) > this.CHARACTER_LIMIT;
+  }
+
+  // Content change handlers
+  onAboutArChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.aboutArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.aboutArError = '';
+    }
+  }
+
+  onAboutEnChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.aboutEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.aboutEnError = '';
+    }
+  }
+
+  onTermsArChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.termsArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.termsArError = '';
+    }
+  }
+
+  onTermsEnChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.termsEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.termsEnError = '';
+    }
+  }
+
+  // Check if any validation errors exist
+  hasValidationErrors(): boolean {
+    return !!(
+      this.aboutArError ||
+      this.aboutEnError ||
+      this.termsArError ||
+      this.termsEnError
+    );
+  }
+
+  // Check if content has changed from original
+  hasAboutContentChanged(): boolean {
+    return (
+      this.aboutAr !== this.originalAboutAr ||
+      this.aboutEn !== this.originalAboutEn ||
+      this.is_active !== this.originalIsActive
+    );
+  }
+
+  hasTermsContentChanged(): boolean {
+    return (
+      this.termsAr !== this.originalTermsAr ||
+      this.termsEn !== this.originalTermsEn ||
+      this.is_active !== this.originalIsActive
+    );
+  }
+
+  // Store original content values
+  storeOriginalContent(): void {
+    this.originalAboutAr = this.aboutAr;
+    this.originalAboutEn = this.aboutEn;
+    this.originalTermsAr = this.termsAr;
+    this.originalTermsEn = this.termsEn;
+    this.originalIsActive = this.is_active;
+  }
+
   loadExistingContent(): void {
     if (!this.permissionsStore.hasPermission('content.static.view.list')) {
       return;
@@ -64,11 +177,15 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
 
     this.loadingContent = true;
 
-    // Clear existing content first
+    // Clear existing content and errors first
     this.aboutAr = '';
     this.aboutEn = '';
     this.termsAr = '';
     this.termsEn = '';
+    this.aboutArError = '';
+    this.aboutEnError = '';
+    this.termsArError = '';
+    this.termsEnError = '';
 
     let aboutLoaded = false;
     let termsLoaded = false;
@@ -76,6 +193,8 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     const checkLoadingComplete = () => {
       if (aboutLoaded && termsLoaded) {
         this.loadingContent = false;
+        // Store original content after loading is complete
+        this.storeOriginalContent();
       }
     };
 
@@ -166,6 +285,39 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
       );
       return;
     }
+
+    // Check if content has changed
+    if (type === 'about' && !this.hasAboutContentChanged()) {
+      this.toast.show('No changes detected in About content', 'info');
+      return;
+    }
+
+    if (type === 'terms' && !this.hasTermsContentChanged()) {
+      this.toast.show('No changes detected in Terms content', 'info');
+      return;
+    }
+
+    // Character limit validation
+    if (type === 'about') {
+      if (this.isCharacterLimitExceeded(this.aboutAr)) {
+        this.aboutArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+      if (this.isCharacterLimitExceeded(this.aboutEn)) {
+        this.aboutEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+    } else if (type === 'terms') {
+      if (this.isCharacterLimitExceeded(this.termsAr)) {
+        this.termsArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+      if (this.isCharacterLimitExceeded(this.termsEn)) {
+        this.termsEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+    }
+
     this.loading = true;
     this.message = '';
     this.error = '';
@@ -210,7 +362,8 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
         this.message =
           res?.message || 'Static content created/updated successfully';
         this.toast.show(this.message, 'success');
-        // Don't clear fields after successful submit since we're editing existing content
+        // Update original content after successful save
+        this.storeOriginalContent();
       },
       error: (err) => {
         this.loading = false;

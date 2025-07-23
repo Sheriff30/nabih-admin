@@ -62,11 +62,21 @@
       <div
         class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
       >
-        <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
-          About in Arabic
-        </p>
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">About in Arabic</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getAboutArCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getAboutArCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getAboutArCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
         <quill-editor
           [(ngModel)]="aboutAr"
+          (ngModelChange)="onAboutArChange($event)"
           [modules]="{
             toolbar: [
               [{ header: [1, 2, false] }],
@@ -79,15 +89,28 @@
           }"
           placeholder="Type a message..."
         ></quill-editor>
+        <div *ngIf="aboutArError" class="mt-2 text-sm text-red-500 px-2">
+          {{ aboutArError }}
+        </div>
       </div>
       <div
         class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
       >
-        <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
-          About in English
-        </p>
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">About in English</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getAboutEnCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getAboutEnCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getAboutEnCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
         <quill-editor
           [(ngModel)]="aboutEn"
+          (ngModelChange)="onAboutEnChange($event)"
           [modules]="{
             toolbar: [
               [{ header: [1, 2, false] }],
@@ -100,12 +123,15 @@
           }"
           placeholder="Type a message..."
         ></quill-editor>
+        <div *ngIf="aboutEnError" class="mt-2 text-sm text-red-500 px-2">
+          {{ aboutEnError }}
+        </div>
       </div>
 
       <button
         (click)="submitStaticContent('about')"
         class="px-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
-        [disabled]="loading"
+        [disabled]="loading || aboutArError || aboutEnError"
       >
         <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
         {{ loading ? "Saving..." : "Save About" }}
@@ -113,11 +139,21 @@
       <div
         class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
       >
-        <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
-          Terms & Conditions in Arabic
-        </p>
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">Terms & Conditions in Arabic</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getTermsArCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getTermsArCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getTermsArCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
         <quill-editor
           [(ngModel)]="termsAr"
+          (ngModelChange)="onTermsArChange($event)"
           [modules]="{
             toolbar: [
               [{ header: [1, 2, false] }],
@@ -130,15 +166,28 @@
           }"
           placeholder="Type a message..."
         ></quill-editor>
+        <div *ngIf="termsArError" class="mt-2 text-sm text-red-500 px-2">
+          {{ termsArError }}
+        </div>
       </div>
       <div
         class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
       >
-        <p class="border-b border-neutral-200 p-[10px] font-semibold text-sm">
-          Terms and Conditions in English
-        </p>
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">Terms and Conditions in English</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getTermsEnCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getTermsEnCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getTermsEnCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
         <quill-editor
           [(ngModel)]="termsEn"
+          (ngModelChange)="onTermsEnChange($event)"
           [modules]="{
             toolbar: [
               [{ header: [1, 2, false] }],
@@ -151,11 +200,14 @@
           }"
           placeholder="Type a message..."
         ></quill-editor>
+        <div *ngIf="termsEnError" class="mt-2 text-sm text-red-500 px-2">
+          {{ termsEnError }}
+        </div>
       </div>
       <button
         (click)="submitStaticContent('terms')"
         class="px-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
-        [disabled]="loading"
+        [disabled]="loading || termsArError || termsEnError"
       >
         <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
         {{ loading ? "Saving..." : "Save Terms" }}

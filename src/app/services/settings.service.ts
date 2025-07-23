@@ -27,4 +27,15 @@ export class SettingsService {
       headers: this.getAuthHeaders(token),
     });
   }
+
+  getContentByType(type: string, userType: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const url = `${this.apiUrl}/type/${type}/user-type/${userType}`;
+    return this.http.get(url, {
+      headers: this.getAuthHeaders(token),
+    });
+  }
 }

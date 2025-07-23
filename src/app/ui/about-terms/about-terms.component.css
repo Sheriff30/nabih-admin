@@ -1,0 +1,19 @@
+::ng-deep .ql-editor {
+  min-height: 250px !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+}
+
+::ng-deep .ql-container {
+  height: 250px !important;
+}
+
+::ng-deep quill-editor .ql-container {
+  height: 250px !important;
+}
+
+::ng-deep quill-editor .ql-editor {
+  min-height: 250px !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+}

@@ -27,6 +27,7 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   termsEn: string = '';
   // UI state
   loading = false;
+  loadingContent = false;
   message = '';
   error = '';
 
@@ -44,6 +45,7 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
       (permissions) => {
         if (permissions && permissions.length > 0) {
           this.permissionsLoading = false;
+          this.loadExistingContent();
         }
       }
     );
@@ -53,6 +55,102 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     if (this.permissionsSub) {
       this.permissionsSub.unsubscribe();
     }
+  }
+
+  loadExistingContent(): void {
+    if (!this.permissionsStore.hasPermission('content.static.view.list')) {
+      return;
+    }
+
+    this.loadingContent = true;
+
+    // Clear existing content first
+    this.aboutAr = '';
+    this.aboutEn = '';
+    this.termsAr = '';
+    this.termsEn = '';
+
+    let aboutLoaded = false;
+    let termsLoaded = false;
+
+    const checkLoadingComplete = () => {
+      if (aboutLoaded && termsLoaded) {
+        this.loadingContent = false;
+      }
+    };
+
+    // Load About content
+    this.settingsService.getContentByType('about', this.user_type).subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.content) {
+          const content = response.data.content;
+          this.is_active = content.is_active;
+
+          try {
+            const translations =
+              typeof content.translations === 'string'
+                ? JSON.parse(content.translations)
+                : content.translations;
+
+            if (translations?.en?.content) {
+              this.aboutEn = translations.en.content;
+            }
+            if (translations?.ar?.content) {
+              this.aboutAr = translations.ar.content;
+            }
+          } catch (e) {
+            console.warn('Error parsing translations for about content:', e);
+          }
+        }
+        aboutLoaded = true;
+        checkLoadingComplete();
+      },
+      error: (err) => {
+        aboutLoaded = true;
+        checkLoadingComplete();
+        if (err?.status !== 404) {
+          console.warn('Error loading about content:', err);
+        }
+      },
+    });
+
+    // Load Terms content
+    this.settingsService.getContentByType('terms', this.user_type).subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.content) {
+          const content = response.data.content;
+
+          try {
+            const translations =
+              typeof content.translations === 'string'
+                ? JSON.parse(content.translations)
+                : content.translations;
+
+            if (translations?.en?.content) {
+              this.termsEn = translations.en.content;
+            }
+            if (translations?.ar?.content) {
+              this.termsAr = translations.ar.content;
+            }
+          } catch (e) {
+            console.warn('Error parsing translations for terms content:', e);
+          }
+        }
+        termsLoaded = true;
+        checkLoadingComplete();
+      },
+      error: (err) => {
+        termsLoaded = true;
+        checkLoadingComplete();
+        if (err?.status !== 404) {
+          console.warn('Error loading terms content:', err);
+        }
+      },
+    });
+  }
+
+  onUserTypeChange(): void {
+    this.loadExistingContent();
   }
 
   submitStaticContent(type: string) {
@@ -112,14 +210,7 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
         this.message =
           res?.message || 'Static content created/updated successfully';
         this.toast.show(this.message, 'success');
-        // Clear fields after successful submit
-        if (type === 'about') {
-          this.aboutAr = '';
-          this.aboutEn = '';
-        } else if (type === 'terms') {
-          this.termsAr = '';
-          this.termsEn = '';
-        }
+        // Don't clear fields after successful submit since we're editing existing content
       },
       error: (err) => {
         this.loading = false;

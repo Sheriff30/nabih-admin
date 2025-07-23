@@ -319,6 +319,8 @@
       <form
         class="bg-[#F7F7FB] rounded-[20px] p-6 w-full max-w-[721px] shadow-lg grid gap-6"
         (ngSubmit)="onSubmit()"
+        autocomplete="off"
+        novalidate
       >
         <div
           class="flex justify-between border-b border-neutral-300 pb-6 items-center"
@@ -350,6 +352,7 @@
               name="first_name"
               [(ngModel)]="formData.first_name"
               (input)="validateFirstName()"
+              autocomplete="off"
               placeholder="Enter first name"
               required
             />
@@ -366,6 +369,7 @@
               name="last_name"
               [(ngModel)]="formData.last_name"
               (input)="validateLastName()"
+              autocomplete="off"
               required
               placeholder="Enter last name"
             />
@@ -382,6 +386,7 @@
               name="email"
               [(ngModel)]="formData.email"
               (input)="validateEmail()"
+              autocomplete="off"
               required
               placeholder="example@email.com"
             />
@@ -399,6 +404,7 @@
                 name="password"
                 [(ngModel)]="formData.password"
                 (input)="validatePassword()"
+                autocomplete="new-password"
                 required
                 minlength="8"
                 placeholder="Enter Password"

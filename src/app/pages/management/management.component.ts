@@ -232,8 +232,12 @@ export class ManagementComponent implements OnInit, OnDestroy {
 
   // Form methods
   showAddAdminModal(): void {
+    this.resetForm(); // Reset first to clear any existing data
     this.showAddAdminForm = true;
-    this.resetForm();
+    // Force form to re-render by triggering change detection
+    setTimeout(() => {
+      this.resetForm();
+    }, 0);
   }
 
   hideAddAdminModal(): void {
@@ -307,7 +311,6 @@ export class ManagementComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('token');
     if (!token) {
       this.formError = 'Authentication required';
-      this.toast.show(this.formError || '', 'error');
       return;
     }
     this.formLoading = true;
@@ -338,7 +341,6 @@ export class ManagementComponent implements OnInit, OnDestroy {
           this.formError = err.error?.message || 'Failed to create admin user';
         }
         this.formLoading = false;
-        this.toast.show(this.formError || '', 'error');
       },
     });
   }

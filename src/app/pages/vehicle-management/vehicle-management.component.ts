@@ -229,6 +229,7 @@ export class VehicleManagementComponent implements OnInit {
     this.editVehicle = null;
     this.editVehicleForm = null;
     this.editLoading = false;
+    this.editVehicleErrors = {}; // Clear validation errors
   }
 
   saveEditVehicle() {
@@ -246,8 +247,25 @@ export class VehicleManagementComponent implements OnInit {
       const value = this.editVehicleForm[field.key];
       if (value === undefined || value === null || value === '') {
         // this.toast.show(`Please enter ${field.label}.`, 'warning');
+        this.editVehicleErrors[field.key] = `${field.label} is required.`;
         return;
       }
+    }
+
+    // Model year validation: must be 4 digits, numbers only, not before 1900, not after current year
+    const modelYear = this.editVehicleForm.model_year;
+    const currentYear = new Date().getFullYear();
+    if (!/^[0-9]{4}$/.test(modelYear)) {
+      this.editVehicleErrors['model_year'] =
+        'Model Year must be a 4-digit number.';
+      return;
+    }
+    const yearNum = Number(modelYear);
+    if (yearNum < 1900 || yearNum > currentYear) {
+      this.editVehicleErrors[
+        'model_year'
+      ] = `Model Year must be between 1900 and ${currentYear}.`;
+      return;
     }
 
     // Check if any changes were made
@@ -327,6 +345,14 @@ export class VehicleManagementComponent implements OnInit {
           }
         },
       });
+  }
+
+  onModelYearInput() {
+    if (this.editVehicleForm && this.editVehicleForm.model_year !== undefined) {
+      this.editVehicleForm.model_year = String(this.editVehicleForm.model_year)
+        .replace(/[^0-9]/g, '')
+        .slice(0, 4);
+    }
   }
 
   openServiceHistoryModal(vehicle: VehicleResource) {

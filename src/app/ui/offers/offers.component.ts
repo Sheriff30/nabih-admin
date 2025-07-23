@@ -478,16 +478,21 @@ export class OffersComponent implements OnInit {
       formData.append('end_date', this.toBackendDate(value.end_date));
     if (value.button_link) formData.append('button_link', value.button_link);
     formData.append('is_limited_time', value.is_limited_time ? '1' : '0');
-    // Translation fields as single strings (not arrays/objects)
-    formData.append('title', value.title.en);
-    formData.append('description', value.description.en);
-    formData.append('discount_text', value.discount_text.en);
-    formData.append('button_text', value.button_text.en);
+    // Translation fields as arrays/objects (use [en] and [ar] keys)
+    formData.append('title[en]', value.title.en);
+    formData.append('title[ar]', value.title.ar);
+    formData.append('description[en]', value.description.en);
+    formData.append('description[ar]', value.description.ar);
+    formData.append('discount_text[en]', value.discount_text.en);
+    formData.append('discount_text[ar]', value.discount_text.ar);
+    formData.append('button_text[en]', value.button_text.en);
+    formData.append('button_text[ar]', value.button_text.ar);
     const token = localStorage.getItem('token') || '';
     this.offersService
       .updateOffer(this.editOfferId, formData, token)
       .subscribe({
         next: (res) => {
+          console.log(res);
           this.successMsg = 'Offer updated successfully!';
           this.toast.show(this.successMsg, 'success');
           this.offerForm.reset();
@@ -499,6 +504,7 @@ export class OffersComponent implements OnInit {
           this.loadOffers();
         },
         error: (err) => {
+          console.log(err);
           if (err.status === 422) {
             this.errorMsg = 'Please check the form for errors and try again.';
           } else if (err.status === 401) {

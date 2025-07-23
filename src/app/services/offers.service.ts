@@ -69,7 +69,10 @@ export class OffersService {
       Accept: 'application/json',
       // Do not set Content-Type; let the browser set it for multipart
     });
-    return this.http.put<any>(`${this.apiUrl}/${id}`, formData, { headers });
+    // Use POST and the new endpoint as per API doc
+    return this.http.post<any>(`${this.apiUrl}/update/${id}`, formData, {
+      headers,
+    });
   }
 
   /**

@@ -423,6 +423,18 @@ export class ManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  isSuperAdmin(admin: AdminUserResource): boolean {
+    return admin.roles.some((role) => role.name === 'super-admin');
+  }
+
+  handleSuperAdminEditAttempt(): void {
+    this.toast.show('Super Admins cannot be modified', 'warning');
+  }
+
+  handleSuperAdminDeleteAttempt(): void {
+    this.toast.show('Super Admins cannot be deleted', 'warning');
+  }
+
   validateForm(): boolean {
     // Validate all fields
     this.validateFirstName();

@@ -117,20 +117,38 @@
               <img
                 src="/icons/delete.svg"
                 alt="delete-icon"
-                class="cursor-pointer w-[19px] h-[19px]"
-                (click)="handleDeleteAdmin(admin)"
-                [class.opacity-50]="deleteLoading === admin.id"
-                [class.cursor-not-allowed]="deleteLoading === admin.id"
+                class="w-[19px] h-[19px]"
+                [class.cursor-pointer]="
+                  !isSuperAdmin(admin) && deleteLoading !== admin.id
+                "
+                [class.cursor-not-allowed]="
+                  isSuperAdmin(admin) || deleteLoading === admin.id
+                "
+                [class.opacity-50]="
+                  isSuperAdmin(admin) || deleteLoading === admin.id
+                "
                 [style.pointer-events]="
                   deleteLoading === admin.id ? 'none' : 'auto'
+                "
+                (click)="
+                  isSuperAdmin(admin)
+                    ? handleSuperAdminDeleteAttempt()
+                    : handleDeleteAdmin(admin)
                 "
               />
 
               <img
                 src="/icons/edit.svg"
                 alt=""
-                class="cursor-pointer w-[19px] h-[19px]"
-                (click)="handleEditAdmin(admin)"
+                class="w-[19px] h-[19px]"
+                [class.cursor-pointer]="!isSuperAdmin(admin)"
+                [class.cursor-not-allowed]="isSuperAdmin(admin)"
+                [class.opacity-50]="isSuperAdmin(admin)"
+                (click)="
+                  isSuperAdmin(admin)
+                    ? handleSuperAdminEditAttempt()
+                    : handleEditAdmin(admin)
+                "
               />
               <div
                 *ngIf="deleteLoading === admin.id && !showDeleteModal"

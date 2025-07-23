@@ -68,16 +68,16 @@ export class OffersComponent implements OnInit {
         ],
         is_limited_time: [false],
         title: this.fb.group({
-          en: ['', [Validators.required, Validators.maxLength(255)]],
-          ar: ['', [Validators.required, Validators.maxLength(255)]],
+          en: ['', [Validators.required, Validators.maxLength(200)]],
+          ar: ['', [Validators.required, Validators.maxLength(200)]],
         }),
         description: this.fb.group({
-          en: ['', Validators.required],
-          ar: ['', Validators.required],
+          en: ['', [Validators.required, Validators.maxLength(200)]],
+          ar: ['', [Validators.required, Validators.maxLength(200)]],
         }),
         discount_text: this.fb.group({
-          en: ['', [Validators.required, Validators.maxLength(255)]],
-          ar: ['', [Validators.required, Validators.maxLength(255)]],
+          en: ['', [Validators.required, Validators.maxLength(50)]],
+          ar: ['', [Validators.required, Validators.maxLength(50)]],
         }),
         button_text: this.fb.group({
           en: ['', [Validators.required, Validators.maxLength(255)]],

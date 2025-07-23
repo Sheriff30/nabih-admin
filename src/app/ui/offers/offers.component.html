@@ -483,7 +483,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('title.en')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Title cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -512,7 +512,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('title.ar')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Title cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -542,6 +542,10 @@
                   *ngIf="offerForm.get('description.en')?.errors?.['required']"
                   >Description (EN) is required.</ng-container
                 >
+                <ng-container
+                  *ngIf="offerForm.get('description.en')?.errors?.['maxlength']"
+                  >Description cannot exceed 200 characters.</ng-container
+                >
               </div>
             </div>
             <div>
@@ -564,6 +568,10 @@
                 <ng-container
                   *ngIf="offerForm.get('description.ar')?.errors?.['required']"
                   >Description (AR) is required.</ng-container
+                >
+                <ng-container
+                  *ngIf="offerForm.get('description.ar')?.errors?.['maxlength']"
+                  >Description cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -597,7 +605,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('discount_text.en')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Discount text cannot exceed 50 characters.</ng-container
                 >
               </div>
             </div>
@@ -626,7 +634,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('discount_text.ar')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Discount text cannot exceed 50 characters.</ng-container
                 >
               </div>
             </div>
@@ -983,7 +991,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('title.en')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Title cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -1012,7 +1020,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('title.ar')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Title cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -1042,6 +1050,10 @@
                   *ngIf="offerForm.get('description.en')?.errors?.['required']"
                   >Description (EN) is required.</ng-container
                 >
+                <ng-container
+                  *ngIf="offerForm.get('description.en')?.errors?.['maxlength']"
+                  >Description cannot exceed 200 characters.</ng-container
+                >
               </div>
             </div>
             <div>
@@ -1064,6 +1076,10 @@
                 <ng-container
                   *ngIf="offerForm.get('description.ar')?.errors?.['required']"
                   >Description (AR) is required.</ng-container
+                >
+                <ng-container
+                  *ngIf="offerForm.get('description.ar')?.errors?.['maxlength']"
+                  >Description cannot exceed 200 characters.</ng-container
                 >
               </div>
             </div>
@@ -1097,7 +1113,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('discount_text.en')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Discount text cannot exceed 50 characters.</ng-container
                 >
               </div>
             </div>
@@ -1126,7 +1142,7 @@
                 >
                 <ng-container
                   *ngIf="offerForm.get('discount_text.ar')?.errors?.['maxlength']"
-                  >Max 255 characters allowed.</ng-container
+                  >Discount text cannot exceed 50 characters.</ng-container
                 >
               </div>
             </div>

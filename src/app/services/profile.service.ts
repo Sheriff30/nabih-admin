@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ProfileService {
-  private apiUrl = 'https://13.60.228.234/api/admins/profile';
+  private apiUrl = 'https://13.50.207.52/api/admins/profile';
 
   constructor(private http: HttpClient) {}
 

@@ -40,7 +40,7 @@ export interface SocialMediaLinksResponse {
   providedIn: 'root',
 })
 export class SocialLinksService {
-  private apiUrl = 'https://13.60.228.234/api/content/social-media-links';
+  private apiUrl = 'https://13.50.207.52/api/content/social-media-links';
 
   constructor(private http: HttpClient) {}
 
@@ -150,7 +150,7 @@ export class SocialLinksService {
     }
   ): Observable<SocialMediaLinksResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `https://13.60.228.234/api/content/social-media-links/${id}`;
+    const url = `https://13.50.207.52/api/content/social-media-links/${id}`;
     // Invalidate cache after successful update
     return new Observable<SocialMediaLinksResponse>((observer) => {
       this.http

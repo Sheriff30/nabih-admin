@@ -58,7 +58,7 @@ export interface DeleteCustomerResponse {
   providedIn: 'root',
 })
 export class UsersService {
-  private apiUrl = 'https://13.60.228.234/api';
+  private apiUrl = 'https://13.50.207.52/api';
 
   constructor(private http: HttpClient) {}
 

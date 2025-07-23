@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SettingsService {
-  private apiUrl = 'https://13.60.228.234/api/content/static-content';
+  private apiUrl = 'https://13.50.207.52/api/content/static-content';
 
   constructor(private http: HttpClient) {}
 

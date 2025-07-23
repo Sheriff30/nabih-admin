@@ -7,7 +7,7 @@ import {
   CreateAdminRequest,
   UpdateAdminRequest,
 } from '../../services/management.service';
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
@@ -17,7 +17,7 @@ import { AccessDeniedComponent } from '../access-denied/access-denied.component'
 @Component({
   selector: 'app-management',
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule, AccessDeniedComponent],
+  imports: [NgIf, NgFor, FormsModule, AccessDeniedComponent, TitleCasePipe],
   templateUrl: './management.component.html',
   styleUrl: './management.component.css',
 })
@@ -71,6 +71,10 @@ export class ManagementComponent implements OnInit, OnDestroy {
   showEditPassword = false;
   showCreatePassword = false;
 
+  // Password input focus state
+  isPasswordFocused = false;
+  isEditPasswordFocused = false;
+
   // Field-specific validation errors
   firstNameError = '';
   lastNameError = '';
@@ -79,6 +83,28 @@ export class ManagementComponent implements OnInit, OnDestroy {
   roleError = '';
   editFirstNameError = '';
   editLastNameError = '';
+  editEmailError = '';
+  editPasswordError = '';
+
+  // Password strength tracking
+  passwordStrength: 'weak' | 'medium' | 'strong' = 'weak';
+  passwordRequirements = {
+    minLength: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+  };
+
+  // Edit form password strength tracking
+  editPasswordStrength: 'weak' | 'medium' | 'strong' = 'weak';
+  editPasswordRequirements = {
+    minLength: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+  };
 
   // Make Math available in template
   Math = Math;
@@ -264,6 +290,15 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.passwordError = '';
     this.roleError = '';
     this.showCreatePassword = false;
+    this.isPasswordFocused = false;
+    this.passwordStrength = 'weak';
+    this.passwordRequirements = {
+      minLength: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      special: false,
+    };
   }
 
   onRoleChange(event: Event): void {
@@ -294,6 +329,22 @@ export class ManagementComponent implements OnInit, OnDestroy {
 
   toggleCreatePasswordVisibility(): void {
     this.showCreatePassword = !this.showCreatePassword;
+  }
+
+  onPasswordFocus(): void {
+    this.isPasswordFocused = true;
+  }
+
+  onPasswordBlur(): void {
+    this.isPasswordFocused = false;
+  }
+
+  onEditPasswordFocus(): void {
+    this.isEditPasswordFocused = true;
+  }
+
+  onEditPasswordBlur(): void {
+    this.isEditPasswordFocused = false;
   }
 
   @HostListener('document:click', ['$event'])
@@ -395,6 +446,40 @@ export class ManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  validateEditPassword(): void {
+    if (this.editAdminForm.password && this.editAdminForm.password.trim()) {
+      this.checkPasswordStrength(this.editAdminForm.password, true);
+
+      if (this.editAdminForm.password.length < 8) {
+        this.editPasswordError = 'Password must be at least 8 characters';
+      } else if (this.editPasswordStrength === 'weak') {
+        this.editPasswordError =
+          'Password is too weak. Please meet more requirements.';
+      } else {
+        this.editPasswordError = '';
+      }
+    } else {
+      // Reset password strength when no password is entered
+      this.editPasswordError = '';
+      this.editPasswordStrength = 'weak';
+      this.editPasswordRequirements = {
+        minLength: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false,
+      };
+    }
+  }
+
+  validateEditEmail(): void {
+    if (!this.editAdminForm.email?.trim()) {
+      this.editEmailError = 'Email is required';
+    } else {
+      this.editEmailError = '';
+    }
+  }
+
   validateEmail(): void {
     if (!this.formData.email?.trim()) {
       this.emailError = 'Email is required';
@@ -403,13 +488,58 @@ export class ManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  checkPasswordStrength(password: string, isEdit: boolean = false): void {
+    const requirements = {
+      minLength: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    };
+
+    // Calculate strength
+    const requirementsMet = Object.values(requirements).filter(Boolean).length;
+
+    let strength: 'weak' | 'medium' | 'strong';
+    if (requirementsMet <= 2) {
+      strength = 'weak';
+    } else if (requirementsMet <= 4) {
+      strength = 'medium';
+    } else {
+      strength = 'strong';
+    }
+
+    if (isEdit) {
+      this.editPasswordRequirements = requirements;
+      this.editPasswordStrength = strength;
+    } else {
+      this.passwordRequirements = requirements;
+      this.passwordStrength = strength;
+    }
+  }
+
   validatePassword(): void {
     if (!this.formData.password?.trim()) {
       this.passwordError = 'Password is required';
-    } else if (this.formData.password.length < 8) {
-      this.passwordError = 'Password must be at least 8 characters';
+      this.passwordStrength = 'weak';
+      this.passwordRequirements = {
+        minLength: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false,
+      };
     } else {
-      this.passwordError = '';
+      this.checkPasswordStrength(this.formData.password);
+
+      if (this.formData.password.length < 8) {
+        this.passwordError = 'Password must be at least 8 characters';
+      } else if (this.passwordStrength === 'weak') {
+        this.passwordError =
+          'Password is too weak. Please meet more requirements.';
+      } else {
+        this.passwordError = '';
+      }
     }
   }
 
@@ -453,6 +583,12 @@ export class ManagementComponent implements OnInit, OnDestroy {
       this.passwordError ||
       this.roleError
     ) {
+      return false;
+    }
+
+    // Additional check for password strength
+    if (this.formData.password && this.passwordStrength === 'weak') {
+      this.formError = 'Password must meet at least 3 security requirements';
       return false;
     }
 
@@ -715,6 +851,17 @@ export class ManagementComponent implements OnInit, OnDestroy {
     );
     this.editFirstNameError = '';
     this.editLastNameError = '';
+    this.editEmailError = '';
+    this.editPasswordError = '';
+    this.isEditPasswordFocused = false;
+    this.editPasswordStrength = 'weak';
+    this.editPasswordRequirements = {
+      minLength: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      special: false,
+    };
     this.showEditAdminModal = true;
   }
 
@@ -723,7 +870,18 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.originalAdminData = null;
     this.editFirstNameError = '';
     this.editLastNameError = '';
+    this.editEmailError = '';
+    this.editPasswordError = '';
     this.showEditPassword = false;
+    this.isEditPasswordFocused = false;
+    this.editPasswordStrength = 'weak';
+    this.editPasswordRequirements = {
+      minLength: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      special: false,
+    };
   }
 
   // Check if there are any changes in the edit form
@@ -820,11 +978,19 @@ export class ManagementComponent implements OnInit, OnDestroy {
   }
 
   saveEditAdmin(): void {
-    // Validate name fields
+    // Validate all fields
     this.validateEditFirstName();
     this.validateEditLastName();
+    this.validateEditEmail();
+    this.validateEditPassword();
 
-    if (this.editFirstNameError || this.editLastNameError) {
+    // Check for any validation errors
+    if (
+      this.editFirstNameError ||
+      this.editLastNameError ||
+      this.editEmailError ||
+      this.editPasswordError
+    ) {
       return;
     }
 

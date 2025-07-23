@@ -404,6 +404,8 @@
                 name="password"
                 [(ngModel)]="formData.password"
                 (input)="validatePassword()"
+                (focus)="onPasswordFocus()"
+                (blur)="onPasswordBlur()"
                 autocomplete="new-password"
                 required
                 minlength="8"
@@ -424,8 +426,103 @@
                   class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
                 />
               </button>
+
+              <!-- Password Requirements Card -->
+              <div
+                *ngIf="formData.password && isPasswordFocused"
+                class="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 lg:top-full lg:mt-2 bottom-full mb-2 lg:bottom-auto lg:mb-0"
+              >
+                <!-- Password Strength Meter -->
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-sm font-medium text-gray-700"
+                    >Strength:</span
+                  >
+                  <div class="flex gap-1">
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-red-400]="passwordStrength === 'weak'"
+                      [class.bg-gray-200]="passwordStrength !== 'weak'"
+                    ></div>
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-yellow-400]="passwordStrength === 'medium'"
+                      [class.bg-gray-200]="passwordStrength !== 'medium'"
+                    ></div>
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-green-400]="passwordStrength === 'strong'"
+                      [class.bg-gray-200]="passwordStrength !== 'strong'"
+                    ></div>
+                  </div>
+                  <span
+                    class="text-sm font-medium"
+                    [class.text-red-600]="passwordStrength === 'weak'"
+                    [class.text-yellow-600]="passwordStrength === 'medium'"
+                    [class.text-green-600]="passwordStrength === 'strong'"
+                  >
+                    {{ passwordStrength | titlecase }}
+                  </span>
+                </div>
+
+                <!-- Requirements List -->
+                <div class="text-xs text-gray-600 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="passwordRequirements.minLength"
+                      [class.text-gray-400]="!passwordRequirements.minLength"
+                    >
+                      {{ passwordRequirements.minLength ? "✓" : "○" }}
+                    </span>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="passwordRequirements.uppercase"
+                      [class.text-gray-400]="!passwordRequirements.uppercase"
+                    >
+                      {{ passwordRequirements.uppercase ? "✓" : "○" }}
+                    </span>
+                    <span>One uppercase letter (A-Z)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="passwordRequirements.lowercase"
+                      [class.text-gray-400]="!passwordRequirements.lowercase"
+                    >
+                      {{ passwordRequirements.lowercase ? "✓" : "○" }}
+                    </span>
+                    <span>One lowercase letter (a-z)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="passwordRequirements.number"
+                      [class.text-gray-400]="!passwordRequirements.number"
+                    >
+                      {{ passwordRequirements.number ? "✓" : "○" }}
+                    </span>
+                    <span>One number (0-9)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="passwordRequirements.special"
+                      [class.text-gray-400]="!passwordRequirements.special"
+                    >
+                      {{ passwordRequirements.special ? "✓" : "○" }}
+                    </span>
+                    <span>One special character (!&#64;#$%^&*)</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div *ngIf="passwordError" class="text-red-500 text-sm mt-1">
+            <div
+              *ngIf="passwordError && !isPasswordFocused"
+              class="text-red-500 text-sm mt-1"
+            >
               {{ passwordError }}
             </div>
           </div>
@@ -621,10 +718,15 @@
             <input
               type="email"
               class="w-full border rounded-[6px] p-2"
+              [class.border-red-500]="editEmailError"
               name="edit_email"
               [(ngModel)]="editAdminForm.email"
+              (input)="validateEditEmail()"
               required
             />
+            <div *ngIf="editEmailError" class="text-red-500 text-sm mt-1">
+              {{ editEmailError }}
+            </div>
           </div>
           <div>
             <label class="block text-sm mb-1">Password</label>
@@ -632,8 +734,12 @@
               <input
                 [type]="showEditPassword ? 'text' : 'password'"
                 class="w-full border rounded-[6px] p-2 pr-10"
+                [class.border-red-500]="editPasswordError"
                 name="edit_password"
                 [(ngModel)]="editAdminForm.password"
+                (input)="validateEditPassword()"
+                (focus)="onEditPasswordFocus()"
+                (blur)="onEditPasswordBlur()"
                 minlength="8"
                 placeholder="Leave blank to keep current"
               />
@@ -652,6 +758,120 @@
                   class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
                 />
               </button>
+
+              <!-- Edit Password Requirements Card -->
+              <div
+                *ngIf="
+                  editAdminForm.password &&
+                  editAdminForm.password.trim() &&
+                  isEditPasswordFocused
+                "
+                class="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 lg:top-full lg:mt-2 bottom-full mb-2 lg:bottom-auto lg:mb-0"
+              >
+                <!-- Password Strength Meter -->
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-sm font-medium text-gray-700"
+                    >Strength:</span
+                  >
+                  <div class="flex gap-1">
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-red-400]="editPasswordStrength === 'weak'"
+                      [class.bg-gray-200]="editPasswordStrength !== 'weak'"
+                    ></div>
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-yellow-400]="editPasswordStrength === 'medium'"
+                      [class.bg-gray-200]="editPasswordStrength !== 'medium'"
+                    ></div>
+                    <div
+                      class="h-2 w-6 rounded"
+                      [class.bg-green-400]="editPasswordStrength === 'strong'"
+                      [class.bg-gray-200]="editPasswordStrength !== 'strong'"
+                    ></div>
+                  </div>
+                  <span
+                    class="text-sm font-medium"
+                    [class.text-red-600]="editPasswordStrength === 'weak'"
+                    [class.text-yellow-600]="editPasswordStrength === 'medium'"
+                    [class.text-green-600]="editPasswordStrength === 'strong'"
+                  >
+                    {{ editPasswordStrength | titlecase }}
+                  </span>
+                </div>
+
+                <!-- Requirements List -->
+                <div class="text-xs text-gray-600 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="
+                        editPasswordRequirements.minLength
+                      "
+                      [class.text-gray-400]="
+                        !editPasswordRequirements.minLength
+                      "
+                    >
+                      {{ editPasswordRequirements.minLength ? "✓" : "○" }}
+                    </span>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="
+                        editPasswordRequirements.uppercase
+                      "
+                      [class.text-gray-400]="
+                        !editPasswordRequirements.uppercase
+                      "
+                    >
+                      {{ editPasswordRequirements.uppercase ? "✓" : "○" }}
+                    </span>
+                    <span>One uppercase letter (A-Z)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="
+                        editPasswordRequirements.lowercase
+                      "
+                      [class.text-gray-400]="
+                        !editPasswordRequirements.lowercase
+                      "
+                    >
+                      {{ editPasswordRequirements.lowercase ? "✓" : "○" }}
+                    </span>
+                    <span>One lowercase letter (a-z)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="editPasswordRequirements.number"
+                      [class.text-gray-400]="!editPasswordRequirements.number"
+                    >
+                      {{ editPasswordRequirements.number ? "✓" : "○" }}
+                    </span>
+                    <span>One number (0-9)</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex-shrink-0"
+                      [class.text-green-600]="editPasswordRequirements.special"
+                      [class.text-gray-400]="!editPasswordRequirements.special"
+                    >
+                      {{ editPasswordRequirements.special ? "✓" : "○" }}
+                    </span>
+                    <span>One special character (!&#64;#$%^&*)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              *ngIf="editPasswordError && !isEditPasswordFocused"
+              class="text-red-500 text-sm mt-1"
+            >
+              {{ editPasswordError }}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import {
   ManagementService,
   AdminUserResource,
@@ -62,6 +62,10 @@ export class ManagementComponent implements OnInit, OnDestroy {
 
   // Available roles
   availableRoles: RoleResource[] = [];
+
+  // Custom dropdown state
+  isRoleDropdownOpen = false;
+  selectedRoleName = '';
 
   // Make Math available in template
   Math = Math;
@@ -234,6 +238,8 @@ export class ManagementComponent implements OnInit, OnDestroy {
       permissions: [],
     };
     this.formError = null;
+    this.selectedRoleName = '';
+    this.isRoleDropdownOpen = false;
     this.formSuccess = null;
   }
 
@@ -241,6 +247,29 @@ export class ManagementComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLSelectElement;
     const selectedRole = target.value;
     this.formData.roles = selectedRole ? [selectedRole] : [];
+  }
+
+  // Custom dropdown methods
+  toggleRoleDropdown(): void {
+    this.isRoleDropdownOpen = !this.isRoleDropdownOpen;
+  }
+
+  selectRole(roleName: string): void {
+    this.selectedRoleName = this.formatRoleName(roleName);
+    this.formData.roles = [roleName];
+    this.isRoleDropdownOpen = false;
+  }
+
+  closeRoleDropdown(): void {
+    this.isRoleDropdownOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.role-dropdown-container')) {
+      this.isRoleDropdownOpen = false;
+    }
   }
 
   onSubmit(): void {

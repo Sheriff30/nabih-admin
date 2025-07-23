@@ -359,14 +359,49 @@
 
           <!-- Role Selection -->
           <div class="col-span-full mx-auto">
-            <label class="block text-sm mb-1">Role</label>
-            <div
-              class="bg-[#82645A] py-[10px] px-[16px] flex justify-center items-center rounded-md max-w-[200px] w-full"
-            >
-              <img src="/icons/plus.svg" alt="" />
+            <div class="relative max-w-[250px] w-full role-dropdown-container">
+              <!-- Custom Dropdown Button -->
+              <div
+                class="bg-[#8B7355] py-[12px] gap-[6px] px-[16px] flex items-center justify-between rounded-[8px] cursor-pointer border border-[#8B7355] hover:bg-[#7A6449] transition-colors"
+                (click)="toggleRoleDropdown()"
+              >
+                <img src="/icons/plus.svg" alt="" class="w-4 h-4" />
+                <span class="text-white font-medium text-sm underline">
+                  {{ selectedRoleName || "Select a role" }}
+                </span>
+                <svg
+                  class="w-4 h-4 text-white transition-transform duration-200"
+                  [class.rotate-180]="isRoleDropdownOpen"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </div>
+
+              <!-- Custom Dropdown Menu -->
+              <div
+                *ngIf="isRoleDropdownOpen"
+                class="absolute left-0 right-0 bg-white border border-gray-200 rounded-[8px] shadow-lg z-50 max-h-48 overflow-y-auto lg:top-full lg:mt-1 bottom-full mb-1 lg:bottom-auto lg:mb-0"
+              >
+                <div
+                  *ngFor="let role of availableRoles"
+                  class="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm text-gray-800 border-b border-gray-100 last:border-b-0"
+                  (click)="selectRole(role.name)"
+                >
+                  {{ formatRoleName(role.name) }}
+                </div>
+              </div>
+
+              <!-- Hidden select for form validation -->
               <select
-                class="bg-[#82645A] text-white underline border-none outline-none"
-                (change)="onRoleChange($event)"
+                class="sr-only"
                 [ngModel]="
                   formData.roles && formData.roles.length > 0
                     ? formData.roles[0]

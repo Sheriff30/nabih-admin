@@ -245,7 +245,7 @@ export class VehicleManagementComponent implements OnInit {
     for (const field of requiredFields) {
       const value = this.editVehicleForm[field.key];
       if (value === undefined || value === null || value === '') {
-        this.toast.show(`Please enter ${field.label}.`, 'warning');
+        // this.toast.show(`Please enter ${field.label}.`, 'warning');
         return;
       }
     }

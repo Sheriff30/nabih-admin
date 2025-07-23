@@ -373,17 +373,34 @@
           </div>
           <div>
             <label class="block text-sm mb-1">Password *</label>
-            <input
-              type="password"
-              class="w-full border rounded-[6px] p-2"
-              [class.border-red-500]="passwordError"
-              name="password"
-              [(ngModel)]="formData.password"
-              (input)="validatePassword()"
-              required
-              minlength="8"
-              placeholder="Enter Password"
-            />
+            <div class="relative">
+              <input
+                [type]="showCreatePassword ? 'text' : 'password'"
+                class="w-full border rounded-[6px] p-2 pr-10"
+                [class.border-red-500]="passwordError"
+                name="password"
+                [(ngModel)]="formData.password"
+                (input)="validatePassword()"
+                required
+                minlength="8"
+                placeholder="Enter Password"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                (click)="toggleCreatePasswordVisibility()"
+              >
+                <img
+                  [src]="
+                    showCreatePassword
+                      ? '/icons/eye.svg'
+                      : '/icons/eye.password.svg'
+                  "
+                  [alt]="showCreatePassword ? 'Hide password' : 'Show password'"
+                  class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
+                />
+              </button>
+            </div>
             <div *ngIf="passwordError" class="text-red-500 text-sm mt-1">
               {{ passwordError }}
             </div>
@@ -587,14 +604,31 @@
           </div>
           <div>
             <label class="block text-sm mb-1">Password</label>
-            <input
-              type="password"
-              class="w-full border rounded-[6px] p-2"
-              name="edit_password"
-              [(ngModel)]="editAdminForm.password"
-              minlength="8"
-              placeholder="Leave blank to keep current"
-            />
+            <div class="relative">
+              <input
+                [type]="showEditPassword ? 'text' : 'password'"
+                class="w-full border rounded-[6px] p-2 pr-10"
+                name="edit_password"
+                [(ngModel)]="editAdminForm.password"
+                minlength="8"
+                placeholder="Leave blank to keep current"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                (click)="toggleEditPasswordVisibility()"
+              >
+                <img
+                  [src]="
+                    showEditPassword
+                      ? '/icons/eye.svg'
+                      : '/icons/eye.password.svg'
+                  "
+                  [alt]="showEditPassword ? 'Hide password' : 'Show password'"
+                  class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
+                />
+              </button>
+            </div>
           </div>
         </div>
         <!-- Role Selection -->

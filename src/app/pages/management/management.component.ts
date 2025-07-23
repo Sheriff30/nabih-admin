@@ -67,6 +67,10 @@ export class ManagementComponent implements OnInit, OnDestroy {
   isRoleDropdownOpen = false;
   selectedRoleName = '';
 
+  // Password visibility toggle
+  showEditPassword = false;
+  showCreatePassword = false;
+
   // Field-specific validation errors
   firstNameError = '';
   lastNameError = '';
@@ -255,6 +259,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.emailError = '';
     this.passwordError = '';
     this.roleError = '';
+    this.showCreatePassword = false;
   }
 
   onRoleChange(event: Event): void {
@@ -277,6 +282,14 @@ export class ManagementComponent implements OnInit, OnDestroy {
 
   closeRoleDropdown(): void {
     this.isRoleDropdownOpen = false;
+  }
+
+  toggleEditPasswordVisibility(): void {
+    this.showEditPassword = !this.showEditPassword;
+  }
+
+  toggleCreatePasswordVisibility(): void {
+    this.showCreatePassword = !this.showCreatePassword;
   }
 
   @HostListener('document:click', ['$event'])
@@ -696,6 +709,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.originalAdminData = null;
     this.editFirstNameError = '';
     this.editLastNameError = '';
+    this.showEditPassword = false;
   }
 
   // Check if there are any changes in the edit form

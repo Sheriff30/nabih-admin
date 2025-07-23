@@ -67,6 +67,15 @@ export class ManagementComponent implements OnInit, OnDestroy {
   isRoleDropdownOpen = false;
   selectedRoleName = '';
 
+  // Field-specific validation errors
+  firstNameError = '';
+  lastNameError = '';
+  emailError = '';
+  passwordError = '';
+  roleError = '';
+  editFirstNameError = '';
+  editLastNameError = '';
+
   // Make Math available in template
   Math = Math;
 
@@ -241,6 +250,11 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.selectedRoleName = '';
     this.isRoleDropdownOpen = false;
     this.formSuccess = null;
+    this.firstNameError = '';
+    this.lastNameError = '';
+    this.emailError = '';
+    this.passwordError = '';
+    this.roleError = '';
   }
 
   onRoleChange(event: Event): void {
@@ -258,6 +272,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.selectedRoleName = this.formatRoleName(roleName);
     this.formData.roles = [roleName];
     this.isRoleDropdownOpen = false;
+    this.validateRole();
   }
 
   closeRoleDropdown(): void {
@@ -274,7 +289,6 @@ export class ManagementComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (!this.validateForm()) {
-      this.toast.show(this.formError || 'Invalid form', 'error');
       return;
     }
     const token = localStorage.getItem('token');
@@ -316,35 +330,105 @@ export class ManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  validateForm(): boolean {
+  isValidName(name: string): boolean {
+    // Allow only letters, spaces, and hyphens
+    const nameRegex = /^[a-zA-Z\s\-]+$/;
+    return nameRegex.test(name.trim());
+  }
+
+  validateFirstName(): void {
     if (!this.formData.first_name?.trim()) {
-      this.formError = 'First name is required';
-      return false;
+      this.firstNameError = 'First name is required';
+    } else if (!this.isValidName(this.formData.first_name)) {
+      this.firstNameError =
+        'First name must contain only letters, spaces, and hyphens';
+    } else {
+      this.firstNameError = '';
     }
+  }
+
+  validateLastName(): void {
     if (!this.formData.last_name?.trim()) {
-      this.formError = 'Last name is required';
-      return false;
+      this.lastNameError = 'Last name is required';
+    } else if (!this.isValidName(this.formData.last_name)) {
+      this.lastNameError =
+        'Last name must contain only letters, spaces, and hyphens';
+    } else {
+      this.lastNameError = '';
     }
+  }
+
+  validateEditFirstName(): void {
+    if (!this.editAdminForm.first_name?.trim()) {
+      this.editFirstNameError = 'First name is required';
+    } else if (!this.isValidName(this.editAdminForm.first_name)) {
+      this.editFirstNameError =
+        'First name must contain only letters, spaces, and hyphens';
+    } else {
+      this.editFirstNameError = '';
+    }
+  }
+
+  validateEditLastName(): void {
+    if (!this.editAdminForm.last_name?.trim()) {
+      this.editLastNameError = 'Last name is required';
+    } else if (!this.isValidName(this.editAdminForm.last_name)) {
+      this.editLastNameError =
+        'Last name must contain only letters, spaces, and hyphens';
+    } else {
+      this.editLastNameError = '';
+    }
+  }
+
+  validateEmail(): void {
     if (!this.formData.email?.trim()) {
-      this.formError = 'Email is required';
-      return false;
+      this.emailError = 'Email is required';
+    } else {
+      this.emailError = '';
     }
+  }
+
+  validatePassword(): void {
     if (!this.formData.password?.trim()) {
-      this.formError = 'Password is required';
-      return false;
+      this.passwordError = 'Password is required';
+    } else if (this.formData.password.length < 8) {
+      this.passwordError = 'Password must be at least 8 characters';
+    } else {
+      this.passwordError = '';
     }
-    if (this.formData.password.length < 8) {
-      this.formError = 'Password must be at least 8 characters';
-      return false;
-    }
+  }
+
+  validateRole(): void {
     if (
       !this.formData.roles ||
       !Array.isArray(this.formData.roles) ||
       this.formData.roles.length === 0
     ) {
-      this.formError = 'At least one role is required';
+      this.roleError = 'At least one role is required';
+    } else {
+      this.roleError = '';
+    }
+  }
+
+  validateForm(): boolean {
+    // Validate all fields
+    this.validateFirstName();
+    this.validateLastName();
+    this.validateEmail();
+    this.validatePassword();
+    this.validateRole();
+
+    // Check for any validation errors
+    if (
+      this.firstNameError ||
+      this.lastNameError ||
+      this.emailError ||
+      this.passwordError ||
+      this.roleError
+    ) {
       return false;
     }
+
     this.formError = null;
     return true;
   }
@@ -602,12 +686,16 @@ export class ManagementComponent implements OnInit, OnDestroy {
     this.rolePermissions = admin.roles.flatMap((r) =>
       r.permissions.map((p) => p.name)
     );
+    this.editFirstNameError = '';
+    this.editLastNameError = '';
     this.showEditAdminModal = true;
   }
 
   closeEditAdminModal(): void {
     this.showEditAdminModal = false;
     this.originalAdminData = null;
+    this.editFirstNameError = '';
+    this.editLastNameError = '';
   }
 
   // Check if there are any changes in the edit form
@@ -704,6 +792,14 @@ export class ManagementComponent implements OnInit, OnDestroy {
   }
 
   saveEditAdmin(): void {
+    // Validate name fields
+    this.validateEditFirstName();
+    this.validateEditLastName();
+
+    if (this.editFirstNameError || this.editLastNameError) {
+      return;
+    }
+
     // Check if there are any changes
     if (!this.hasChanges()) {
       this.toast.show('No changes detected', 'info');

@@ -23,17 +23,21 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   type: string = 'about';
   user_type: string = 'vendor';
   is_active: boolean = true;
-  // Translations for Arabic and English for both About and Terms
+  // Translations for Arabic and English for About, Terms, and Privacy
   aboutAr: string = '';
   aboutEn: string = '';
   termsAr: string = '';
   termsEn: string = '';
+  privacyAr: string = '';
+  privacyEn: string = '';
 
   // Original content for change detection
   originalAboutAr: string = '';
   originalAboutEn: string = '';
   originalTermsAr: string = '';
   originalTermsEn: string = '';
+  originalPrivacyAr: string = '';
+  originalPrivacyEn: string = '';
   originalIsActive: boolean = true;
 
   // Validation errors
@@ -41,6 +45,8 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   aboutEnError: string = '';
   termsArError: string = '';
   termsEnError: string = '';
+  privacyArError: string = '';
+  privacyEnError: string = '';
 
   // UI state
   loading = false;
@@ -97,6 +103,14 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     return this.getPlainTextLength(this.termsEn);
   }
 
+  getPrivacyArCharCount(): number {
+    return this.getPlainTextLength(this.privacyAr);
+  }
+
+  getPrivacyEnCharCount(): number {
+    return this.getPlainTextLength(this.privacyEn);
+  }
+
   isCharacterLimitExceeded(content: string): boolean {
     return this.getPlainTextLength(content) > this.CHARACTER_LIMIT;
   }
@@ -134,13 +148,31 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     }
   }
 
+  onPrivacyArChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.privacyArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.privacyArError = '';
+    }
+  }
+
+  onPrivacyEnChange(content: string): void {
+    if (this.isCharacterLimitExceeded(content)) {
+      this.privacyEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+    } else {
+      this.privacyEnError = '';
+    }
+  }
+
   // Check if any validation errors exist
   hasValidationErrors(): boolean {
     return !!(
       this.aboutArError ||
       this.aboutEnError ||
       this.termsArError ||
-      this.termsEnError
+      this.termsEnError ||
+      this.privacyArError ||
+      this.privacyEnError
     );
   }
 
@@ -161,12 +193,22 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     );
   }
 
+  hasPrivacyContentChanged(): boolean {
+    return (
+      this.privacyAr !== this.originalPrivacyAr ||
+      this.privacyEn !== this.originalPrivacyEn ||
+      this.is_active !== this.originalIsActive
+    );
+  }
+
   // Store original content values
   storeOriginalContent(): void {
     this.originalAboutAr = this.aboutAr;
     this.originalAboutEn = this.aboutEn;
     this.originalTermsAr = this.termsAr;
     this.originalTermsEn = this.termsEn;
+    this.originalPrivacyAr = this.privacyAr;
+    this.originalPrivacyEn = this.privacyEn;
     this.originalIsActive = this.is_active;
   }
 
@@ -182,16 +224,21 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     this.aboutEn = '';
     this.termsAr = '';
     this.termsEn = '';
+    this.privacyAr = '';
+    this.privacyEn = '';
     this.aboutArError = '';
     this.aboutEnError = '';
     this.termsArError = '';
     this.termsEnError = '';
+    this.privacyArError = '';
+    this.privacyEnError = '';
 
     let aboutLoaded = false;
     let termsLoaded = false;
+    let privacyLoaded = false;
 
     const checkLoadingComplete = () => {
-      if (aboutLoaded && termsLoaded) {
+      if (aboutLoaded && termsLoaded && privacyLoaded) {
         this.loadingContent = false;
         // Store original content after loading is complete
         this.storeOriginalContent();
@@ -266,6 +313,40 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
         }
       },
     });
+
+    // Load Privacy content
+    this.settingsService.getContentByType('privacy', this.user_type).subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.content) {
+          const content = response.data.content;
+
+          try {
+            const translations =
+              typeof content.translations === 'string'
+                ? JSON.parse(content.translations)
+                : content.translations;
+
+            if (translations?.en?.content) {
+              this.privacyEn = translations.en.content;
+            }
+            if (translations?.ar?.content) {
+              this.privacyAr = translations.ar.content;
+            }
+          } catch (e) {
+            console.warn('Error parsing translations for privacy content:', e);
+          }
+        }
+        privacyLoaded = true;
+        checkLoadingComplete();
+      },
+      error: (err) => {
+        privacyLoaded = true;
+        checkLoadingComplete();
+        if (err?.status !== 404) {
+          console.warn('Error loading privacy content:', err);
+        }
+      },
+    });
   }
 
   onUserTypeChange(): void {
@@ -297,6 +378,11 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (type === 'privacy' && !this.hasPrivacyContentChanged()) {
+      this.toast.show('No changes detected in Privacy content', 'info');
+      return;
+    }
+
     // Character limit validation
     if (type === 'about') {
       if (this.isCharacterLimitExceeded(this.aboutAr)) {
@@ -314,6 +400,15 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
       }
       if (this.isCharacterLimitExceeded(this.termsEn)) {
         this.termsEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+    } else if (type === 'privacy') {
+      if (this.isCharacterLimitExceeded(this.privacyAr)) {
+        this.privacyArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
+        return;
+      }
+      if (this.isCharacterLimitExceeded(this.privacyEn)) {
+        this.privacyEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
         return;
       }
     }
@@ -343,6 +438,16 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
       translations = {
         en: { title: 'Terms and Conditions', content: this.termsEn },
         ar: { title: 'الشروط والأحكام', content: this.termsAr },
+      };
+    } else if (type === 'privacy') {
+      if (!this.privacyEn.trim() || !this.privacyAr.trim()) {
+        this.loading = false;
+        this.toast.show('Both Privacy fields are required', 'error');
+        return;
+      }
+      translations = {
+        en: { title: 'Privacy Policy', content: this.privacyEn },
+        ar: { title: 'سياسة الخصوصية', content: this.privacyAr },
       };
     }
     if (!this.user_type) {

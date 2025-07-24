@@ -211,6 +211,82 @@
         <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
         {{ loading ? "Saving..." : "Save Terms" }}
       </button>
+      <div
+        class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+      >
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">Privacy Policy in Arabic</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getPrivacyArCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getPrivacyArCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getPrivacyArCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
+        <quill-editor
+          [(ngModel)]="privacyAr"
+          (ngModelChange)="onPrivacyArChange($event)"
+          [modules]="{
+            toolbar: [
+              [{ header: [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              ['blockquote', 'code-block'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link', 'image'],
+              ['clean']
+            ]
+          }"
+          placeholder="Type a message..."
+        ></quill-editor>
+        <div *ngIf="privacyArError" class="mt-2 text-sm text-red-500 px-2">
+          {{ privacyArError }}
+        </div>
+      </div>
+      <div
+        class="border p-[10px] border-neutral-200 rounded-[10px] shadow-[0px_1px_4px_0px_#0000000D]"
+      >
+        <div
+          class="border-b border-neutral-200 p-[10px] flex justify-between items-center"
+        >
+          <p class="font-semibold text-sm">Privacy Policy in English</p>
+          <span
+            class="text-xs"
+            [class.text-red-500]="getPrivacyEnCharCount() > CHARACTER_LIMIT"
+            [class.text-gray-500]="getPrivacyEnCharCount() <= CHARACTER_LIMIT"
+          >
+            {{ getPrivacyEnCharCount() }}/{{ CHARACTER_LIMIT }}
+          </span>
+        </div>
+        <quill-editor
+          [(ngModel)]="privacyEn"
+          (ngModelChange)="onPrivacyEnChange($event)"
+          [modules]="{
+            toolbar: [
+              [{ header: [1, 2, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              ['blockquote', 'code-block'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link', 'image'],
+              ['clean']
+            ]
+          }"
+          placeholder="Type a message..."
+        ></quill-editor>
+        <div *ngIf="privacyEnError" class="mt-2 text-sm text-red-500 px-2">
+          {{ privacyEnError }}
+        </div>
+      </div>
+      <button
+        (click)="submitStaticContent('privacy')"
+        class="px-4 col-span-full mx-auto py-2 bg-[#7F5EA3] max-w-[223px] w-full h-[60px] text-white rounded-[60px] flex items-center justify-center gap-1 text-base font-semibold shadow-sm transition-all hover:bg-[#6b4e99] disabled:opacity-60"
+        [disabled]="loading || privacyArError || privacyEnError"
+      >
+        <img src="/icons/submit.svg" alt="" class="w-5 h-5" />
+        {{ loading ? "Saving..." : "Save Privacy" }}
+      </button>
     </div>
   </ng-container>
   <ng-template #denied>

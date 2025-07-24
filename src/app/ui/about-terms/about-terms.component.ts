@@ -21,7 +21,7 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
 
   // Form state
   type: string = 'about';
-  user_type: string = 'both';
+  user_type: string = 'vendor';
   is_active: boolean = true;
   // Translations for Arabic and English for both About and Terms
   aboutAr: string = '';

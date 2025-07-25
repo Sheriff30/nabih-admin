@@ -422,6 +422,8 @@ export class ManagementComponent implements OnInit, OnDestroy {
   validateFirstName(): void {
     if (!this.formData.first_name?.trim()) {
       this.firstNameError = 'First name is required';
+    } else if (this.formData.first_name.length > 30) {
+      this.firstNameError = 'First name cannot exceed 30 characters';
     } else if (!this.isValidName(this.formData.first_name)) {
       this.firstNameError =
         'First name must contain only letters, spaces, and hyphens';
@@ -433,6 +435,8 @@ export class ManagementComponent implements OnInit, OnDestroy {
   validateLastName(): void {
     if (!this.formData.last_name?.trim()) {
       this.lastNameError = 'Last name is required';
+    } else if (this.formData.last_name.length > 30) {
+      this.lastNameError = 'Last name cannot exceed 30 characters';
     } else if (!this.isValidName(this.formData.last_name)) {
       this.lastNameError =
         'Last name must contain only letters, spaces, and hyphens';
@@ -444,6 +448,8 @@ export class ManagementComponent implements OnInit, OnDestroy {
   validateEditFirstName(): void {
     if (!this.editAdminForm.first_name?.trim()) {
       this.editFirstNameError = 'First name is required';
+    } else if (this.editAdminForm.first_name.length > 30) {
+      this.editFirstNameError = 'First name cannot exceed 30 characters';
     } else if (!this.isValidName(this.editAdminForm.first_name)) {
       this.editFirstNameError =
         'First name must contain only letters, spaces, and hyphens';
@@ -455,6 +461,8 @@ export class ManagementComponent implements OnInit, OnDestroy {
   validateEditLastName(): void {
     if (!this.editAdminForm.last_name?.trim()) {
       this.editLastNameError = 'Last name is required';
+    } else if (this.editAdminForm.last_name.length > 30) {
+      this.editLastNameError = 'Last name cannot exceed 30 characters';
     } else if (!this.isValidName(this.editAdminForm.last_name)) {
       this.editLastNameError =
         'Last name must contain only letters, spaces, and hyphens';

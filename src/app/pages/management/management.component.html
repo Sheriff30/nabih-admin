@@ -355,6 +355,7 @@
               autocomplete="off"
               placeholder="Enter first name"
               required
+              maxlength="30"
             />
             <div *ngIf="firstNameError" class="text-red-500 text-sm mt-1">
               {{ firstNameError }}
@@ -372,6 +373,7 @@
               autocomplete="off"
               required
               placeholder="Enter last name"
+              maxlength="30"
             />
             <div *ngIf="lastNameError" class="text-red-500 text-sm mt-1">
               {{ lastNameError }}
@@ -693,6 +695,7 @@
               [(ngModel)]="editAdminForm.first_name"
               (input)="validateEditFirstName()"
               required
+              maxlength="30"
             />
             <div *ngIf="editFirstNameError" class="text-red-500 text-sm mt-1">
               {{ editFirstNameError }}
@@ -708,6 +711,7 @@
               [(ngModel)]="editAdminForm.last_name"
               (input)="validateEditLastName()"
               required
+              maxlength="30"
             />
             <div *ngIf="editLastNameError" class="text-red-500 text-sm mt-1">
               {{ editLastNameError }}

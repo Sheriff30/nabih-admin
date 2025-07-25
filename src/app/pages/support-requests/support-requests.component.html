@@ -424,7 +424,10 @@
               <option value="open">Open</option>
               <option value="closed">Closed</option>
             </select>
-            <div *ngIf="formError" class="text-red-500 mb-2">
+            <div
+              *ngIf="formError"
+              class="text-red-500 mb-2 max-w-[600px] w-full mx-auto"
+            >
               {{ formError }}
             </div>
             <div class="flex justify-center gap-2 items-center mt-4">

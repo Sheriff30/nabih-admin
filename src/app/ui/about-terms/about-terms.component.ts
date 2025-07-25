@@ -87,6 +87,45 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     return tempDiv.textContent?.length || 0;
   }
 
+  // Custom keyboard handler to prevent typing beyond character limit
+  onKeyDown(event: KeyboardEvent, currentContent: string): boolean {
+    const currentLength = this.getPlainTextLength(currentContent);
+
+    // Allow backspace, delete, arrow keys, etc.
+    if (
+      event.key === 'Backspace' ||
+      event.key === 'Delete' ||
+      event.key.startsWith('Arrow') ||
+      event.key === 'Tab' ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      return true;
+    }
+
+    // Check if adding this character would exceed the limit
+    if (currentLength >= this.CHARACTER_LIMIT) {
+      event.preventDefault();
+      return false;
+    }
+
+    return true;
+  }
+
+  // Custom paste handler to prevent pasting content that exceeds character limit
+  onPaste(event: ClipboardEvent, currentContent: string): boolean {
+    const pastedText = event.clipboardData?.getData('text/plain') || '';
+    const currentLength = this.getPlainTextLength(currentContent);
+    const newLength = currentLength + pastedText.length;
+
+    if (newLength > this.CHARACTER_LIMIT) {
+      event.preventDefault();
+      return false;
+    }
+
+    return true;
+  }
+
   getAboutArCharCount(): number {
     return this.getPlainTextLength(this.aboutAr);
   }

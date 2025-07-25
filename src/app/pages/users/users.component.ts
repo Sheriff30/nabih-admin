@@ -109,7 +109,7 @@ export class UsersComponent implements OnInit, OnDestroy {
           error: (error) => {
             console.error('Error loading customers:', error);
             this.loading = false;
-            this.toast.show('Failed to load users', 'error');
+            // this.toast.show('Failed to load users', 'error');
           },
         });
     } else {

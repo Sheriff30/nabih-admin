@@ -142,7 +142,7 @@ export class OffersComponent implements OnInit {
             this.offers = res.data.offers;
             this.meta = res.data.meta;
           } else {
-            this.toast.show('Failed to load offers.', 'error');
+            // this.toast.show('Failed to load offers.', 'error');
           }
           this.offersLoading = false;
         },

@@ -217,7 +217,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
           error: (err) => {
             this.error = 'Failed to load admin users';
             this.loading = false;
-            this.toast.show(this.error, 'error');
+            // this.toast.show(this.error, 'error');
           },
         });
     } else {
@@ -234,7 +234,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
           this.availableRoles = res.data.roles;
         },
         error: (err) => {
-          this.toast.show('Failed to load roles', 'error');
+          // this.toast.show('Failed to load roles', 'error');
         },
       });
     } else {
@@ -250,7 +250,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
           this.allPermissions = res.data.permissions;
         },
         error: () => {
-          this.toast.show('Failed to load permissions', 'error');
+          // this.toast.show('Failed to load permissions', 'error');
         },
       });
     }

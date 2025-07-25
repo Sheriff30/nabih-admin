@@ -406,26 +406,13 @@
               [(ngModel)]="editVehicleForm.name"
               name="editName"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-              required
-              #nameInput="ngModel"
+              maxlength="50"
             />
-            <div
-              *ngIf="nameInput.invalid && nameInput.touched"
-              class="text-red-500 text-xs mt-1"
-            >
-              Vehicle Name is required.
-            </div>
             <div
               *ngIf="editVehicleErrors['name']"
               class="text-red-500 text-xs mt-1"
             >
               {{ editVehicleErrors["name"] }}
-            </div>
-            <div
-              *ngIf="editVehicleErrors['general']"
-              class="text-red-500 text-xs mt-1"
-            >
-              {{ editVehicleErrors["general"] }}
             </div>
           </div>
           <div class="flex flex-col gap-1">
@@ -435,14 +422,13 @@
               [(ngModel)]="editVehicleForm.make_brand"
               name="editBrand"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-              required
-              #brandInput="ngModel"
+              maxlength="30"
             />
             <div
-              *ngIf="brandInput.invalid && brandInput.touched"
+              *ngIf="editVehicleErrors['make_brand']"
               class="text-red-500 text-xs mt-1"
             >
-              Brand is required.
+              {{ editVehicleErrors["make_brand"] }}
             </div>
           </div>
           <div class="flex flex-col gap-1">
@@ -454,29 +440,7 @@
               [(ngModel)]="editVehicleForm.model_year"
               name="editModelYear"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-              maxlength="4"
-              required
-              pattern="^[0-9]{4}$"
-              #modelYearInput="ngModel"
-              (input)="onModelYearInput()"
             />
-            <div
-              *ngIf="modelYearInput.invalid && modelYearInput.touched"
-              class="text-red-500 text-xs mt-1"
-            >
-              <span
-                *ngIf="
-                  modelYearInput.errors && modelYearInput.errors['required']
-                "
-                >Model Year is required.</span
-              >
-              <span
-                *ngIf="
-                  modelYearInput.errors && modelYearInput.errors['pattern']
-                "
-                >Enter a valid 4-digit year.</span
-              >
-            </div>
             <div
               *ngIf="editVehicleErrors['model_year']"
               class="text-red-500 text-xs mt-1"
@@ -493,15 +457,13 @@
               [(ngModel)]="editVehicleForm.vin_number"
               name="editVin"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-              maxlength="50"
-              required
-              #vinInput="ngModel"
+              maxlength="17"
             />
             <div
-              *ngIf="vinInput.invalid && vinInput.touched"
+              *ngIf="editVehicleErrors['vin_number']"
               class="text-red-500 text-xs mt-1"
             >
-              VIN Number is required.
+              {{ editVehicleErrors["vin_number"] }}
             </div>
           </div>
           <div class="flex flex-col gap-1">
@@ -513,23 +475,12 @@
               [(ngModel)]="editVehicleForm.mileage"
               name="editMileage"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
-              maxlength="12"
-              autocomplete="off"
-              required
-              min="0"
-              #mileageInput="ngModel"
             />
             <div
-              *ngIf="mileageInput.invalid && mileageInput.touched"
+              *ngIf="editVehicleErrors['mileage']"
               class="text-red-500 text-xs mt-1"
             >
-              <span
-                *ngIf="mileageInput.errors && mileageInput.errors['required']"
-                >Current Mileage is required.</span
-              >
-              <span *ngIf="mileageInput.errors && mileageInput.errors['min']"
-                >Mileage must be a positive number.</span
-              >
+              {{ editVehicleErrors["mileage"] }}
             </div>
           </div>
         </div>

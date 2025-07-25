@@ -235,41 +235,82 @@ export class VehicleManagementComponent implements OnInit {
   saveEditVehicle() {
     if (!this.editVehicle || !this.editVehicleForm) return;
 
-    // Validation: required fields (no empty values allowed)
-    const requiredFields: { key: string; label: string }[] = [
-      { key: 'name', label: 'Vehicle Name' },
-      { key: 'make_brand', label: 'Brand' },
-      { key: 'model_year', label: 'Model Year' },
-      { key: 'vin_number', label: 'VIN Number' },
-      { key: 'mileage', label: 'Current Mileage' },
-    ];
-    for (const field of requiredFields) {
-      const value = this.editVehicleForm[field.key];
-      if (value === undefined || value === null || value === '') {
-        // this.toast.show(`Please enter ${field.label}.`, 'warning');
-        this.editVehicleErrors[field.key] = `${field.label} is required.`;
-        return;
-      }
-    }
-
-    // Model year validation: must be 4 digits, numbers only, not before 1900, not after current year
-    const modelYear = this.editVehicleForm.model_year;
+    // Inline frontend-only validations
+    this.editVehicleErrors = {};
     const currentYear = new Date().getFullYear();
-    if (!/^[0-9]{4}$/.test(modelYear)) {
+    let hasError = false;
+
+    // Vehicle Name: required, min 2 chars, max 50 chars
+    if (
+      !this.editVehicleForm.name ||
+      this.editVehicleForm.name.trim().length < 2
+    ) {
+      this.editVehicleErrors['name'] =
+        'Vehicle Name is required (min 2 characters).';
+      hasError = true;
+    } else if (this.editVehicleForm.name.length > 50) {
+      this.editVehicleErrors['name'] =
+        'Vehicle Name cannot exceed 50 characters.';
+      hasError = true;
+    }
+    // Brand: required, min 2 chars, max 30 chars
+    if (
+      !this.editVehicleForm.make_brand ||
+      this.editVehicleForm.make_brand.trim().length < 2
+    ) {
+      this.editVehicleErrors['make_brand'] =
+        'Brand is required (min 2 characters).';
+      hasError = true;
+    } else if (this.editVehicleForm.make_brand.length > 30) {
+      this.editVehicleErrors['make_brand'] =
+        'Brand cannot exceed 30 characters.';
+      hasError = true;
+    }
+    // Model Year: required, 4-digit, 1900-current year
+    const modelYear = this.editVehicleForm.model_year;
+    if (!modelYear || !/^[0-9]{4}$/.test(modelYear)) {
       this.editVehicleErrors['model_year'] =
         'Model Year must be a 4-digit number.';
-      return;
-    }
-    const yearNum = Number(modelYear);
-    if (yearNum < 1900 || yearNum > currentYear) {
+      hasError = true;
+    } else if (Number(modelYear) < 1900 || Number(modelYear) > currentYear) {
       this.editVehicleErrors[
         'model_year'
       ] = `Model Year must be between 1900 and ${currentYear}.`;
+      hasError = true;
+    }
+    // VIN Number: required, max 17 chars, only A-Z and 0-9, no I, O, Q
+    const vin = this.editVehicleForm.vin_number;
+    if (!vin) {
+      this.editVehicleErrors['vin_number'] = 'VIN Number is required.';
+      hasError = true;
+    } else if (vin.length > 17) {
+      this.editVehicleErrors['vin_number'] =
+        'VIN Number cannot exceed 17 characters.';
+      hasError = true;
+    } else if (!/^[A-HJ-NPR-Z0-9]*$/i.test(vin)) {
+      this.editVehicleErrors['vin_number'] =
+        'VIN Number must be alphanumeric (A-Z, 0-9), excluding I, O, and Q.';
+      hasError = true;
+    }
+    // Mileage: required, positive number
+    if (
+      this.editVehicleForm.mileage === undefined ||
+      this.editVehicleForm.mileage === null ||
+      this.editVehicleForm.mileage === '' ||
+      isNaN(Number(this.editVehicleForm.mileage)) ||
+      Number(this.editVehicleForm.mileage) < 0
+    ) {
+      this.editVehicleErrors['mileage'] =
+        'Mileage is required and must be a positive number.';
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
     // Check if any changes were made
-    const fieldsToCheck: (keyof VehicleResource)[] = [
+    const fieldsToCheck: (keyof typeof this.editVehicleForm)[] = [
       'name',
       'make_brand',
       'model_year',
@@ -278,7 +319,7 @@ export class VehicleManagementComponent implements OnInit {
     ];
     let changed = false;
     for (const field of fieldsToCheck) {
-      if (this.editVehicleForm[field] !== this.editVehicle?.[field]) {
+      if (this.editVehicleForm[field] !== (this.editVehicle as any)[field]) {
         changed = true;
         break;
       }
@@ -296,7 +337,6 @@ export class VehicleManagementComponent implements OnInit {
       return;
     }
     this.editLoading = true;
-    this.toast.show('Updating vehicle details...', 'info');
     // Only send the allowed fields
     const updatePayload = {
       user_id: this.editVehicleForm.user_id,
@@ -322,37 +362,10 @@ export class VehicleManagementComponent implements OnInit {
           this.closeEditModal();
         },
         error: (err) => {
+          console.log(err);
           this.editLoading = false;
-          if (err.status === 422 && err.error && err.error.message) {
-            // Try to parse field errors if present, otherwise fallback to message
-            if (err.error.errors) {
-              this.editVehicleErrors = err.error.errors;
-              this.toast.show(
-                'Something went wrong. Please try again',
-                'error'
-              );
-            } else {
-              this.toast.show(
-                'Something went wrong. Please try again',
-                'error'
-              );
-              this.editVehicleErrors = { general: err.error.message };
-            }
-          } else {
-            this.editVehicleErrors = {
-              general: 'Something went wrong. Please try again.',
-            };
-          }
         },
       });
-  }
-
-  onModelYearInput() {
-    if (this.editVehicleForm && this.editVehicleForm.model_year !== undefined) {
-      this.editVehicleForm.model_year = String(this.editVehicleForm.model_year)
-        .replace(/[^0-9]/g, '')
-        .slice(0, 4);
-    }
   }
 
   openServiceHistoryModal(vehicle: VehicleResource) {

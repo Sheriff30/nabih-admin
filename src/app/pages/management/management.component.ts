@@ -478,8 +478,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
       if (this.editAdminForm.password.length < 8) {
         this.editPasswordError = 'Password must be at least 8 characters';
       } else if (this.editPasswordStrength === 'weak') {
-        this.editPasswordError =
-          'Password is too weak. Please meet more requirements.';
+        this.editPasswordError = 'Password is too weak.';
       } else {
         this.editPasswordError = '';
       }
@@ -560,8 +559,7 @@ export class ManagementComponent implements OnInit, OnDestroy {
       if (this.formData.password.length < 8) {
         this.passwordError = 'Password must be at least 8 characters';
       } else if (this.passwordStrength === 'weak') {
-        this.passwordError =
-          'Password is too weak. Please meet more requirements.';
+        this.passwordError = 'Password is too weak.';
       } else {
         this.passwordError = '';
       }

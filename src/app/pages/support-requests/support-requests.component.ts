@@ -340,4 +340,13 @@ export class SupportRequestsComponent implements OnInit {
       // Permission denied - no action taken, UI should handle display
     }
   }
+
+  clearFieldError(field: string) {
+    if (field === 'adminResponse' && this.formError) {
+      this.formError = null;
+    }
+    if (field === 'adminStatus' && this.formError) {
+      this.formError = null;
+    }
+  }
 }

@@ -410,6 +410,7 @@
                 class="w-full border text-neutral-500 border-neutral-300 rounded-[6px] p-2 text-xs"
                 maxlength="5000"
                 required
+                (input)="clearFieldError('adminResponse')"
               ></textarea>
             </div>
             <select
@@ -417,6 +418,7 @@
               name="adminStatus"
               class="w-full border border-neutral-300 rounded-[6px] p-2 max-w-[220px] mx-auto"
               required
+              (change)="clearFieldError('adminStatus')"
             >
               <option value="pending">Pending</option>
               <option value="open">Open</option>

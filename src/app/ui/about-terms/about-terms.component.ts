@@ -115,9 +115,12 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     return this.getPlainTextLength(content) > this.CHARACTER_LIMIT;
   }
 
-  // Content change handlers
+  // Content change handlers with improved error handling
   onAboutArChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('aboutAr');
+    if (!content || !content.trim()) {
+      this.aboutArError = 'Arabic content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.aboutArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.aboutArError = '';
@@ -125,7 +128,10 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   }
 
   onAboutEnChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('aboutEn');
+    if (!content || !content.trim()) {
+      this.aboutEnError = 'English content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.aboutEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.aboutEnError = '';
@@ -133,7 +139,10 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   }
 
   onTermsArChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('termsAr');
+    if (!content || !content.trim()) {
+      this.termsArError = 'Arabic content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.termsArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.termsArError = '';
@@ -141,7 +150,10 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   }
 
   onTermsEnChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('termsEn');
+    if (!content || !content.trim()) {
+      this.termsEnError = 'English content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.termsEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.termsEnError = '';
@@ -149,7 +161,10 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   }
 
   onPrivacyArChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('privacyAr');
+    if (!content || !content.trim()) {
+      this.privacyArError = 'Arabic content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.privacyArError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.privacyArError = '';
@@ -157,10 +172,37 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
   }
 
   onPrivacyEnChange(content: string): void {
-    if (this.isCharacterLimitExceeded(content)) {
+    this.clearError('privacyEn');
+    if (!content || !content.trim()) {
+      this.privacyEnError = 'English content is required';
+    } else if (this.isCharacterLimitExceeded(content)) {
       this.privacyEnError = `Content exceeds ${this.CHARACTER_LIMIT} character limit`;
     } else {
       this.privacyEnError = '';
+    }
+  }
+
+  // Helper method to clear specific errors
+  clearError(field: string): void {
+    switch (field) {
+      case 'aboutAr':
+        this.aboutArError = '';
+        break;
+      case 'aboutEn':
+        this.aboutEnError = '';
+        break;
+      case 'termsAr':
+        this.termsArError = '';
+        break;
+      case 'termsEn':
+        this.termsEnError = '';
+        break;
+      case 'privacyAr':
+        this.privacyArError = '';
+        break;
+      case 'privacyEn':
+        this.privacyEnError = '';
+        break;
     }
   }
 
@@ -418,33 +460,52 @@ export class AboutTermsComponent implements OnInit, OnDestroy {
     this.error = '';
     let translations: { [lang: string]: { title: string; content: string } } =
       {};
-    // Validation
+    // Validation with detailed error messages
     if (type === 'about') {
-      if (!this.aboutEn.trim() || !this.aboutAr.trim()) {
+      const errors = [];
+      if (!this.aboutEn.trim())
+        errors.push('English About content is required');
+      if (!this.aboutAr.trim()) errors.push('Arabic About content is required');
+
+      if (errors.length > 0) {
         this.loading = false;
-        this.toast.show('Both About fields are required', 'error');
+        this.toast.show(errors.join(', '), 'error');
         return;
       }
+
       translations = {
         en: { title: 'About', content: this.aboutEn },
         ar: { title: 'حول', content: this.aboutAr },
       };
     } else if (type === 'terms') {
-      if (!this.termsEn.trim() || !this.termsAr.trim()) {
+      const errors = [];
+      if (!this.termsEn.trim())
+        errors.push('English Terms content is required');
+      if (!this.termsAr.trim()) errors.push('Arabic Terms content is required');
+
+      if (errors.length > 0) {
         this.loading = false;
-        this.toast.show('Both Terms fields are required', 'error');
+        this.toast.show(errors.join(', '), 'error');
         return;
       }
+
       translations = {
         en: { title: 'Terms and Conditions', content: this.termsEn },
         ar: { title: 'الشروط والأحكام', content: this.termsAr },
       };
     } else if (type === 'privacy') {
-      if (!this.privacyEn.trim() || !this.privacyAr.trim()) {
+      const errors = [];
+      if (!this.privacyEn.trim())
+        errors.push('English Privacy content is required');
+      if (!this.privacyAr.trim())
+        errors.push('Arabic Privacy content is required');
+
+      if (errors.length > 0) {
         this.loading = false;
-        this.toast.show('Both Privacy fields are required', 'error');
+        this.toast.show(errors.join(', '), 'error');
         return;
       }
+
       translations = {
         en: { title: 'Privacy Policy', content: this.privacyEn },
         ar: { title: 'سياسة الخصوصية', content: this.privacyAr },

@@ -200,24 +200,41 @@ export class ManagementComponent implements OnInit, OnDestroy {
         .listAdmins(token, this.currentPage, this.perPage)
         .subscribe({
           next: (res) => {
-            this.allAdmins = res.data.admins; // allAdmins is now the current page only
-            this.admins = res.data.admins; // admins is also the current page only
-            // Update pagination meta from backend
-            this.paginationMeta = {
-              current_page: Number(res.data.meta.current_page),
-              last_page: Number(res.data.meta.last_page),
-              per_page: Number(res.data.meta.per_page),
-              total: Number(res.data.meta.total),
-              next_page_url: res.data.meta.next_page_url,
-              prev_page_url: res.data.meta.prev_page_url,
-            };
-            this.applyFiltersAndSorting();
+            if (res.data && res.data.admins) {
+              this.allAdmins = res.data.admins;
+              this.admins = res.data.admins;
+
+              // Update pagination meta from backend
+              this.paginationMeta = {
+                current_page: Number(res.data.meta.current_page),
+                last_page: Number(res.data.meta.last_page),
+                per_page: Number(res.data.meta.per_page),
+                total: Number(res.data.meta.total),
+                next_page_url: res.data.meta.next_page_url,
+                prev_page_url: res.data.meta.prev_page_url,
+              };
+
+              // Clear any existing errors
+              this.error = null;
+
+              // Apply filters and sorting
+              this.applyFiltersAndSorting();
+            } else {
+              this.error = 'No admin users found';
+              this.allAdmins = [];
+              this.admins = [];
+            }
             this.loading = false;
           },
           error: (err) => {
-            this.error = 'Failed to load admin users';
+            this.error = err.error?.message || 'Failed to load admin users';
             this.loading = false;
-            // this.toast.show(this.error, 'error');
+            this.allAdmins = [];
+            this.admins = [];
+            // this.toast.show(
+            //   this.error || 'Failed to load admin users',
+            //   'error'
+            // );
           },
         });
     } else {
@@ -614,22 +631,20 @@ export class ManagementComponent implements OnInit, OnDestroy {
       filteredAdmins = this.applySorting(filteredAdmins);
     }
 
-    // Calculate pagination
-    const total = filteredAdmins.length;
-    const lastPage = Math.ceil(total / this.perPage);
-    const startIndex = (this.currentPage - 1) * this.perPage;
-    const endIndex = startIndex + this.perPage;
+    // Since we only have current page data, we can't do proper pagination
+    // Just show the filtered/sorted current page data
+    this.admins = filteredAdmins;
 
-    // Get current page data
-    this.admins = filteredAdmins.slice(startIndex, endIndex);
-
-    // Update pagination meta
+    // Update pagination meta to reflect current state
     this.paginationMeta = {
       current_page: this.currentPage,
-      last_page: lastPage,
+      last_page: this.paginationMeta?.last_page || 1,
       per_page: this.perPage,
-      total: total,
-      next_page_url: this.currentPage < lastPage ? 'next' : null,
+      total: this.paginationMeta?.total || filteredAdmins.length,
+      next_page_url:
+        this.currentPage < (this.paginationMeta?.last_page || 1)
+          ? 'next'
+          : null,
       prev_page_url: this.currentPage > 1 ? 'prev' : null,
     };
   }
@@ -1066,9 +1081,17 @@ export class ManagementComponent implements OnInit, OnDestroy {
                       })),
                   };
                   this.applyFiltersAndPagination();
+                  this.showEditAdminModal = false;
+                  this.toast.show('Admin updated successfully', 'success');
+                } else {
+                  // Admin not found in current page, reload the page to get fresh data
+                  this.loadAdmins();
+                  this.showEditAdminModal = false;
+                  this.toast.show(
+                    'Admin updated successfully. Page refreshed.',
+                    'success'
+                  );
                 }
-                this.showEditAdminModal = false;
-                this.toast.show('Admin updated successfully', 'success');
               },
               error: (err) => {
                 this.toast.show('Failed to assign roles', 'error');

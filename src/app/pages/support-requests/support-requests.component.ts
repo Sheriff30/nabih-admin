@@ -221,6 +221,19 @@ export class SupportRequestsComponent implements OnInit {
       this.formError = 'Response is required.';
       return;
     }
+    // Check for no changes
+    const originalResponse = this.selectedRequest.admin_response?.trim() || '';
+    const currentResponse = this.adminResponse.trim();
+    const originalStatus = this.selectedRequest.status;
+    const currentStatus = this.adminStatus;
+    if (
+      currentResponse === originalResponse &&
+      currentStatus === originalStatus
+    ) {
+      this.toast.show('No change detected.', 'info');
+      this.closeModal();
+      return;
+    }
     this.submitting = true;
     this.formError = null;
     const token = localStorage.getItem('token');

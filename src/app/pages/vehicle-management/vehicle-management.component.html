@@ -407,6 +407,7 @@
               name="editName"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
               maxlength="50"
+              (input)="clearFieldError('name')"
             />
             <div
               *ngIf="editVehicleErrors['name']"
@@ -423,6 +424,7 @@
               name="editBrand"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
               maxlength="30"
+              (input)="clearFieldError('make_brand')"
             />
             <div
               *ngIf="editVehicleErrors['make_brand']"
@@ -440,6 +442,7 @@
               [(ngModel)]="editVehicleForm.model_year"
               name="editModelYear"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              (input)="clearFieldError('model_year')"
             />
             <div
               *ngIf="editVehicleErrors['model_year']"
@@ -458,6 +461,7 @@
               name="editVin"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
               maxlength="17"
+              (input)="clearFieldError('vin_number')"
             />
             <div
               *ngIf="editVehicleErrors['vin_number']"
@@ -475,6 +479,7 @@
               [(ngModel)]="editVehicleForm.mileage"
               name="editMileage"
               class="w-full border border-neutral-300 rounded-[6px] p-2 text-sm"
+              (input)="clearFieldError('mileage')"
             />
             <div
               *ngIf="editVehicleErrors['mileage']"

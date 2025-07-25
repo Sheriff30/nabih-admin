@@ -514,4 +514,10 @@ export class VehicleManagementComponent implements OnInit {
       );
     }
   }
+
+  clearFieldError(field: string) {
+    if (this.editVehicleErrors[field]) {
+      delete this.editVehicleErrors[field];
+    }
+  }
 }

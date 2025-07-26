@@ -16,8 +16,8 @@ import { LoginBgSvgComponent } from '../../ui/login-bg-svg/login-bg-svg.componen
   imports: [FormsModule, NgIf, LoginBgSvgComponent],
 })
 export class LoginComponent {
-  email: string = 'superadmin@nabih.com';
-  password: string = 'SuperAdmin@123';
+  email: string = '';
+  password: string = '';
   error: string = '';
   loading: boolean = false;
   rememberPassword: boolean = false;

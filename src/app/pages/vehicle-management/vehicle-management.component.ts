@@ -56,6 +56,7 @@ export class VehicleManagementComponent implements OnInit {
 
   deleteModalOpen: boolean = false;
   vehicleToDelete: VehicleResource | null = null;
+  deleteLoading: number | null = null;
 
   // FOR PERMISSIONS
   permissionsLoading = true;
@@ -434,6 +435,8 @@ export class VehicleManagementComponent implements OnInit {
       this.closeDeleteModal();
       return;
     }
+
+    this.deleteLoading = this.vehicleToDelete.id;
     this.vehicleService
       .permanentlyDeleteVehicle(this.vehicleToDelete.id, token)
       .subscribe({
@@ -461,6 +464,7 @@ export class VehicleManagementComponent implements OnInit {
               'error'
             );
           }
+          this.deleteLoading = null;
           this.closeDeleteModal();
         },
         error: () => {
@@ -468,6 +472,7 @@ export class VehicleManagementComponent implements OnInit {
             'Failed to delete vehicle. Please try again.',
             'error'
           );
+          this.deleteLoading = null;
           this.closeDeleteModal();
         },
       });

@@ -12,7 +12,7 @@ import { filter } from 'rxjs/operators';
 @Component({
   selector: 'app-dashboard-header',
   standalone: true,
-  imports: [NgFor, NgIf],
+  // imports: [NgFor, NgIf],
   templateUrl: './dashboard-header.component.html',
   styleUrl: './dashboard-header.component.css',
 })

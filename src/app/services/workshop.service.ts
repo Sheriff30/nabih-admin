@@ -55,7 +55,7 @@ export interface WorkshopsResponse {
   providedIn: 'root',
 })
 export class WorkshopService {
-  private apiUrl = 'https://13.50.207.52/api';
+  private apiUrl = 'https://dev.nabih.sa/api';
 
   // Workshops cache with expiration
   private workshopsCache: {

@@ -130,7 +130,7 @@ export interface UpdateAdminResponse {
   providedIn: 'root',
 })
 export class ManagementService {
-  private apiUrl = 'https://13.50.207.52/api';
+  private apiUrl = 'https://dev.nabih.sa/api';
 
   // Improved cache structure with expiration
   private adminsCache: {

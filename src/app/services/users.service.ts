@@ -58,7 +58,7 @@ export interface DeleteCustomerResponse {
   providedIn: 'root',
 })
 export class UsersService {
-  private apiUrl = 'https://13.50.207.52/api';
+  private apiUrl = 'https://dev.nabih.sa/api';
 
   constructor(private http: HttpClient) {}
 

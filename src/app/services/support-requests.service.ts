@@ -47,7 +47,7 @@ export interface SupportRequestsResponse {
   providedIn: 'root',
 })
 export class SupportRequestsService {
-  private apiUrl = 'https://13.50.207.52/api';
+  private apiUrl = 'https://dev.nabih.sa/api';
 
   // Improved cache structure with expiration
   private supportRequestsCache: {

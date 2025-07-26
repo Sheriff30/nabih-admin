@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private apiUrl = 'https://13.50.207.52/api';
+  private apiUrl = 'https://dev.nabih.sa/api';
 
   // Maintenance logs cache with expiration
   private maintenanceLogsCache: {

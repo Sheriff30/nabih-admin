@@ -80,7 +80,7 @@ export interface PermanentlyDeleteVehicleResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VehicleManagementService {
-  private apiUrl = 'https://13.50.207.52/api/admins/vehicles';
+  private apiUrl = 'https://dev.nabih.sa/api/admins/vehicles';
 
   constructor(private http: HttpClient) {}
 

@@ -182,13 +182,13 @@ export class UsersComponent implements OnInit, OnDestroy {
         {
           name: this.selectedUser.name,
           phone_number: this.selectedUser.phone_number,
-          gender: this.selectedUser.gender,
-          is_verified: this.selectedUser.is_verified, // include active status
+          is_verified: this.selectedUser.is_verified,
         },
         token
       )
       .subscribe({
         next: (res) => {
+          console.log(res);
           // Update the user in allUsers array
           const index = this.allUsers.findIndex(
             (u) => u.id === this.selectedUser.id
@@ -205,6 +205,7 @@ export class UsersComponent implements OnInit, OnDestroy {
           this.updateLoading = false;
         },
         error: (err) => {
+          console.log(err);
           const errorMessage = err.error?.message || 'Failed to update user';
           this.toast.show(errorMessage, 'error');
           this.updateLoading = false;

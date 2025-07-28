@@ -36,7 +36,7 @@ export interface ListCustomersResponse {
 export interface UpdateCustomerRequest {
   name: string;
   phone_number: string | null;
-  gender: 'male' | 'female' | 'other';
+  gender?: 'male' | 'female' | 'other';
   is_verified: boolean;
 }
 

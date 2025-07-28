@@ -80,7 +80,6 @@ export class UsersComponent implements OnInit, OnDestroy {
           next: (res) => {
             if (res.success && res.data && res.data.customers) {
               this.allUsers = res.data.customers; // allUsers is now the current page only
-              this.users = res.data.customers; // users is also the current page only
               // Update pagination meta from backend
               this.pagination = {
                 current_page: Number(res.data.meta.current_page),
@@ -100,6 +99,8 @@ export class UsersComponent implements OnInit, OnDestroy {
                     : 0,
                 last_page: Number(res.data.meta.last_page),
               };
+              // Apply search and sorting to the new data
+              this.applyFiltersAndPagination();
             } else {
               this.allUsers = [];
               this.users = [];

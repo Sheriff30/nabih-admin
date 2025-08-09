@@ -11,6 +11,6 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
-    { provide: API_BASE_URL, useValue: 'https://dev.nabih.sa/api' },
+    { provide: API_BASE_URL, useValue: 'https://api.nabih.sa/api' },
   ],
 };

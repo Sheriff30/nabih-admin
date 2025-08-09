@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 // Interfaces for API responses
 export interface WorkshopVendor {
@@ -55,7 +56,10 @@ export interface WorkshopsResponse {
   providedIn: 'root',
 })
 export class WorkshopService {
-  private apiUrl = 'https://dev.nabih.sa/api';
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   // Workshops cache with expiration
   private workshopsCache: {
@@ -67,8 +71,6 @@ export class WorkshopService {
   // Cache configuration
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
-
-  constructor(private http: HttpClient) {}
 
   private getAuthHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
@@ -132,7 +134,7 @@ export class WorkshopService {
       });
     }
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/customer/workshops`;
+    const url = `${this.apiBaseUrl}/customer/workshops`;
     return new Observable<WorkshopsResponse>((observer) => {
       this.http.get<WorkshopsResponse>(url, { headers }).subscribe({
         next: (res) => {

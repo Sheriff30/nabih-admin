@@ -1,10 +1,14 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private apiUrl = 'https://dev.nabih.sa/api';
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   // Maintenance logs cache with expiration
   private maintenanceLogsCache: {
@@ -25,8 +29,6 @@ export class DashboardService {
   } | null = null;
 
   // Cache configuration for statistics (reuse CACHE_DURATION and MAX_CACHE_AGE)
-
-  constructor(private http: HttpClient) {}
 
   private getAuthHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
@@ -102,7 +104,7 @@ export class DashboardService {
     if (sort_field) params.append('sort_field', sort_field);
     if (page) params.append('page', page.toString());
     if (search) params.append('search', search);
-    const url = `${this.apiUrl}/admins/dashboard/maintenance-logs${
+    const url = `${this.apiBaseUrl}/admins/dashboard/maintenance-logs${
       params.toString() ? '?' + params.toString() : ''
     }`;
     return new Observable<any>((observer) => {
@@ -172,7 +174,7 @@ export class DashboardService {
       });
     }
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/dashboard/statistics`;
+    const url = `${this.apiBaseUrl}/admins/dashboard/statistics`;
     return new Observable<any>((observer) => {
       this.http.get<any>(url, { headers }).subscribe({
         next: (res) => {
@@ -202,7 +204,7 @@ export class DashboardService {
     if (months !== undefined && months !== null) {
       params['months'] = months.toString();
     }
-    const url = `${this.apiUrl}/admins/dashboard/monthly-maintenance-count`;
+    const url = `${this.apiBaseUrl}/admins/dashboard/monthly-maintenance-count`;
     return this.http.get<any>(url, { headers, params });
   }
 }

@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 // --- Types ---
 export interface VehicleServiceReview {
@@ -80,9 +81,10 @@ export interface PermanentlyDeleteVehicleResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VehicleManagementService {
-  private apiUrl = 'https://dev.nabih.sa/api/admins/vehicles';
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   listVehicles(
     token: string,
@@ -100,10 +102,13 @@ export class VehicleManagementService {
       .set('sort_field', sort_field)
       .set('page', current_page.toString())
       .set('per_page', per_page.toString());
-    return this.http.get<ListVehiclesResponse>(this.apiUrl, {
-      headers,
-      params,
-    });
+    return this.http.get<ListVehiclesResponse>(
+      `${this.apiBaseUrl}/admins/vehicles`,
+      {
+        headers,
+        params,
+      }
+    );
   }
 
   updateVehicle(
@@ -120,7 +125,7 @@ export class VehicleManagementService {
       success: boolean;
       message: string;
       data: VehicleResource;
-    }>(`${this.apiUrl}/${id}`, payload, { headers });
+    }>(`${this.apiBaseUrl}/admins/vehicles/${id}`, payload, { headers });
   }
 
   permanentlyDeleteVehicle(
@@ -132,7 +137,7 @@ export class VehicleManagementService {
       Authorization: `Bearer ${token}`,
     });
     return this.http.delete<PermanentlyDeleteVehicleResponse>(
-      `${this.apiUrl}/${id}/permanent`,
+      `${this.apiBaseUrl}/admins/vehicles/${id}/permanent`,
       { headers }
     );
   }

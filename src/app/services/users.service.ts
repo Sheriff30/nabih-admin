@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 // Customer interfaces
 export interface CustomerResource {
@@ -58,9 +59,10 @@ export interface DeleteCustomerResponse {
   providedIn: 'root',
 })
 export class UsersService {
-  private apiUrl = 'https://dev.nabih.sa/api';
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   private getAuthHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
@@ -85,7 +87,7 @@ export class UsersService {
     const params = new URLSearchParams();
     if (page > 1) params.append('page', page.toString());
     params.append('per_page', perPage.toString());
-    const url = `${this.apiUrl}/admins/customers${
+    const url = `${this.apiBaseUrl}/admins/customers${
       params.toString() ? '?' + params.toString() : ''
     }`;
     return this.http.get<ListCustomersResponse>(url, { headers });
@@ -103,7 +105,7 @@ export class UsersService {
     token: string
   ): Observable<UpdateCustomerResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/customers/${id}`;
+    const url = `${this.apiBaseUrl}/admins/customers/${id}`;
     return this.http.put<UpdateCustomerResponse>(url, data, { headers });
   }
 
@@ -117,7 +119,7 @@ export class UsersService {
     token: string
   ): Observable<DeleteCustomerResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/customers/${id}`;
+    const url = `${this.apiBaseUrl}/admins/customers/${id}`;
     return this.http.delete<DeleteCustomerResponse>(url, { headers });
   }
 }

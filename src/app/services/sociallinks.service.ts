@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 export interface SocialMediaLinkResource {
   id: number;
@@ -40,9 +41,10 @@ export interface SocialMediaLinksResponse {
   providedIn: 'root',
 })
 export class SocialLinksService {
-  private apiUrl = 'https://dev.nabih.sa/api/content/social-media-links';
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   private getAuthHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
@@ -115,7 +117,10 @@ export class SocialLinksService {
     const params = new HttpParams().set('per_page', per_page);
     return new Observable<SocialMediaLinksResponse>((observer) => {
       this.http
-        .get<SocialMediaLinksResponse>(this.apiUrl, { headers, params })
+        .get<SocialMediaLinksResponse>(
+          `${this.apiBaseUrl}/content/social-media-links`,
+          { headers, params }
+        )
         .subscribe({
           next: (res) => {
             if (per_page === '15' && !forceRefresh) {
@@ -150,7 +155,7 @@ export class SocialLinksService {
     }
   ): Observable<SocialMediaLinksResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `https://dev.nabih.sa/api/content/social-media-links/${id}`;
+    const url = `${this.apiBaseUrl}/content/social-media-links/${id}`;
     // Invalidate cache after successful update
     return new Observable<SocialMediaLinksResponse>((observer) => {
       this.http

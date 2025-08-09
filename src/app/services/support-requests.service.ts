@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 // Interfaces for API responses
 export interface User {
@@ -47,7 +48,10 @@ export interface SupportRequestsResponse {
   providedIn: 'root',
 })
 export class SupportRequestsService {
-  private apiUrl = 'https://dev.nabih.sa/api';
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   // Improved cache structure with expiration
   private supportRequestsCache: {
@@ -59,8 +63,6 @@ export class SupportRequestsService {
   // Cache configuration
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
-
-  constructor(private http: HttpClient) {}
 
   private getCommonHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -134,7 +136,7 @@ export class SupportRequestsService {
     if (page > 1) params.append('page', page.toString());
     params.append('per_page', perPage.toString());
 
-    const url = `${this.apiUrl}/admins/support-requests${
+    const url = `${this.apiBaseUrl}/admins/support-requests${
       params.toString() ? '?' + params.toString() : ''
     }`;
 
@@ -168,7 +170,7 @@ export class SupportRequestsService {
     status: 'pending' | 'open' | 'closed'
   ): Observable<any> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/support-requests/${id}`;
+    const url = `${this.apiBaseUrl}/admins/support-requests/${id}`;
     const body = {
       admin_response,
       status,
@@ -186,7 +188,7 @@ export class SupportRequestsService {
    */
   deleteSupportRequest(token: string, id: number): Observable<any> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/support-requests/${id}`;
+    const url = `${this.apiBaseUrl}/admins/support-requests/${id}`;
     // Invalidate cache after delete
     this.invalidateCache();
     return this.http.delete(url, { headers });

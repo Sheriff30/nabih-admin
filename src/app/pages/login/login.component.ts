@@ -87,6 +87,7 @@ export class LoginComponent {
         this.loading = false;
       },
       error: (err) => {
+        console.log(err);
         this.error = err?.error?.message || 'Login failed';
         let userMessage = 'Check your email and password.';
         if (

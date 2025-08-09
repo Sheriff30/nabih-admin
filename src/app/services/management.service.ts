@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 // Interfaces for API responses
 export interface Permission {
@@ -130,7 +131,10 @@ export interface UpdateAdminResponse {
   providedIn: 'root',
 })
 export class ManagementService {
-  private apiUrl = 'https://dev.nabih.sa/api';
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   // Improved cache structure with expiration
   private adminsCache: {
@@ -142,8 +146,6 @@ export class ManagementService {
   // Cache configuration
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes
-
-  constructor(private http: HttpClient) {}
 
   private getCommonHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -213,7 +215,7 @@ export class ManagementService {
     if (page > 1) params.append('page', page.toString());
     params.append('per_page', perPage.toString());
 
-    const url = `${this.apiUrl}/admins${
+    const url = `${this.apiBaseUrl}/admins${
       params.toString() ? '?' + params.toString() : ''
     }`;
 
@@ -248,7 +250,7 @@ export class ManagementService {
     adminData: CreateAdminRequest
   ): Observable<CreateAdminResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins`;
+    const url = `${this.apiBaseUrl}/admins`;
 
     return new Observable<CreateAdminResponse>((observer) => {
       this.http
@@ -280,7 +282,7 @@ export class ManagementService {
     roles: string[]
   ): Observable<AssignRolesResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/${adminId}/roles`;
+    const url = `${this.apiBaseUrl}/admins/${adminId}/roles`;
     const requestData: AssignRolesRequest = { roles };
 
     return new Observable<AssignRolesResponse>((observer) => {
@@ -313,7 +315,7 @@ export class ManagementService {
     permissions: string[]
   ): Observable<AssignPermissionsResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/${adminId}/permissions`;
+    const url = `${this.apiBaseUrl}/admins/${adminId}/permissions`;
     const requestData: AssignPermissionsRequest = { permissions };
 
     return new Observable<AssignPermissionsResponse>((observer) => {
@@ -342,7 +344,7 @@ export class ManagementService {
    */
   listRoles(token: string): Observable<ListRolesResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/roles`;
+    const url = `${this.apiBaseUrl}/admins/roles`;
 
     return this.http.get<ListRolesResponse>(url, { headers });
   }
@@ -354,7 +356,7 @@ export class ManagementService {
    */
   listPermissions(token: string): Observable<ListPermissionsResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/permissions`;
+    const url = `${this.apiBaseUrl}/admins/permissions`;
     return this.http.get<ListPermissionsResponse>(url, { headers });
   }
 
@@ -366,7 +368,7 @@ export class ManagementService {
    */
   deleteAdmin(token: string, adminId: number): Observable<DeleteAdminResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/${adminId}`;
+    const url = `${this.apiBaseUrl}/admins/${adminId}`;
 
     return new Observable<DeleteAdminResponse>((observer) => {
       this.http.delete<DeleteAdminResponse>(url, { headers }).subscribe({
@@ -396,7 +398,7 @@ export class ManagementService {
     updateData: UpdateAdminRequest
   ): Observable<UpdateAdminResponse> {
     const headers = this.getAuthHeaders(token);
-    const url = `${this.apiUrl}/admins/${adminId}`;
+    const url = `${this.apiBaseUrl}/admins/${adminId}`;
 
     return new Observable<UpdateAdminResponse>((observer) => {
       this.http

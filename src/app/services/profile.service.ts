@@ -1,14 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProfileService {
-  private apiUrl = 'https://dev.nabih.sa/api/admins/profile';
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   private getAuthHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
@@ -27,7 +29,7 @@ export class ProfileService {
     if (!token) {
       throw new Error('No authentication token found');
     }
-    return this.http.get<any>(this.apiUrl, {
+    return this.http.get<any>(`${this.apiBaseUrl}/admins/profile`, {
       headers: this.getAuthHeaders(token),
     });
   }

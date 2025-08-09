@@ -1,14 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../tokens/api-base-url';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'https://dev.nabih.sa/api/auth/admin';
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(API_BASE_URL) private apiBaseUrl: string
+  ) {}
 
   private getCommonHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -26,7 +28,7 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<any> {
-    const url = `${this.apiUrl}/login`;
+    const url = `${this.apiBaseUrl}/auth/admin/login`;
     const body = { email, password };
     return this.http.post(url, body, {
       headers: this.getCommonHeaders(),
@@ -34,7 +36,7 @@ export class AuthService {
   }
 
   logout(token: string): Observable<any> {
-    const url = `${this.apiUrl}/logout`;
+    const url = `${this.apiBaseUrl}/auth/admin/logout`;
     return this.http.post(
       url,
       {},
